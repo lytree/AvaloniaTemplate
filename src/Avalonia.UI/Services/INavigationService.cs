@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Avalonia.Plugin.Shared;
 
 namespace Avalonia.UI.Services;
 
@@ -30,8 +31,3 @@ public interface INavigationService
     /// <returns>导航键集合</returns>
     IEnumerable<string> GetNavigationKeys();
 }
-
-/// <summary>
-/// ViewModel 工厂委托
-/// </summary>
-public delegate object ViewModelFactory();

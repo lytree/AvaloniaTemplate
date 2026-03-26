@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia.Plugin.Shared;
 using Avalonia.UI.ViewModels;
 
 namespace Avalonia.UI.Services;
@@ -7,7 +8,7 @@ namespace Avalonia.UI.Services;
 public class MenuConfigurationService : IMenuConfigurationService
 {
     private readonly MenuViewModel _menuViewModel;
-    private readonly Dictionary<string, MenuItemViewModel> _menuItemsMap = new();
+    private readonly Dictionary<string, Avalonia.Plugin.Shared.MenuItemViewModel> _menuItemsMap = new();
 
     public MenuConfigurationService()
     {
@@ -15,13 +16,38 @@ public class MenuConfigurationService : IMenuConfigurationService
         BuildMenuItemsMap(_menuViewModel.MenuItems);
     }
 
-    private void BuildMenuItemsMap(IEnumerable<MenuItemViewModel> menuItems)
+    private void BuildMenuItemsMap(IEnumerable<Avalonia.UI.ViewModels.MenuItemViewModel> menuItems)
     {
         foreach (var menuItem in menuItems)
         {
             if (!string.IsNullOrEmpty(menuItem.Key))
             {
-                _menuItemsMap[menuItem.Key] = menuItem;
+                _menuItemsMap[menuItem.Key] = new Avalonia.Plugin.Shared.MenuItemViewModel
+                {
+                    MenuHeader = menuItem.MenuHeader,
+                    Key = menuItem.Key,
+                    Status = menuItem.Status,
+                    IsSeparator = menuItem.IsSeparator,
+                    Children = menuItem.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Avalonia.Plugin.Shared.MenuItemViewModel>(
+                        menuItem.Children.Select(child => new Avalonia.Plugin.Shared.MenuItemViewModel
+                        {
+                            MenuHeader = child.MenuHeader,
+                            Key = child.Key,
+                            Status = child.Status,
+                            IsSeparator = child.IsSeparator,
+                            Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Avalonia.Plugin.Shared.MenuItemViewModel>(
+                                child.Children.Select(c => new Avalonia.Plugin.Shared.MenuItemViewModel
+                                {
+                                    MenuHeader = c.MenuHeader,
+                                    Key = c.Key,
+                                    Status = c.Status,
+                                    IsSeparator = c.IsSeparator,
+                                    Children = null
+                                })
+                            ) : null
+                        })
+                    ) : null
+                };
             }
 
             if (menuItem.Children != null && menuItem.Children.Any())
@@ -36,37 +62,94 @@ public class MenuConfigurationService : IMenuConfigurationService
         return _menuViewModel;
     }
 
-    public void RegisterMenuItem(MenuItemViewModel menuItem, string? parentKey = null)
+    public void RegisterMenuItem(Avalonia.Plugin.Shared.MenuItemViewModel menuItem, string? parentKey = null)
     {
         if (string.IsNullOrEmpty(menuItem.Key))
         {
             return;
         }
 
+        var avaloniaMenuItem = new Avalonia.UI.ViewModels.MenuItemViewModel
+        {
+            MenuHeader = menuItem.MenuHeader,
+            Key = menuItem.Key,
+            Status = menuItem.Status,
+            IsSeparator = menuItem.IsSeparator,
+            Children = menuItem.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Avalonia.UI.ViewModels.MenuItemViewModel>(
+                menuItem.Children.Select(child => new Avalonia.UI.ViewModels.MenuItemViewModel
+                {
+                    MenuHeader = child.MenuHeader,
+                    Key = child.Key,
+                    Status = child.Status,
+                    IsSeparator = child.IsSeparator,
+                    Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Avalonia.UI.ViewModels.MenuItemViewModel>(
+                        child.Children.Select(c => new Avalonia.UI.ViewModels.MenuItemViewModel
+                        {
+                            MenuHeader = c.MenuHeader,
+                            Key = c.Key,
+                            Status = c.Status,
+                            IsSeparator = c.IsSeparator,
+                            Children = null
+                        })
+                    ) : null
+                })
+            ) : null
+        };
+
         if (parentKey == null)
         {
             // 添加到根菜单
-            _menuViewModel.MenuItems.Add(menuItem);
+            _menuViewModel.MenuItems.Add(avaloniaMenuItem);
         }
         else if (_menuItemsMap.TryGetValue(parentKey, out var parentMenuItem))
         {
-            // 添加到指定父菜单
-            if (parentMenuItem.Children == null)
+            // 查找对应的 Avalonia 菜单项
+            var avaloniaParentMenuItem = FindAvaloniaMenuItem(_menuViewModel.MenuItems, parentKey);
+            if (avaloniaParentMenuItem != null)
             {
-                parentMenuItem.Children = new();
+                // 添加到指定父菜单
+                if (avaloniaParentMenuItem.Children == null)
+                {
+                    avaloniaParentMenuItem.Children = new();
+                }
+                avaloniaParentMenuItem.Children.Add(avaloniaMenuItem);
             }
-            parentMenuItem.Children.Add(menuItem);
         }
 
         // 更新菜单映射
         _menuItemsMap[menuItem.Key] = menuItem;
         if (menuItem.Children != null && menuItem.Children.Any())
         {
-            BuildMenuItemsMap(menuItem.Children);
+            foreach (var childItem in menuItem.Children)
+            {
+                _menuItemsMap[childItem.Key] = childItem;
+            }
         }
     }
 
-    public void RegisterMenuItems(IEnumerable<(string? ParentKey, MenuItemViewModel MenuItem)> menuItems)
+    private Avalonia.UI.ViewModels.MenuItemViewModel FindAvaloniaMenuItem(IEnumerable<Avalonia.UI.ViewModels.MenuItemViewModel> menuItems, string key)
+    {
+        foreach (var menuItem in menuItems)
+        {
+            if (menuItem.Key == key)
+            {
+                return menuItem;
+            }
+
+            if (menuItem.Children != null)
+            {
+                var foundItem = FindAvaloniaMenuItem(menuItem.Children, key);
+                if (foundItem != null)
+                {
+                    return foundItem;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void RegisterMenuItems(IEnumerable<(string? ParentKey, Avalonia.Plugin.Shared.MenuItemViewModel MenuItem)> menuItems)
     {
         foreach (var (parentKey, menuItem) in menuItems)
         {
@@ -79,15 +162,16 @@ public class MenuConfigurationService : IMenuConfigurationService
         if (_menuItemsMap.TryGetValue(key, out var menuItem))
         {
             // 查找并移除菜单项
-            RemoveMenuItemFromParent(menuItem);
+            RemoveMenuItemFromParent(key);
             _menuItemsMap.Remove(key);
         }
     }
 
-    private void RemoveMenuItemFromParent(MenuItemViewModel menuItem)
+    private void RemoveMenuItemFromParent(string key)
     {
         // 从根菜单查找
-        if (_menuViewModel.MenuItems.Remove(menuItem))
+        var menuItemToRemove = FindAvaloniaMenuItem(_menuViewModel.MenuItems, key);
+        if (menuItemToRemove != null && _menuViewModel.MenuItems.Remove(menuItemToRemove))
         {
             return;
         }
@@ -95,16 +179,17 @@ public class MenuConfigurationService : IMenuConfigurationService
         // 从子菜单查找
         foreach (var parentItem in _menuViewModel.MenuItems)
         {
-            if (RemoveFromChildren(parentItem, menuItem))
+            if (RemoveFromChildren(parentItem, key))
             {
                 return;
             }
         }
     }
 
-    private bool RemoveFromChildren(MenuItemViewModel parentItem, MenuItemViewModel menuItem)
+    private bool RemoveFromChildren(Avalonia.UI.ViewModels.MenuItemViewModel parentItem, string key)
     {
-        if (parentItem.Children != null && parentItem.Children.Remove(menuItem))
+        var menuItemToRemove = FindAvaloniaMenuItem(parentItem.Children, key);
+        if (parentItem.Children != null && menuItemToRemove != null && parentItem.Children.Remove(menuItemToRemove))
         {
             return true;
         }
@@ -113,7 +198,7 @@ public class MenuConfigurationService : IMenuConfigurationService
         {
             foreach (var childItem in parentItem.Children)
             {
-                if (RemoveFromChildren(childItem, menuItem))
+                if (RemoveFromChildren(childItem, key))
                 {
                     return true;
                 }
@@ -126,5 +211,13 @@ public class MenuConfigurationService : IMenuConfigurationService
     public IEnumerable<string> GetMenuItemKeys()
     {
         return _menuItemsMap.Keys;
+    }
+}
+
+public static class EnumerableExtensions
+{
+    public static System.Collections.ObjectModel.ObservableCollection<T> ToObservableCollection<T>(this IEnumerable<T> source)
+    {
+        return new System.Collections.ObjectModel.ObservableCollection<T>(source);
     }
 }

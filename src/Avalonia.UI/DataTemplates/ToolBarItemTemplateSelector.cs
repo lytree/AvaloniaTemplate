@@ -3,7 +3,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Ursa.Controls;
-using Avalonia.UI.ViewModels;
+using Avalonia.Plugin.Shared;
 
 namespace Avalonia.UI.Converters;
 

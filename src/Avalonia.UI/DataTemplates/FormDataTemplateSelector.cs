@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Avalonia.UI.ViewModels;
+using Avalonia.Plugin.Shared;
 
 namespace Avalonia.UI.Converters;
 

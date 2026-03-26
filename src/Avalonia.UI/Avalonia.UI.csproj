@@ -1,5 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
@@ -24,4 +25,13 @@
 	    <DependentUpon>SettingsPage.axaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
+
+	<ItemGroup>
+    <ProjectReference Include="..\Plugins\Avalonia.Plugin.Shared\Avalonia.Plugin.Shared.csproj" />
+    <ProjectReference Include="..\Plugins\Avalonia.Plugin.ButtonsInputs\Avalonia.Plugin.ButtonsInputs.csproj" />
+    <ProjectReference Include="..\Plugins\Avalonia.Plugin.DateTime\Avalonia.Plugin.DateTime.csproj" />
+    <ProjectReference Include="..\Plugins\Avalonia.Plugin.DialogFeedbacks\Avalonia.Plugin.DialogFeedbacks.csproj" />
+    <ProjectReference Include="..\Plugins\Avalonia.Plugin.NavigationMenus\Avalonia.Plugin.NavigationMenus.csproj" />
+    <ProjectReference Include="..\Plugins\Avalonia.Plugin.LayoutDisplay\Avalonia.Plugin.LayoutDisplay.csproj" />
+  </ItemGroup>
 </Project>
