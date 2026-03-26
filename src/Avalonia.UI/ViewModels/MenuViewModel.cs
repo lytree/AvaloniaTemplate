@@ -97,8 +97,7 @@ public class MenuViewModel : ViewModelBase
                     new() { MenuHeader = "Timeline", Key = MenuKeys.MenuKeyTimeline },
                     new() { MenuHeader = "TwoTonePathIcon", Key = MenuKeys.MenuKeyTwoTonePathIcon }
                 }
-            },
-            new() { MenuHeader = "SettingsView", Key = MenuKeys.MenuKeySettings, IsSeparator = true },
+            }
         };
     }
 

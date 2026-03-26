@@ -11,6 +11,8 @@
 	<ItemGroup>
 
 		<PackageReference Include="Avalonia" Version="11.3.12" />
+
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
 		<PackageReference Include="Semi.Avalonia" Version="11.3.7.3" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Irihi.Ursa" Version="1.15.0" />
