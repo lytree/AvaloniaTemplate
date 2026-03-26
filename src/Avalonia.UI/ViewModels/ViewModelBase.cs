@@ -1,7 +1,7 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Avalonia.UI.ViewModels;
 
-public abstract class ViewModelBase : ObservableRecipient
+public class ViewModelBase : ObservableObject
 {
 }
