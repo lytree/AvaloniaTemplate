@@ -4,6 +4,12 @@ using Avalonia.Labs.Input;
 using CommunityToolkit.Mvvm.Input;
 public abstract class PageBase : UserControl
 {
+
+    [ObservableProperty]
+    private string _title = string.Empty;
+
+    [ObservableProperty]
+    private string _iconPath = string.Empty;
     /// <summary>
     /// 设置窗口的<see cref="DialogHost"/>的标识符。
     /// </summary>

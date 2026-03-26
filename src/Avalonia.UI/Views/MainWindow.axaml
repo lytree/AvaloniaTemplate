@@ -1,127 +1,87 @@
 <Window xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:vm="using:Avalonia.UI.ViewModels"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" MinWidth="560" Title="应用设置" Height="550" Width="1240" EnableMicaWindow="True" x:Class="Avalonia.UI.Views.MainWindow" x:DataType="vm:MainWindowViewModel" Icon="/Assets/avalonia-logo.ico" Title="Avalonia.UI">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Avalonia.UI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" MinWidth="560" Title="应用设置" Height="550" Width="1240" EnableMicaWindow="True" x:Class="Avalonia.UI.Views.MainWindow" x:DataType="vm:MainWindowViewModel" Icon="/Assets/avalonia-logo.ico" Title="Avalonia.UI">
 
     <input:CommandManager.CommandBindings>
         <input:CommandBinding Command="{x:Static controls1:SettingsPageBase.OpenDrawerCommand}" Executed="CommandBindingOpenDrawer_OnExecuted"/>
         <input:CommandBinding Command="{x:Static controls1:SettingsPageBase.CloseDrawerCommand}" Executed="CommandBindingCloseDrawer_OnExecuted"/>
         <input:CommandBinding Command="{x:Static controls1:SettingsPageBase.RequestRestartCommand}" Executed="CommandBindingRestartApp_OnExecuted"></input:CommandBinding>
     </input:CommandManager.CommandBindings>
-    <Grid x:Name="RootGrid">
-        <Grid RowDefinitions="Auto,*">
-            <controls3:NavigationView Grid.Row="1" x:Name="NavigationView" PaneDisplayMode="Auto" IsSettingsVisible="False" MenuItems="{Binding ViewModel.NavigationViewItems, Mode=OneWay}" ItemInvoked="NavigationView_OnItemInvoked" BackRequested="NavigationView_OnBackRequested" Loaded="Control_OnLoaded" OpenPaneLength="283">
-                <controls3:NavigationView.Styles>
-                    <Style Selector="controls3|NavigationView#NavigationView:minimal">
-                        <Setter Property="IsPaneToggleButtonVisible" Value="False"/>
-                    </Style>
-                </controls3:NavigationView.Styles>
-                <!-- 页面内容 -->
-                <controls:DrawerHost IsDrawerOpen="{Binding ViewModel.IsDrawerOpen, Mode=TwoWay}" DrawerPlacement="Right" DrawerContent="{Binding ViewModel.DrawerContent}">
-                    <Grid RowDefinitions="Auto, *">
-                        <Grid Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="32 8 8 16" Opacity="0.75" ColumnDefinitions="Auto,*">
-                            <Grid.IsVisible>
-                                <MultiBinding Converter="{StaticResource BooleanAndExpressionMultiConverter}">
-                                    <Binding Path="SettingsService.Settings.ShowEchoCaveWhenSettingsPageLoading"/>
-                                    <Binding Path="ViewModel.IsNavigating"/>
-                                    <Binding Path="ManagementService.Policy.DisableEasterEggs" Converter="{StaticResource BooleanToBooleanReConverter}"/>
-                                </MultiBinding>
-                            </Grid.IsVisible>
-                            <commands:FluentIcon Glyph="&#xEA8A;" VerticalAlignment="Center" Grid.Column="0"/>
-                            <TextBlock Text="{Binding ViewModel.CurrentEchoCaveText}" Grid.Column="1" TextWrapping="Wrap" FontWeight="Regular" VerticalAlignment="Center" Margin="4 0 0 0"/>
-                        </Grid>
-                        <Grid Grid.Row="0" Margin="12 16 18 0" IsVisible="{Binding !ViewModel.SelectedPageInfo.HidePageTitle}" Classes.FullWidth="{Binding ViewModel.SelectedPageInfo.UseFullWidth}" x:Name="TitleContainer">
-                            <Grid.Styles>
-                                <Style Selector="Grid#TitleContainer:not(.FullWidth)">
-                                    <Setter Property="MaxWidth" Value="{StaticResource SettingsContainerWidth}"/>
-                                </Style>
-                            </Grid.Styles>
-                            <TextBlock FontWeight="Normal" Text="{Binding ViewModel.SelectedPageInfo.Name}" Theme="{StaticResource TitleTextBlockStyle}"/>
-                        </Grid>
-                        <controls3:Frame Grid.Row="1" Content="{Binding ViewModel.FrameContent}" Navigated="NavigationServiceOnLoadCompleted" Navigating="NavigationServiceOnNavigating" CacheSize="0" x:Name="NavigationFrame">
-                        </controls3:Frame>
-                    </Grid>
-                </controls:DrawerHost>
-            </controls3:NavigationView>
-            <Border Grid.Column="0" Grid.Row="0" Height="48" Margin="0 0 8 0">
-                <Grid VerticalAlignment="Center" ColumnDefinitions="Auto,Auto,*,Auto">
-                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center">
-                        <!-- 红绿灯空位 -->
-                        <Border Grid.Column="3" Width="60">
-                            <Border.IsVisible>
-                                <OnPlatform Default="False">
-                                    <On Options="macOS" Content="True" />
-                                </OnPlatform>
-                            </Border.IsVisible>
-                        </Border>
-                        <Button Name="BackButton" Grid.Column="" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 -8 0 -8" Click="BackButton_OnClick" IsVisible="{Binding #NavigationFrame.CanGoBack}" MinWidth="40" Width="48" ToolTip.Tip="返回" Classes="nav-back">
-                        </Button>
-                        <Button Name="TogglePaneButton" Grid.Column="" Theme="{StaticResource PaneToggleButtonStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 -8 -8 -8" Click="TogglePaneButton_OnClick" IsVisible="{Binding !#NavigationView.IsPaneToggleButtonVisible}" MinWidth="40" Width="48"/>
+    <Grid ColumnDefinitions="250,*">
 
-                        <Image Margin="12 4" IsHitTestVisible="False" Source="/Assets/AppLogo.png" Width="18" Height="18" DockPanel.Dock="Left" Name="WindowIcon" RenderOptions.BitmapInterpolationMode="HighQuality" Classes="custom-titlebar-only"/>
+        <!-- 侧边导航栏 -->
+        <Border Grid.Column="0"
+                Background="{DynamicResource NavigationViewDefaultPaneBackground}"
+                BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                BorderThickness="0,0,1,0">
 
-                        <TextBlock Text="{Binding Title, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}" FontSize="12" Margin="0 2 0 0" IsHitTestVisible="False" VerticalAlignment="Center" Classes="custom-titlebar-only"/>
+            <StackPanel Margin="0,40,0,0">
+
+                <!-- 应用标题 -->
+                <TextBlock Text="My Application"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Margin="16,0,0,20"/>
+
+                <!-- 导航菜单 -->
+                <ListBox ItemsSource="{Binding NavigationItems}"
+                         SelectedItem="{Binding SelectedItem}"
+                         Background="Transparent"
+                         BorderThickness="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="12,10"
+                                    CornerRadius="4"
+                                    Margin="8,2"
+                                    Background="{Binding IsSelected,
+                                    Converter={StaticResource BoolToBackgroundConverter}}">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <!-- 图标 -->
+                                    <PathIcon Data="{Binding IconPath}"
+                                              Width="16" Height="16"
+                                              Foreground="{DynamicResource TextFillColorPrimary}"/>
+                                    <!-- 文本 -->
+                                    <TextBlock Text="{Binding Title}"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextFillColorPrimary}"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- 底部设置按钮 -->
+                <Border Margin="8"
+                        Padding="12,10"
+                        CornerRadius="4"
+                        Background="Transparent">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <PathIcon Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
+                                  Width="16" Height="16"/>
+                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
                     </StackPanel>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                        <Button Classes="accent" ToolTip.Tip="部分设置需要重启才能生效，点击以重启应用。" Margin="0 -8" VerticalAlignment="Center" IsVisible="{Binding ViewModel.IsRequestedRestart}" Click="ButtonRestartApp_OnClick">
-                            <commands:IconText Glyph="&#xE0BD;" Text="需要重启"/>
-                        </Button>
-                        <TextBlock Text="{x:Static commands:AppBase.AppVersion}" VerticalAlignment="Center" ToolTip.Tip="应用版本" Margin="0 2 0 0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                        <Button Theme="{StaticResource TransparentButton}" ToolTip.Tip="更多选项…" VerticalAlignment="Center" HorizontalAlignment="Right">
-                            <commands:FluentIcon Glyph="&#xEBAC;" />
-                            <Button.Flyout>
-                                <MenuFlyout>
-                                    <!-- <MenuItem Icon="{controls:FluentIcon &#xE508;}" Header="实验性功能…" Click="MenuItemExperimentalSettings_OnClick" />
-                                    <MenuItem Icon="{controls:FluentIcon &#xF485;}" Header="调试窗口规则…" Click="MenuItemDebugWindowRule_OnClick" />
-                                    <MenuItem Icon="{controls:FluentIcon &#xE0B1;}" Header="创建快捷方式....">
-                                        <MenuItem.IsVisible>
-                                            <OnPlatform Default="False">
-                                                <On Options="Windows" Content="True" />
-                                                <On Options="Linux" Content="True" />
-                                            </OnPlatform>
-                                        </MenuItem.IsVisible>
-                                        <MenuItem Icon="{controls:FluentIcon &#xE62F;}" Header="创建桌面快捷方式" Click="MenuItemAddDesktopShortcut_OnClick" />
-                                        <MenuItem Icon="{controls:FluentIcon &#xE06F;}" Header="创建开始菜单快捷方式" Click="MenuItemAddStartMenuShortcut_OnClick" />
-                                        <MenuItem Icon="{controls:FluentIcon &#xE15F;}" Header="创建快捷换课图标" Click="MenuItemAddClassSwapShortcut_OnClick">
-                                            <MenuItem.IsVisible>
-                                                <OnPlatform Default="False">
-                                                    <On Options="Windows" Content="True" />
-                                                </OnPlatform>
-                                            </MenuItem.IsVisible>
-                                        </MenuItem>
-                                    </MenuItem>
-                                    <MenuItem Icon="{commands:FluentIcon &#xe083;}" Header="数据迁移…" Click="MenuItemDataTransfer_OnClick"/>
-                                    <Separator />
-                                    <MenuItem Icon="{controls:FluentIcon &#xE2B4;}" Header="集控选项…" Click="MenuItemOpenManagementSettingsPage_OnClick">
-                                    </MenuItem>
-                                    <MenuItem Icon="{controls:FluentIcon &#xE2B6;}" Header="加入管理…" IsVisible="{Binding !ManagementService.IsManagementEnabled}" Click="MenuItemJoinManagement_OnClick">
-
-                                    </MenuItem>
-                                    <MenuItem Icon="{controls:FluentIcon &#xE2B8;}" Header="退出管理…" Click="MenuItemExitManagement_OnClick" IsVisible="{Binding ManagementService.IsManagementEnabled}">
-                                    </MenuItem>
-                                    <Separator />
-                                    <MenuItem Icon="{controls:FluentIcon &#xE510;}" Header="日志…" Click="MenuItemAppLogs_OnClick" />
-                                    <MenuItem Icon="{controls:FluentIcon &#xE601;}" Header="导出诊断数据" Click="MenuItemExportDiagnosticInfo_OnClick" />
-                                    <MenuItem Icon="{controls:FluentIcon &#xF4C5;}" Header="重启到恢复模式" Click="MenuItemRestartToRecovery_OnClick" />
-                                    <Separator />
-                                    <MenuItem Icon="{controls:FluentIcon &#xE889;}" Header="打开日志目录…" Click="MenuItemOpenLogFolder_OnClick" />
-                                    <MenuItem Icon="{controls:FluentIcon &#xE881;}" Header="打开数据目录…" Click="MenuItemOpenDataFolder_OnClick" />
-                                    <MenuItem Icon="{controls:FluentIcon &#xE885;}" Header="打开应用目录…" Click="MenuItemOpenAppFolder_OnClick" /> -->
-                                </MenuFlyout>
-                            </Button.Flyout>
-                        </Button>
-                    </StackPanel>
-                    <!-- 金刚键空位 -->
-                    <Border Grid.Column="3" Width="140" Classes="custom-titlebar-only"/>
-
-                </Grid>
-            </Border>
-        </Grid>
-
-        <Border VerticalAlignment="Stretch" HorizontalAlignment="Stretch" IsVisible="{Binding ViewModel.IsCoverVisible}" Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
-            <Image Source="/Assets/AppLogo@384w.png" Height="96" Width="96" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Border>
+            </StackPanel>
         </Border>
+
+        <!-- 主内容区域 -->
+        <Grid Grid.Column="1" Margin="24">
+            <StackPanel>
+                <TextBlock Text="{Binding SelectedItem.Title}"
+                           FontSize="28"
+                           FontWeight="Light"
+                           Margin="0,0,0,20"/>
+                <Border Background="{DynamicResource CardBackgroundFillColorDefault}"
+                        CornerRadius="8"
+                        Padding="24"
+                        BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                        BorderThickness="1">
+                    <TextBlock Text="Content Area"
+                               Foreground="{DynamicResource TextFillColorSecondary}"/>
+                </Border>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
