@@ -1,0 +1,6 @@
+<Solution>
+    <Folder Name="/src/">
+        <Project Path="src/Avalonia.Launcher/Avalonia.Launcher.csproj" />
+        <Project Path="src/Avalonia.UI/Avalonia.UI.csproj" />
+    </Folder>
+</Solution>

@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Description>Avalonia 应用跨平台抽象基类。</Description>
+        <PackageTags>Avalonia;avalonia;</PackageTags>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <RootNamespace>Avalonia.Platforms.Abstraction</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
+        <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+    </ItemGroup>
+
+</Project>
