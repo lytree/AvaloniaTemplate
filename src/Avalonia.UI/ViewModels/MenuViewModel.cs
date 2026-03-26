@@ -98,6 +98,7 @@ public class MenuViewModel : ViewModelBase
                     new() { MenuHeader = "TwoTonePathIcon", Key = MenuKeys.MenuKeyTwoTonePathIcon }
                 }
             },
+            new() { MenuHeader = "SettingsView", Key = MenuKeys.MenuKeySettings, IsSeparator = true },
         };
     }
 
@@ -164,4 +165,5 @@ public static class MenuKeys
     public const string MenuKeyPathPicker = "PathPicker";
     public const string MenuKeyAnchor = "Anchor";
     public const string MenuKeyMultiAutoCompleteBox = "MultiAutoCompleteBox";
+    public const string MenuKeySettings = "Settings";
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net10.0-android</TargetFramework>
@@ -20,11 +20,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Android"/>
-        <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen"/>
+        <PackageReference Include="Avalonia.Android" />
+        <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Ursa.Demo\Ursa.Demo.csproj"/>
+      <ProjectReference Include="..\..\Avalonia.UI\Avalonia.UI.csproj" />
     </ItemGroup>
 </Project>

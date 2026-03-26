@@ -38,7 +38,7 @@
                     SubMenuBinding="{Binding Children}"
                     HeaderBinding="{Binding}"
                     IconBinding="{Binding MenuHeader}"
-                    IsHorizontalCollapsed="{Binding IsCollapsed, Mode=TwoWay}"
+
                     ItemsSource="{Binding Menus.MenuItems}">
                     <u:NavMenu.Styles>
                         <Style x:DataType="vm:MenuItemViewModel" Selector="u|NavMenuItem">
@@ -93,23 +93,13 @@
                             HorizontalAlignment="Stretch"
                             Classes="Tertiary"
                             Icon="{StaticResource SemiIconSetting}"
-                            Content="{Binding FooterText}"
+                            Content="Settings"
                             RenderTransform="{x:Null}"
                             ToolTip.Tip="Settings"
                             FontWeight="Normal"
-                            Theme="{DynamicResource BorderlessIconButton}">
-                            <Button.Flyout>
-                                <Flyout Placement="RightEdgeAlignedBottom">
-                                    <u:Form LabelPosition="Left">
-                                        <ComboBox
-                                            Width="110"
-                                            u:FormItem.Label="Theme"
-                                            DisplayMemberBinding="{Binding Name}"
-                                            ItemsSource="{Binding Themes}"
-                                            SelectedItem="{Binding SelectedTheme}" />
-                                    </u:Form>
-                                </Flyout>
-                            </Button.Flyout>
+                            Theme="{DynamicResource BorderlessIconButton}"
+                            Command="{Binding ActivateCommand}"
+                            CommandParameter="Settings">
                         </u:IconButton>
                     </u:NavMenu.Footer>
                 </u:NavMenu>

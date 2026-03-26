@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:Avalonia.UI.ViewModels"
+             x:Class="Avalonia.UI.Pages.SettingsPage"
+             x:DataType="viewModels:SettingsPageViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" Text="Settings" FontSize="24" FontWeight="Bold" Margin="0 0 0 24"/>
+        
+        <StackPanel Grid.Row="1" Spacing="24">
+            <!-- Theme Section -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Theme" FontSize="18" FontWeight="SemiBold"/>
+                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Select a theme for the application" FontSize="14" Opacity="0.7"/>
+                        <ComboBox Width="200" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" DisplayMemberBinding="{Binding Name}"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+            
+            <!-- Interface Section -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Interface" FontSize="18" FontWeight="SemiBold"/>
+                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Customize the interface appearance" FontSize="14" Opacity="0.7"/>
+                        <CheckBox IsChecked="{Binding IsCollapsed}" Content="Collapse Sidebar"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+            
+            <!-- About Section -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="About" FontSize="18" FontWeight="SemiBold"/>
+                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Avalonia UI Template" FontSize="16" FontWeight="Medium"/>
+                        <TextBlock Text="Version 1.0.0" FontSize="14" Opacity="0.7"/>
+                        <TextBlock Text="A modern UI template built with Avalonia and Ursa controls." FontSize="14" Opacity="0.7"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -11,6 +11,10 @@ public class ViewLocator: IDataTemplate
         if (param is null) return null;
         var name = param.GetType().Name.Replace("ViewModel", "");
         var type = Type.GetType("Avalonia.UI.Pages."+name);
+        if (type == null)
+        {
+            type = Type.GetType("Avalonia.UI.Views."+name);
+        }
         if (type != null)
         {
             return (Control)Activator.CreateInstance(type)!;
