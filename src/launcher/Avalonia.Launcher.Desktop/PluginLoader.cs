@@ -4,11 +4,11 @@ using System.IO;
 using System.Reflection;
 using Avalonia.Plugin.Shared;
 
-namespace Avalonia.UI.Services;
+namespace Avalonia.Desktop;
 
 public class PluginLoader
 {
-    private readonly List<Avalonia.Plugin.Shared.IPlugin> _plugins = new();
+    private readonly List<IPlugin> _plugins = new();
 
     /// <summary>
     /// 加载插件
@@ -30,9 +30,9 @@ public class PluginLoader
                 var assembly = Assembly.LoadFrom(dllFile);
                 foreach (var type in assembly.GetTypes())
                 {
-                    if (typeof(Avalonia.Plugin.Shared.IPlugin).IsAssignableFrom(type) && !type.IsAbstract)
+                    if (typeof(IPlugin).IsAssignableFrom(type) && !type.IsAbstract)
                     {
-                        var plugin = (Avalonia.Plugin.Shared.IPlugin)Activator.CreateInstance(type)!;
+                        var plugin = (IPlugin)Activator.CreateInstance(type)!;
                         _plugins.Add(plugin);
                         plugin.Initialize();
                     }
@@ -50,7 +50,7 @@ public class PluginLoader
     /// 获取所有插件
     /// </summary>
     /// <returns>插件列表</returns>
-    public IEnumerable<Avalonia.Plugin.Shared.IPlugin> GetPlugins()
+    public IEnumerable<IPlugin> GetPlugins()
     {
         return _plugins;
     }
@@ -59,9 +59,9 @@ public class PluginLoader
     /// 获取所有插件提供的导航项
     /// </summary>
     /// <returns>导航项字典</returns>
-    public Dictionary<string, ViewModelFactory> GetAllNavigationItems()
+    public Dictionary<string, Avalonia.Plugin.Shared.ViewModelFactory> GetAllNavigationItems()
     {
-        var navigationItems = new Dictionary<string, ViewModelFactory>();
+        var navigationItems = new Dictionary<string, Avalonia.Plugin.Shared.ViewModelFactory>();
         foreach (var plugin in _plugins)
         {
             var items = plugin.GetNavigationItems();
@@ -77,9 +77,9 @@ public class PluginLoader
     /// 获取所有插件提供的菜单项
     /// </summary>
     /// <returns>菜单项列表</returns>
-    public IEnumerable<(string? ParentKey, Avalonia.Plugin.Shared.MenuItemViewModel MenuItem)> GetAllMenuItems()
+    public IEnumerable<(string? ParentKey, MenuItemViewModel MenuItem)> GetAllMenuItems()
     {
-        var menuItems = new List<(string? ParentKey, Avalonia.Plugin.Shared.MenuItemViewModel MenuItem)>();
+        var menuItems = new List<(string? ParentKey, MenuItemViewModel MenuItem)>();
         foreach (var plugin in _plugins)
         {
             var items = plugin.GetMenuItems();

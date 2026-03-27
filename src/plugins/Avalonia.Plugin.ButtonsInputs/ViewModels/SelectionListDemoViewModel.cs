@@ -22,3 +22,8 @@ public partial class SelectionListDemoViewModel: ObservableObject
         SelectedItem = null;
     }
 }
+
+
+
+
+

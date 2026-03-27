@@ -1,6 +1,5 @@
-using System;
-using System.Net;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Net;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
 
@@ -18,3 +17,8 @@ public partial class IPv4BoxDemoViewModel: ObservableObject
         Address = new IPAddress(l);
     }
 }
+
+
+
+
+

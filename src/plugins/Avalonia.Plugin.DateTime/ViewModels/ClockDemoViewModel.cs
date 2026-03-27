@@ -1,25 +1,25 @@
-using System;
-using System.Timers;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Timers;
 
 namespace Avalonia.Plugin.DateTimeControls.ViewModels;
 
 public partial class ClockDemoViewModel: ObservableObject, IDisposable
 {
-    private Timer _timer;
+    private System.Timers.Timer _timer;
     
-    [ObservableProperty] private DateTime _time;
+    [ObservableProperty] 
+    private DateTimeOffset _time;
     public ClockDemoViewModel()
     {
-        Time = DateTime.Now;
-        _timer = new Timer(1000);
+        Time = DateTimeOffset.Now;
+        _timer = new System.Timers.Timer(1000);
         _timer.Elapsed += TimerOnElapsed;
         _timer.Start();
     }
 
     private void TimerOnElapsed(object? sender, ElapsedEventArgs e)
     {
-        Time = DateTime.Now;
+        Time = DateTimeOffset.Now;
     }
 
     public void Dispose()
@@ -29,3 +29,8 @@ public partial class ClockDemoViewModel: ObservableObject, IDisposable
         _timer.Dispose();
     }
 }
+
+
+
+
+

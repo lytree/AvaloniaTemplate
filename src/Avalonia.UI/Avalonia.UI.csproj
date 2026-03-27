@@ -5,7 +5,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Folder Include="Models\" />
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 
@@ -26,12 +25,4 @@
 	  </Compile>
 	</ItemGroup>
 
-	<ItemGroup>
-    <ProjectReference Include="..\Plugins\Avalonia.Plugin.Shared\Avalonia.Plugin.Shared.csproj" />
-    <ProjectReference Include="..\Plugins\Avalonia.Plugin.ButtonsInputs\Avalonia.Plugin.ButtonsInputs.csproj" />
-    <ProjectReference Include="..\Plugins\Avalonia.Plugin.DateTime\Avalonia.Plugin.DateTime.csproj" />
-    <ProjectReference Include="..\Plugins\Avalonia.Plugin.DialogFeedbacks\Avalonia.Plugin.DialogFeedbacks.csproj" />
-    <ProjectReference Include="..\Plugins\Avalonia.Plugin.NavigationMenus\Avalonia.Plugin.NavigationMenus.csproj" />
-    <ProjectReference Include="..\Plugins\Avalonia.Plugin.LayoutDisplay\Avalonia.Plugin.LayoutDisplay.csproj" />
-  </ItemGroup>
 </Project>

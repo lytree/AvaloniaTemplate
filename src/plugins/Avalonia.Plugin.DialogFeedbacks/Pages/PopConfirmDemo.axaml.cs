@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Ursa.Controls;
 using Avalonia.UI.ViewModels;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.Avalonia.Plugin.DialogFeedbacks.Pages;
 
 public partial class PopConfirmDemo : UserControl
 {
@@ -22,3 +22,8 @@ public partial class PopConfirmDemo : UserControl
             : new WindowToastManager(topLevel);
     }
 }
+
+
+
+
+

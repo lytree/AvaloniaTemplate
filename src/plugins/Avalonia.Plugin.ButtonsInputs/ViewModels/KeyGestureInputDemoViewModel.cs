@@ -1,6 +1,5 @@
-using System.Collections.Generic;
-using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Input;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
 
@@ -11,3 +10,8 @@ public class KeyGestureInputDemoViewModel: ObservableObject
         Key.A, Key.B, Key.C,
     };
 }
+
+
+
+
+

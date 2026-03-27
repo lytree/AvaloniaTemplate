@@ -8,7 +8,7 @@ namespace Avalonia.UI.Services;
 public class MenuConfigurationService : IMenuConfigurationService
 {
     private readonly MenuViewModel _menuViewModel;
-    private readonly Dictionary<string, Avalonia.Plugin.Shared.MenuItemViewModel> _menuItemsMap = new();
+    private readonly Dictionary<string, MenuItemViewModel> _menuItemsMap = new();
 
     public MenuConfigurationService()
     {
@@ -22,21 +22,21 @@ public class MenuConfigurationService : IMenuConfigurationService
         {
             if (!string.IsNullOrEmpty(menuItem.Key))
             {
-                _menuItemsMap[menuItem.Key] = new Avalonia.Plugin.Shared.MenuItemViewModel
+                _menuItemsMap[menuItem.Key] = new MenuItemViewModel
                 {
                     MenuHeader = menuItem.MenuHeader,
                     Key = menuItem.Key,
                     Status = menuItem.Status,
                     IsSeparator = menuItem.IsSeparator,
-                    Children = menuItem.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Avalonia.Plugin.Shared.MenuItemViewModel>(
-                        menuItem.Children.Select(child => new Avalonia.Plugin.Shared.MenuItemViewModel
+                    Children = menuItem.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
+                        menuItem.Children.Select(child => new MenuItemViewModel
                         {
                             MenuHeader = child.MenuHeader,
                             Key = child.Key,
                             Status = child.Status,
                             IsSeparator = child.IsSeparator,
-                            Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Avalonia.Plugin.Shared.MenuItemViewModel>(
-                                child.Children.Select(c => new Avalonia.Plugin.Shared.MenuItemViewModel
+                            Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
+                                child.Children.Select(c => new MenuItemViewModel
                                 {
                                     MenuHeader = c.MenuHeader,
                                     Key = c.Key,
@@ -62,7 +62,7 @@ public class MenuConfigurationService : IMenuConfigurationService
         return _menuViewModel;
     }
 
-    public void RegisterMenuItem(Avalonia.Plugin.Shared.MenuItemViewModel menuItem, string? parentKey = null)
+    public void RegisterMenuItem(MenuItemViewModel menuItem, string? parentKey = null)
     {
         if (string.IsNullOrEmpty(menuItem.Key))
         {
@@ -149,7 +149,7 @@ public class MenuConfigurationService : IMenuConfigurationService
         return null;
     }
 
-    public void RegisterMenuItems(IEnumerable<(string? ParentKey, Avalonia.Plugin.Shared.MenuItemViewModel MenuItem)> menuItems)
+    public void RegisterMenuItems(IEnumerable<(string? ParentKey, MenuItemViewModel MenuItem)> menuItems)
     {
         foreach (var (parentKey, menuItem) in menuItems)
         {

@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Ursa.Controls;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.Avalonia.Plugin.ButtonsInputs.Pages;
 
 public partial class PinCodeDemo : UserControl
 {
@@ -16,3 +16,8 @@ public partial class PinCodeDemo : UserControl
         await MessageBox.ShowOverlayAsync(text);
     }
 }
+
+
+
+
+

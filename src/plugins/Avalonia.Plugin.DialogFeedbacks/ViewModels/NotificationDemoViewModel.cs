@@ -1,6 +1,10 @@
 using System;
-using Avalonia.Controls.Notifications;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared;
+using Avalonia.Controls.Notifications;
+using Avalonia.Plugin.Shared;
 using CommunityToolkit.Mvvm.Input;
 using Notification = Ursa.Controls.Notification;
 using WindowNotificationManager = Ursa.Controls.WindowNotificationManager;
@@ -49,3 +53,8 @@ public partial class NotificationDemoViewModel : ObservableObject
             classes: ["Light"]);
     }
 }
+
+
+
+
+

@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.DateTime.Pages;
 
 public partial class ClockDemo : UserControl
 {
@@ -9,3 +9,8 @@ public partial class ClockDemo : UserControl
         InitializeComponent();
     }
 }
+
+
+
+
+

@@ -1,3 +1,7 @@
+using System;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Plugin.Shared;
 using System.Diagnostics;
 using System.Windows.Input;
 using Avalonia.Collections;
@@ -20,3 +24,8 @@ public class PaginationDemoViewModel : ViewModelBase
         Debug.WriteLine($"Loading page {pageIndex}");
     }
 }
+
+
+
+
+

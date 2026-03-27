@@ -28,3 +28,6 @@ public class TemplatePlugin : IPlugin
         return menuItems;
     }
 }
+
+
+

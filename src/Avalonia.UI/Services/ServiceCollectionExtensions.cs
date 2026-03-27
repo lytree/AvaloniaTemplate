@@ -6,9 +6,6 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddAvaloniaServices(this IServiceCollection services)
     {
-        // 注册插件加载器
-        services.AddSingleton<PluginLoader>();
-        
         // 注册导航服务
         services.AddSingleton<INavigationService, NavigationService>();
         

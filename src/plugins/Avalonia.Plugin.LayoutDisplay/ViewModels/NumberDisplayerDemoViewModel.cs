@@ -1,6 +1,10 @@
 using System;
-using System.Windows.Input;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared;
+using System.Windows.Input;
+using Avalonia.Plugin.Shared;
 using CommunityToolkit.Mvvm.Input;
 
 namespace Avalonia.Plugin.LayoutDisplay.ViewModels;
@@ -30,3 +34,8 @@ public partial class NumberDisplayerDemoViewModel: ObservableObject
         DateValue = DateTime.Today.AddDays(r.Next(1000));
     }
 }
+
+
+
+
+

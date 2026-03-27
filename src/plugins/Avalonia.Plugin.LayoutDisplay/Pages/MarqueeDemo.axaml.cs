@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.Avalonia.Plugin.LayoutDisplay.Pages;
 
 public partial class MarqueeDemo : UserControl
 {
@@ -11,3 +11,8 @@ public partial class MarqueeDemo : UserControl
         InitializeComponent();
     }
 }
+
+
+
+
+

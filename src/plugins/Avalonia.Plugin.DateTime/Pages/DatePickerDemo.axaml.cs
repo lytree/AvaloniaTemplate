@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Avalonia.Controls;
 using Ursa.Controls;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.Avalonia.Plugin.DateTime.Pages;
 
 public partial class DatePickerDemo : UserControl
 {
@@ -11,3 +11,8 @@ public partial class DatePickerDemo : UserControl
         InitializeComponent();
     }
 }
+
+
+
+
+

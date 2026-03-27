@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.Avalonia.Plugin.LayoutDisplay.Pages;
 
 public partial class BadgeDemo : UserControl
 {
@@ -10,3 +10,8 @@ public partial class BadgeDemo : UserControl
         InitializeComponent();
     }
 }
+
+
+
+
+

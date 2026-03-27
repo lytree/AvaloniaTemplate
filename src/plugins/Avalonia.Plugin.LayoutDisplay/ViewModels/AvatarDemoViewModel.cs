@@ -1,4 +1,8 @@
+using System;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared;
 using CommunityToolkit.Mvvm.Input;
 
 namespace Avalonia.Plugin.LayoutDisplay.ViewModels;
@@ -14,3 +18,8 @@ public partial class AvatarDemoViewModel : ViewModelBase
         Content = "BM";
     }
 }
+
+
+
+
+

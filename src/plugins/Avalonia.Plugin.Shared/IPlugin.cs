@@ -180,3 +180,6 @@ public class ToolBarComboBoxItemViewModel : ToolBarItemViewModel
     public object SelectedItem { get; set; }
     public object Items { get; set; }
 }
+
+
+

@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.Avalonia.Plugin.LayoutDisplay.Pages;
 
 public partial class ImageViewerDemo : UserControl
 {
@@ -24,3 +24,8 @@ public partial class ImageViewerDemo : UserControl
         }
     }
 }
+
+
+
+
+

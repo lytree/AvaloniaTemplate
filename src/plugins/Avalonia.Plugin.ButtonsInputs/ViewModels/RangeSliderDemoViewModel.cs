@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
-using Avalonia.Layout;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Layout;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
 
@@ -14,3 +14,8 @@ public partial class RangeSliderDemoViewModel: ObservableObject
 
     [ObservableProperty] private Orientation _orientation;
 }
+
+
+
+
+

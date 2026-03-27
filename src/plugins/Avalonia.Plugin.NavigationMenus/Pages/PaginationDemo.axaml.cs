@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.Avalonia.Plugin.NavigationMenus.Pages;
 
 public partial class PaginationDemo : UserControl
 {
@@ -9,3 +9,8 @@ public partial class PaginationDemo : UserControl
         InitializeComponent();
     }
 }
+
+
+
+
+

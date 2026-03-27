@@ -79,3 +79,6 @@ public class ButtonsInputsPlugin : IPlugin
         return menuItems;
     }
 }
+
+
+

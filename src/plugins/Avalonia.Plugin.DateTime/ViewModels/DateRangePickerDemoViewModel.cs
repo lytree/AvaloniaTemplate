@@ -1,16 +1,20 @@
-using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Avalonia.Plugin.DateTimeControls.ViewModels;
 
 public partial class DateRangePickerDemoViewModel: ObservableObject
 {
-    [ObservableProperty] private DateTime? _startDate;
-    [ObservableProperty] private DateTime? _endDate;
+    [ObservableProperty] private System.DateTime? _startDate;
+    [ObservableProperty] private System.DateTime? _endDate;
 
     public DateRangePickerDemoViewModel()
     {
-        StartDate = DateTime.Today;
-        EndDate = DateTime.Today.AddDays(7);
+        StartDate = System.DateTime.Today;
+        EndDate = System.DateTime.Today.AddDays(7);
     }
 }
+
+
+
+
+

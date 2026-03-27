@@ -1,6 +1,10 @@
-using System.Collections.Generic;
+using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Plugin.Shared;
+using System.Collections.Generic;
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared;
 
 namespace Avalonia.Plugin.NavigationMenus.ViewModels;
 
@@ -42,3 +46,8 @@ public partial class AnchorItemViewModel : ObservableObject
     [ObservableProperty] private string? _header;
     public ObservableCollection<AnchorItemViewModel>? Children { get; set; }
 }
+
+
+
+
+

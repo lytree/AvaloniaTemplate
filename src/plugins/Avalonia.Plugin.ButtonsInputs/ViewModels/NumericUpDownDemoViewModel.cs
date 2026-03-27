@@ -1,7 +1,6 @@
-using Avalonia.Layout;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Layout;
 using CommunityToolkit.Mvvm.Input;
-using System;
 using System.Globalization;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
@@ -67,3 +66,8 @@ public partial class NumericUpDownDemoViewModel : ObservableObject
         }
     }
 }
+
+
+
+
+

@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.Avalonia.Plugin.ButtonsInputs.Pages;
 
 public partial class ThemeTogglerDemo : UserControl
 {
@@ -9,3 +9,8 @@ public partial class ThemeTogglerDemo : UserControl
         InitializeComponent();
     }
 }
+
+
+
+
+

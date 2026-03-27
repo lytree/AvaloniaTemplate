@@ -1,3 +1,4 @@
+using Avalonia.Plugin.Shared;
 using System.Collections.ObjectModel;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
@@ -18,3 +19,8 @@ public class TagInputDemoViewModel: ViewModelBase
         set => SetProperty(ref _distinctTags, value);
     }
 }
+
+
+
+
+

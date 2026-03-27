@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Avalonia.Plugin.Shared\Avalonia.Plugin.Shared.csproj" />
-    <ProjectReference Include="..\..\Avalonia.UI\Avalonia.UI.csproj" />
   </ItemGroup>
 
 </Project>

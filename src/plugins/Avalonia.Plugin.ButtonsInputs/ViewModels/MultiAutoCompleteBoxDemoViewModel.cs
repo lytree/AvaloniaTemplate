@@ -1,9 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Avalonia.Controls;
+using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Avalonia.UI.Models;
+using Avalonia.Controls;
+using Avalonia.Plugin.Shared;
+using ControlData = Avalonia.Plugin.Shared.ControlData;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
 
@@ -88,3 +89,8 @@ public class MultiAutoCompleteBoxDemoViewModel : ObservableObject
                control.Chinese.Contains(text, StringComparison.InvariantCultureIgnoreCase);
     }
 }
+
+
+
+
+

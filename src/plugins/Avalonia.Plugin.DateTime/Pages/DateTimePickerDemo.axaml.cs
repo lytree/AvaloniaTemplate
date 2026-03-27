@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace Avalonia.UI.Pages;
+namespace Avalonia.Plugin.Avalonia.Plugin.DateTime.Pages;
 
 public partial class DateTimePickerDemo : UserControl
 {
@@ -11,3 +11,8 @@ public partial class DateTimePickerDemo : UserControl
         InitializeComponent();
     }
 }
+
+
+
+
+

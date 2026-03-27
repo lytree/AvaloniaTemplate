@@ -1,3 +1,4 @@
+using Avalonia.Plugin.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
@@ -11,3 +12,8 @@ public partial class RatingDemoViewModel : ViewModelBase
     [ObservableProperty] private double _defaultValue = 2.3;
     [ObservableProperty] private int _count = 5;
 }
+
+
+
+
+

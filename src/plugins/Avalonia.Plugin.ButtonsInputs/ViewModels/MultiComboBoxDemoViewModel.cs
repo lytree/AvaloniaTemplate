@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
@@ -82,3 +81,8 @@ public class MultiComboBoxDemoViewModel: ObservableObject
         SelectedItems = new ObservableCollection<string>();
     }
 }
+
+
+
+
+
