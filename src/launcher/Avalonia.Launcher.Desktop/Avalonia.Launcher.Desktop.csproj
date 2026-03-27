@@ -28,7 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Avalonia.UI\Avalonia.UI.csproj" />
-    <ProjectReference Include="..\..\Plugins\Avalonia.Plugin.Shared\csproj" />
     <ProjectReference Include="..\..\Plugins\Avalonia.Plugin.ButtonsInputs\Avalonia.Plugin.ButtonsInputs.csproj" />
     <ProjectReference Include="..\..\Plugins\Avalonia.Plugin.DateTime\Avalonia.Plugin.DateTime.csproj" />
     <ProjectReference Include="..\..\Plugins\Avalonia.Plugin.DialogFeedbacks\Avalonia.Plugin.DialogFeedbacks.csproj" />
