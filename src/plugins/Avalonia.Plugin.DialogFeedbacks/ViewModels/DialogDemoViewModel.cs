@@ -3,6 +3,7 @@ using System.Windows.Input;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
 using Ursa.Controls;
+using Avalonia.Plugin.Shared.Dialogs;
 
 
 namespace Avalonia.Plugin.DialogFeedbacks.ViewModels;
