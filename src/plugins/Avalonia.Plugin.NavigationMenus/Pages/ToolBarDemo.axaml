@@ -1,10 +1,10 @@
 <UserControl
-    x:Class="Avalonia.Plugin.Pages.ToolBarDemo"
+    x:Class="Avalonia.Plugin.NavigationMenusPages.ToolBarDemo"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:template="using:Avalonia.Plugin.Converters"
+    xmlns:template="using:Avalonia.Plugin.Shared.Converters"
     xmlns:u="https://irihi.tech/ursa"
     xmlns:vm="using:Avalonia.Plugin.NavigationMenus.ViewModels"
     d:DesignHeight="450"
