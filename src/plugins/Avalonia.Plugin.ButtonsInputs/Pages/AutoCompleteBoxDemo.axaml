@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:Avalonia.Plugin.ButtonsInputs.ViewModels"
-             xmlns:models="clr-namespace:Avalonia.Plugin.ButtonsInputs.Models"
+             xmlns:models="clr-namespace:Avalonia.Plugin.Shared.Models"
              xmlns:u="https://irihi.tech/ursa"
              x:DataType="viewModels:AutoCompleteBoxDemoViewModel"
              mc:Ignorable="d" d:DesignWidth="800"
