@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
-namespace Avalonia.UI.Converters;
+namespace Avalonia.Plugin.Shared.Converters;
 
 public class IconNameToPathConverter: IValueConverter
 {

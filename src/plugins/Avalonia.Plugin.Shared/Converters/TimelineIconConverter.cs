@@ -5,7 +5,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Ursa.Controls;
 
-namespace Avalonia.UI.Converters;
+namespace Avalonia.Plugin.Shared.Converters;
 
 public class TimelineIconConverter: IValueConverter
 {

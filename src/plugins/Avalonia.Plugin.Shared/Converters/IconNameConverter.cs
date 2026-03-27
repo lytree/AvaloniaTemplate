@@ -6,7 +6,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Metadata;
 
-namespace Avalonia.UI.Converters;
+namespace Avalonia.Plugin.Shared.Converters;
 
 public class IconNameConverter: IValueConverter
 {
