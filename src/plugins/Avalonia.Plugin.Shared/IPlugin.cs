@@ -1,3 +1,4 @@
+using Avalonia.Plugin.Shared.ViewModels;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -38,17 +39,7 @@ public interface IPlugin
 /// </summary>
 public delegate object ViewModelFactory();
 
-/// <summary>
-/// 菜单项视图模型
-/// </summary>
-public class MenuItemViewModel
-{
-    public string MenuHeader { get; set; }
-    public string Key { get; set; }
-    public string Status { get; set; }
-    public bool IsSeparator { get; set; }
-    public ObservableCollection<MenuItemViewModel> Children { get; set; }
-}
+
 
 /// <summary>
 /// 菜单键定义

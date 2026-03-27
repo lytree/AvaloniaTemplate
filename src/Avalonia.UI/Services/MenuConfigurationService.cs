@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.ViewModels;
 using Avalonia.UI.ViewModels;
 
 namespace Avalonia.UI.Services;
@@ -35,8 +36,8 @@ public class MenuConfigurationService : IMenuConfigurationService
                             Key = child.Key,
                             Status = child.Status,
                             IsSeparator = child.IsSeparator,
-                            Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Plugin.Shared.MenuItemViewModel>(
-                                child.Children.Select(c => new Plugin.Shared.MenuItemViewModel
+                            Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
+                                child.Children.Select(c => new MenuItemViewModel
                                 {
                                     MenuHeader = c.MenuHeader,
                                     Key = c.Key,
@@ -62,7 +63,7 @@ public class MenuConfigurationService : IMenuConfigurationService
         return _menuViewModel;
     }
 
-    public void RegisterMenuItem(Plugin.Shared.MenuItemViewModel menuItem, string? parentKey = null)
+    public void RegisterMenuItem(MenuItemViewModel menuItem, string? parentKey = null)
     {
         if (string.IsNullOrEmpty(menuItem.Key))
         {

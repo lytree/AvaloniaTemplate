@@ -1,4 +1,20 @@
-using Avalonia;using Avalonia.Controls;using Avalonia.Controls.ApplicationLifetimes;using Avalonia.Markup.Xaml;using Avalonia.Plugin.Shared;using Avalonia.UI.Services;using Avalonia.UI.ViewModels;using Avalonia.UI.Views;using Microsoft.Extensions.DependencyInjection;using System;using System.Collections.Generic;using System.IO;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
+using Avalonia.Plugin.ButtonsInputs;
+using Avalonia.Plugin.DateTimeControls;
+using Avalonia.Plugin.DialogFeedbacks;
+using Avalonia.Plugin.LayoutDisplay;
+using Avalonia.Plugin.NavigationMenus;
+using Avalonia.Plugin.Shared;
+using Avalonia.UI.Services;
+using Avalonia.UI.ViewModels;
+using Avalonia.UI.Views;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Avalonia.Desktop;
 
@@ -32,11 +48,11 @@ public class DesktopApp : Avalonia.UI.App
             // 直接加载所有引用的插件
             var pluginTypes = new List<Type>
             {
-                typeof(Avalonia.Plugin.ButtonsInputs.ButtonsInputsPlugin),
-                typeof(Avalonia.Plugin.DateTimeControls.DateTimePlugin),
-                typeof(Avalonia.Plugin.DialogFeedbacks.DialogFeedbacksPlugin),
-                typeof(Avalonia.Plugin.NavigationMenus.NavigationMenusPlugin),
-                typeof(Avalonia.Plugin.LayoutDisplay.LayoutDisplayPlugin)
+                typeof(ButtonsInputsPlugin),
+                typeof(DateTimePlugin),
+                typeof(DialogFeedbacksPlugin),
+                typeof(NavigationMenusPlugin),
+                typeof(LayoutDisplayPlugin)
             };
 
             foreach (var pluginType in pluginTypes)

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.ViewModels;
 
 namespace Avalonia.UI.ViewModels;
 

@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Avalonia.Controls;
-using ControlData = Avalonia.Plugin.Shared.ControlData;
+using Avalonia.Plugin.Shared.Models;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
 

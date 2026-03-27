@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Plugin.Shared;
 
-namespace Avalonia.UI.Converters;
+namespace Avalonia.Plugin.Shared.Converters;
 
 public class FormDataTemplateSelector: ResourceDictionary, IDataTemplate
 {

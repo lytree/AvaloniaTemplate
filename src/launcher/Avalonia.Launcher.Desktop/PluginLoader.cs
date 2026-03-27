@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.ViewModels;
 
 namespace Avalonia.Desktop;
 

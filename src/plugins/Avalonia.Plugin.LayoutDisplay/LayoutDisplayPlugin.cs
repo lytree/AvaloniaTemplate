@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.LayoutDisplay.ViewModels;
+using Avalonia.Plugin.Shared.ViewModels;
 
 namespace Avalonia.Plugin.LayoutDisplay;
 

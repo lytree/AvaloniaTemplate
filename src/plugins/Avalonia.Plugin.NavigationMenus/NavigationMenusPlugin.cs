@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.NavigationMenus.ViewModels;
+using Avalonia.Plugin.Shared.ViewModels;
 
 namespace Avalonia.Plugin.NavigationMenus;
 

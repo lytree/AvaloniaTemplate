@@ -2,7 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 
-namespace Avalonia.UI.Converters;
+namespace Avalonia.Plugin.Shared.Converters;
 
 public class ViewLocator: IDataTemplate
 {

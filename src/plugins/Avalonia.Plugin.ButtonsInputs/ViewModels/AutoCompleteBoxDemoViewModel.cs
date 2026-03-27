@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 

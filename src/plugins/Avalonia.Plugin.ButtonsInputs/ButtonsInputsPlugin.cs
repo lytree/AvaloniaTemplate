@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.ButtonsInputs.ViewModels;
+using Avalonia.Plugin.Shared.ViewModels;
 
 namespace Avalonia.Plugin.ButtonsInputs;
 
@@ -78,6 +79,7 @@ public class ButtonsInputsPlugin : IPlugin
 
         return menuItems;
     }
+
 }
 
 

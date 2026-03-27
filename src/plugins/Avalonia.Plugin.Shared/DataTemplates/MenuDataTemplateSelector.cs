@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Avalonia.Plugin.Shared;
-using Avalonia.UI.ViewModels;
+using Avalonia.Plugin.Shared.ViewModels;
 
-namespace Avalonia.UI.Converters;
+
+namespace Avalonia.Plugin.Shared.Converters;
 
 public class MenuDataTemplateSelector: IDataTemplate
 {
