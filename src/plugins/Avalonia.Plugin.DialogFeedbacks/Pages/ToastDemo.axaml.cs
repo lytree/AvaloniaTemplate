@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Ursa.Controls;
 using Avalonia.UI.ViewModels;
 
-namespace Avalonia.Plugin.Avalonia.Plugin.DialogFeedbacks.Pages;
+namespace Avalonia.Plugin.DialogFeedbacks.Pages;
 
 public partial class ToastDemo : UserControl
 {

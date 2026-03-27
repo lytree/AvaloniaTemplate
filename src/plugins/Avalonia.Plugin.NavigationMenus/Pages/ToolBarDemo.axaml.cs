@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Avalonia.Plugin.Avalonia.Plugin.NavigationMenus.Pages;
+namespace Avalonia.Plugin.NavigationMenus.Pages;
 
 public partial class ToolBarDemo : UserControl
 {

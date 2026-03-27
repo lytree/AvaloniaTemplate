@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Ursa.Controls;
 
-namespace Avalonia.Plugin.Avalonia.Plugin.ButtonsInputs.Pages;
+namespace Avalonia.Plugin.ButtonsInputs.Pages;
 
 public partial class PinCodeDemo : UserControl
 {

@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace Avalonia.Plugin.Avalonia.Plugin.ButtonsInputs.Pages;
+namespace Avalonia.Plugin.ButtonsInputs.Pages;
 
 public partial class PathPickerDemo : UserControl
 {

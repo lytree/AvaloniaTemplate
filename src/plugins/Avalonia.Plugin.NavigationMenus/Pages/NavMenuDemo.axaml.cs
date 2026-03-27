@@ -9,7 +9,7 @@ using Avalonia.Styling;
 using Ursa.Controls;
 using Ursa.Helpers;
 
-namespace Avalonia.Plugin.Avalonia.Plugin.NavigationMenus.Pages;
+namespace Avalonia.Plugin.NavigationMenus.Pages;
 
 public partial class NavMenuDemo : UserControl
 {
