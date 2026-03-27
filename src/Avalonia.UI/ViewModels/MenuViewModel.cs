@@ -12,7 +12,7 @@ public class MenuViewModel : ViewModelBase
         {
             new() { MenuHeader = "Introduction", Key = MenuKeys.MenuKeyIntroduction, IsSeparator = false },
             new() { MenuHeader = "About Us", Key = MenuKeys.MenuKeyAboutUs, IsSeparator = false },
-            new() { MenuHeader = "Controls", Key = "Controls", IsSeparator = false, Children = new ObservableCollection<MenuItemViewModel>() }
+            // new() { MenuHeader = "Controls", Key = "Controls", IsSeparator = false, Children = new ObservableCollection<MenuItemViewModel>() }
         };
     }
 

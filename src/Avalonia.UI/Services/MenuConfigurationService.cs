@@ -14,7 +14,7 @@ public class MenuConfigurationService : IMenuConfigurationService
     public MenuConfigurationService()
     {
         _menuViewModel = new MenuViewModel();
-        BuildMenuItemsMap(_menuViewModel.MenuItems);
+
     }
 
     private void BuildMenuItemsMap(IEnumerable<MenuItemViewModel> menuItems)
@@ -60,47 +60,17 @@ public class MenuConfigurationService : IMenuConfigurationService
 
     public MenuViewModel GetMenuStructure()
     {
+        BuildMenuItemsMap(_menuViewModel.MenuItems);
         return _menuViewModel;
     }
 
     public void RegisterMenuItem(MenuItemViewModel menuItem, string? parentKey = null)
     {
-        if (string.IsNullOrEmpty(menuItem.Key))
-        {
-            return;
-        }
-
-        var avaloniaMenuItem = new MenuItemViewModel
-        {
-            MenuHeader = menuItem.MenuHeader,
-            Key = menuItem.Key,
-            Status = menuItem.Status,
-            IsSeparator = menuItem.IsSeparator,
-            Children = menuItem.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
-                menuItem.Children.Select(child => new MenuItemViewModel
-                {
-                    MenuHeader = child.MenuHeader,
-                    Key = child.Key,
-                    Status = child.Status,
-                    IsSeparator = child.IsSeparator,
-                    Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
-                        child.Children.Select(c => new MenuItemViewModel
-                        {
-                            MenuHeader = c.MenuHeader,
-                            Key = c.Key,
-                            Status = c.Status,
-                            IsSeparator = c.IsSeparator,
-                            Children = null
-                        })
-                    ) : null
-                })
-            ) : null
-        };
 
         if (parentKey == null)
         {
             // 添加到根菜单
-            _menuViewModel.MenuItems.Add(avaloniaMenuItem);
+            _menuViewModel.MenuItems.Add(menuItem);
         }
         else if (_menuItemsMap.TryGetValue(parentKey, out var parentMenuItem))
         {
@@ -113,19 +83,20 @@ public class MenuConfigurationService : IMenuConfigurationService
                 {
                     avaloniaParentMenuItem.Children = new();
                 }
-                avaloniaParentMenuItem.Children.Add(avaloniaMenuItem);
+                avaloniaParentMenuItem.Children.Add(menuItem);
             }
+            // 更新菜单映射
+            _menuItemsMap[menuItem.Key] = menuItem;
+            //if (menuItem.Children != null && menuItem.Children.Any())
+            //{
+            //    foreach (var childItem in menuItem.Children)
+            //    {
+            //        _menuItemsMap[childItem.Key] = childItem;
+            //    }
+            //}
         }
 
-        // 更新菜单映射
-        _menuItemsMap[menuItem.Key] = menuItem;
-        if (menuItem.Children != null && menuItem.Children.Any())
-        {
-            foreach (var childItem in menuItem.Children)
-            {
-                _menuItemsMap[childItem.Key] = childItem;
-            }
-        }
+
     }
 
     private MenuItemViewModel FindAvaloniaMenuItem(IEnumerable<MenuItemViewModel> menuItems, string key)

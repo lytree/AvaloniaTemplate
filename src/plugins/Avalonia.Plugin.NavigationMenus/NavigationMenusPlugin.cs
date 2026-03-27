@@ -45,7 +45,7 @@ public class NavigationMenusPlugin : IPlugin
                 new() { MenuHeader = "ToolBar", Key = MenuKeys.MenuKeyToolBar },
             }
         };
-        menuItems.Add(("Controls", navigationAndMenus));
+        menuItems.Add((navigationAndMenus.MenuHeader, navigationAndMenus));
 
         return menuItems;
     }

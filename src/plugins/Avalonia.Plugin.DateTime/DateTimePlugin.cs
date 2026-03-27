@@ -49,7 +49,7 @@ public class DateTimePlugin : IPlugin
                 new() { MenuHeader = "Clock", Key = MenuKeys.MenuKeyClock }
             }
         };
-        menuItems.Add(("Controls", dateAndTime));
+        menuItems.Add((dateAndTime.MenuHeader, dateAndTime));
 
         return menuItems;
     }

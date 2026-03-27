@@ -18,7 +18,8 @@ public partial class MainViewViewModel : ViewModelBase
     public WindowNotificationManager? NotificationManager { get; set; }
     public MenuViewModel Menus { get; }
 
-    [ObservableProperty] private object? _content;
+    [ObservableProperty] 
+    private object? _content;
 
     [RelayCommand]
     public void Activate(string key)

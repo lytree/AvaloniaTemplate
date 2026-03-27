@@ -1,7 +1,8 @@
-using System.Collections.Generic;
-using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.ButtonsInputs.ViewModels;
+using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.ViewModels;
+using Microsoft.VisualBasic;
+using System.Collections.Generic;
 
 namespace Avalonia.Plugin.ButtonsInputs;
 
@@ -75,7 +76,7 @@ public class ButtonsInputsPlugin : IPlugin
                 new() { MenuHeader = "TreeComboBox", Key = MenuKeys.MenuKeyTreeComboBox, Status = "Updated" },
             }
         };
-        menuItems.Add(("Controls", buttonsAndInputs));
+        menuItems.Add((buttonsAndInputs.MenuHeader, buttonsAndInputs));
 
         return menuItems;
     }
