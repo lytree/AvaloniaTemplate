@@ -1,11 +1,11 @@
 <UserControl
-    x:Class="Avalonia.UI.Pages.IPv4BoxDemo"
+    x:Class="Avalonia.Plugin.ButtonsInputs..Pages.IPv4BoxDemo"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:u="https://irihi.tech/ursa"
-    xmlns:vm="clr-namespace:Avalonia.UI.ViewModels;assembly=Avalonia.UI"
+    xmlns:vm="clr-namespace:Avalonia.Plugin.ButtonsInputs..ViewModels;assembly=Avalonia.Plugin.ButtonsInputs."
     x:DataType="vm:IPv4BoxDemoViewModel"
     x:CompileBindings="True"
     d:DesignHeight="450"

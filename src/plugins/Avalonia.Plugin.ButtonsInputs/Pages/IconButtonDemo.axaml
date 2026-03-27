@@ -1,11 +1,11 @@
 <UserControl
-    x:Class="Avalonia.UI.Pages.IconButtonDemo"
+    x:Class="Avalonia.Plugin.ButtonsInputs..Pages.IconButtonDemo"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:u="https://irihi.tech/ursa"
-    xmlns:vm="clr-namespace:Avalonia.UI.ViewModels"
+    xmlns:vm="clr-namespace:Avalonia.Plugin.ButtonsInputs..ViewModels"
     xmlns:common="clr-namespace:Ursa.Common;assembly=Ursa"
     d:DesignHeight="NaN"
     d:DesignWidth="1200"
