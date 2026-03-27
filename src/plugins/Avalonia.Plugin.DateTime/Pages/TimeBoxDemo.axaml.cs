@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Avalonia.Plugin.DateTime.Pages;
+namespace Avalonia.Plugin.DateTimeControls.Pages;
 
 public partial class TimeBoxDemo : UserControl
 {
