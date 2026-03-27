@@ -1,3 +1,4 @@
+using Avalonia.Plugin.Shared;
 using Avalonia.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
 

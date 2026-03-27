@@ -16,7 +16,7 @@ public class MenuConfigurationService : IMenuConfigurationService
         BuildMenuItemsMap(_menuViewModel.MenuItems);
     }
 
-    private void BuildMenuItemsMap(IEnumerable<Avalonia.UI.ViewModels.MenuItemViewModel> menuItems)
+    private void BuildMenuItemsMap(IEnumerable<MenuItemViewModel> menuItems)
     {
         foreach (var menuItem in menuItems)
         {
@@ -35,8 +35,8 @@ public class MenuConfigurationService : IMenuConfigurationService
                             Key = child.Key,
                             Status = child.Status,
                             IsSeparator = child.IsSeparator,
-                            Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
-                                child.Children.Select(c => new MenuItemViewModel
+                            Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Plugin.Shared.MenuItemViewModel>(
+                                child.Children.Select(c => new Plugin.Shared.MenuItemViewModel
                                 {
                                     MenuHeader = c.MenuHeader,
                                     Key = c.Key,
@@ -62,28 +62,28 @@ public class MenuConfigurationService : IMenuConfigurationService
         return _menuViewModel;
     }
 
-    public void RegisterMenuItem(MenuItemViewModel menuItem, string? parentKey = null)
+    public void RegisterMenuItem(Plugin.Shared.MenuItemViewModel menuItem, string? parentKey = null)
     {
         if (string.IsNullOrEmpty(menuItem.Key))
         {
             return;
         }
 
-        var avaloniaMenuItem = new Avalonia.UI.ViewModels.MenuItemViewModel
+        var avaloniaMenuItem = new MenuItemViewModel
         {
             MenuHeader = menuItem.MenuHeader,
             Key = menuItem.Key,
             Status = menuItem.Status,
             IsSeparator = menuItem.IsSeparator,
-            Children = menuItem.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Avalonia.UI.ViewModels.MenuItemViewModel>(
-                menuItem.Children.Select(child => new Avalonia.UI.ViewModels.MenuItemViewModel
+            Children = menuItem.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
+                menuItem.Children.Select(child => new MenuItemViewModel
                 {
                     MenuHeader = child.MenuHeader,
                     Key = child.Key,
                     Status = child.Status,
                     IsSeparator = child.IsSeparator,
-                    Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<Avalonia.UI.ViewModels.MenuItemViewModel>(
-                        child.Children.Select(c => new Avalonia.UI.ViewModels.MenuItemViewModel
+                    Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
+                        child.Children.Select(c => new MenuItemViewModel
                         {
                             MenuHeader = c.MenuHeader,
                             Key = c.Key,
@@ -127,7 +127,7 @@ public class MenuConfigurationService : IMenuConfigurationService
         }
     }
 
-    private Avalonia.UI.ViewModels.MenuItemViewModel FindAvaloniaMenuItem(IEnumerable<Avalonia.UI.ViewModels.MenuItemViewModel> menuItems, string key)
+    private MenuItemViewModel FindAvaloniaMenuItem(IEnumerable<MenuItemViewModel> menuItems, string key)
     {
         foreach (var menuItem in menuItems)
         {
@@ -186,7 +186,7 @@ public class MenuConfigurationService : IMenuConfigurationService
         }
     }
 
-    private bool RemoveFromChildren(Avalonia.UI.ViewModels.MenuItemViewModel parentItem, string key)
+    private bool RemoveFromChildren(MenuItemViewModel parentItem, string key)
     {
         var menuItemToRemove = FindAvaloniaMenuItem(parentItem.Children, key);
         if (parentItem.Children != null && menuItemToRemove != null && parentItem.Children.Remove(menuItemToRemove))

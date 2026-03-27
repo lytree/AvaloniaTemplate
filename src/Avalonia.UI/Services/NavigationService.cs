@@ -17,9 +17,9 @@ public class NavigationService : INavigationService
     private void RegisterDefaultNavigations()
     {
         // 保留默认导航项：Introduction、AboutUs 和 Settings
-        RegisterNavigation(MenuKeys.MenuKeyIntroduction, () => new IntroductionDemoViewModel());
-        RegisterNavigation(MenuKeys.MenuKeyAboutUs, () => new AboutUsDemoViewModel());
-        RegisterNavigation(MenuKeys.MenuKeySettings, () => new SettingsPageViewModel());
+        RegisterNavigation(ViewModels.MenuKeys.MenuKeyIntroduction, () => new IntroductionDemoViewModel());
+        RegisterNavigation(ViewModels.MenuKeys.MenuKeyAboutUs, () => new AboutUsDemoViewModel());
+        RegisterNavigation(ViewModels.MenuKeys.MenuKeySettings, () => new SettingsPageViewModel());
     }
 
     public void RegisterNavigation(string key, ViewModelFactory factory)

@@ -4,11 +4,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Controls.Primitives;
+using Avalonia.Plugin.Shared.Dialogs;
 using Avalonia.VisualTree;
 using Ursa.Controls;
 using WindowNotificationManager = Ursa.Controls.WindowNotificationManager;
 
-namespace Avalonia.UI.Dialogs;
+namespace Avalonia.Plugin.Shared.Dialogs;
 
 public partial class CustomDemoDialog : UserControl
 {

@@ -1,9 +1,7 @@
-using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Irihi.Avalonia.Shared.Contracts;
 
-namespace Avalonia.UI.Dialogs;
+namespace Avalonia.Plugin.Shared.Dialogs;
 
 public partial class DefaultDemoDialogViewModel: ObservableObject
 {

@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Controls.Notifications;
+using Avalonia.Plugin.Shared;
 using Avalonia.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

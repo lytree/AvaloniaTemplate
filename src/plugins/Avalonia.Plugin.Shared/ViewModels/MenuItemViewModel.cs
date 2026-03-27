@@ -3,7 +3,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace Avalonia.UI.ViewModels;
+namespace Avalonia.Plugin.Shared.ViewModels;
 
 public enum ControlStatus
 {

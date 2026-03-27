@@ -20,6 +20,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="../plugins/Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Compile Update="Pages\SettingsPage.axaml.cs">
 	    <DependentUpon>SettingsPage.axaml</DependentUpon>
 	  </Compile>

@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using Irihi.Avalonia.Shared.Contracts;
 using Ursa.Controls;
 
-namespace Avalonia.UI.Dialogs;
+namespace Avalonia.Plugin.Shared.Dialogs;
 
 public partial class CustomDemoDialogViewModel : ObservableObject, IDialogContext
 {
