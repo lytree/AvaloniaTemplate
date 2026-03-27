@@ -51,9 +51,14 @@ public class DialogFeedbacksPlugin : IPlugin
                 new() { MenuHeader = "Skeleton", Key = MenuKeys.MenuKeySkeleton },
             }
         };
-        menuItems.Add((null, dialogAndFeedbacks));
+        menuItems.Add(("Controls", dialogAndFeedbacks));
 
         return menuItems;
+    }
+
+    public System.Reflection.Assembly GetAssembly()
+    {
+        return GetType().Assembly;
     }
 }
 

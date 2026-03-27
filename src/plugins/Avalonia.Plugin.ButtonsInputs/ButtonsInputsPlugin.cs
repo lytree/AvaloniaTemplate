@@ -76,11 +76,15 @@ public class ButtonsInputsPlugin : IPlugin
                 new() { MenuHeader = "TreeComboBox", Key = MenuKeys.MenuKeyTreeComboBox, Status = "Updated" },
             }
         };
-        menuItems.Add((buttonsAndInputs.MenuHeader, buttonsAndInputs));
+        menuItems.Add((null, buttonsAndInputs));
 
         return menuItems;
     }
 
+    public System.Reflection.Assembly GetAssembly()
+    {
+        return GetType().Assembly;
+    }
 }
 
 

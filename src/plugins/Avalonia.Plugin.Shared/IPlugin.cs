@@ -32,6 +32,12 @@ public interface IPlugin
     /// </summary>
     /// <returns>菜单项列表，包含菜单项和其父菜单项键（可选）</returns>
     IEnumerable<(string? ParentKey, MenuItemViewModel MenuItem)> GetMenuItems();
+    
+    /// <summary>
+    /// 获取插件的程序集
+    /// </summary>
+    /// <returns>插件的程序集</returns>
+    System.Reflection.Assembly GetAssembly();
 }
 
 /// <summary>

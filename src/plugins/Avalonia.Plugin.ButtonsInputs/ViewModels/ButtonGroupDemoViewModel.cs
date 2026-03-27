@@ -1,11 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Attributes;
 using CommunityToolkit.Mvvm.Input;
 using Ursa.Controls;
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
 
+[Menu("Button Group", MenuKeys.MenuKeyButtonGroup)]
 public class ButtonGroupDemoViewModel: ViewModelBase
 {
     public ObservableCollection<ButtonItem> Items { get; set; } = new ()

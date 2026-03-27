@@ -1,12 +1,14 @@
 using System;
 using System.Collections.ObjectModel;
 using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Attributes;
 using Avalonia.Plugin.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 
 namespace Avalonia.Plugin.ButtonsInputs.ViewModels;
 
+[Menu("AutoCompleteBox", MenuKeys.MenuKeyAutoCompleteBox)]
 public class AutoCompleteBoxDemoViewModel : ObservableObject
 {
     public AutoCompleteBoxDemoViewModel()

@@ -67,9 +67,14 @@ public class LayoutDisplayPlugin : IPlugin
                 new() { MenuHeader = "TwoTonePathIcon", Key = MenuKeys.MenuKeyTwoTonePathIcon }
             }
         };
-        menuItems.Add((layoutAndDisplay.MenuHeader, layoutAndDisplay));
+        menuItems.Add((null, layoutAndDisplay));
 
         return menuItems;
+    }
+
+    public System.Reflection.Assembly GetAssembly()
+    {
+        return GetType().Assembly;
     }
 }
 

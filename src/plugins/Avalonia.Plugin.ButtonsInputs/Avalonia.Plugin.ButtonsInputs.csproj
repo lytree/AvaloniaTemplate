@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Avalonia.Plugin.Shared\Avalonia.Plugin.Shared.csproj" />
+    <ProjectReference Include="..\..\Avalonia.Plugin.CodeGenerator\Avalonia.Plugin.CodeGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
