@@ -1,5 +1,5 @@
 <UserControl
-    x:Class="Avalonia.Plugin.Pages.QrCodeDemo"
+    x:Class="Avalonia.Plugin.LayoutDisplay.Pages.QrCodeDemo"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"

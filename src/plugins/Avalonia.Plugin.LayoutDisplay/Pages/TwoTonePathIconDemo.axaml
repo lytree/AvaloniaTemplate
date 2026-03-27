@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:u="https://irihi.tech/ursa"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Avalonia.Plugin.Pages.TwoTonePathIconDemo">
+             x:Class="Avalonia.Plugin.LayoutDisplay.Pages.TwoTonePathIconDemo">
     <StackPanel>
         <TextBlock Text="Size" />
         <Slider Name="width" Minimum="0" Maximum="100" Value="20" Width="300" />
