@@ -1,6 +1,5 @@
 using Avalonia.Plugin.Shared;
 using Avalonia.UI.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Avalonia.UI.ViewModels;
 
@@ -10,8 +9,8 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
-        var navigationService = App.ServiceProvider?.GetRequiredService<INavigationService>();
-        var menuConfigurationService = App.ServiceProvider?.GetRequiredService<IMenuConfigurationService>();
+        var navigationService = ServiceLocator.GetService<INavigationService>();
+        var menuConfigurationService = ServiceLocator.GetService<IMenuConfigurationService>();
         MainViewViewModel = new MainViewViewModel(navigationService!, menuConfigurationService!);
     }
 }

@@ -3,8 +3,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Ursa.Controls;
+using Avalonia.Plugin.Shared;
 using Avalonia.UI.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
+using Avalonia.UI.Services;
 
 namespace Avalonia.UI.Views;
 
@@ -17,15 +18,11 @@ public partial class MvvmSplashWindow : SplashWindow
 
     protected override async Task<Window?> CreateNextWindow()
     {
-        if (this.DialogResult is true)
+        var navigationService = ServiceLocator.GetService<INavigationService>();
+        var menuConfigurationService = ServiceLocator.GetService<IMenuConfigurationService>();
+        return new MainWindow()
         {
-            var navigationService = App.ServiceProvider?.GetRequiredService<Avalonia.UI.Services.INavigationService>();
-            var menuConfigurationService = App.ServiceProvider?.GetRequiredService<Avalonia.UI.Services.IMenuConfigurationService>();
-            return new MainWindow()
-            {
-                DataContext = new MainViewViewModel(navigationService!, menuConfigurationService!)
-            };
-        }
-        return null;
+            DataContext = new MainViewViewModel(navigationService!, menuConfigurationService!)
+        };
     }
 }

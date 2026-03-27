@@ -6,7 +6,7 @@ namespace Avalonia.UI.Services;
 
 public class NavigationService : INavigationService
 {
-    private readonly Dictionary<string, ViewModelFactory> _viewModelFactories = new();
+    private readonly Dictionary<string, ViewModelFactory> _viewModelFactories = [];
 
     public NavigationService()
     {

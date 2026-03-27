@@ -1,0 +1,31 @@
+<Application
+x:Class="Avalonia.Desktop.App"
+xmlns="https://github.com/avaloniaui"
+xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+xmlns:semi="https://irihi.tech/semi"
+xmlns:u-semi="https://irihi.tech/ursa/themes/semi"
+xmlns:viewmodels="using:Avalonia.UI.ViewModels"
+xmlns:u="https://irihi.tech/ursa"
+xmlns:iri="https://irihi.tech/shared"
+x:DataType="viewmodels:ApplicationViewModel">
+	<Application.Styles>
+		<semi:SemiTheme Locale="zh-CN" />
+		<semi:SemiPopupAnimations />
+		<u-semi:SemiTheme Locale="zh-CN" />
+		<!--This style is created to demonstrate Dialog StyleClass feature. This style is applied to Dialog Window-->
+		<Style Selector="u|DefaultDialogWindow.Custom">
+			<Style Selector="^ /template/ Button#PART_OKButton">
+				<Setter Property="Content" Value="CUSTOM" />
+				<Setter Property="iri:ClassHelper.Classes" Value="Warning" />
+			</Style>
+		</Style>
+	</Application.Styles>
+	<NativeMenu.Menu>
+		<NativeMenu>
+			<NativeMenuItem
+			Header="About Us"
+			Command="{Binding JumpToCommand}"
+			CommandParameter="{x:Static viewmodels:MenuKeys.MenuKeyAboutUs}"/>
+		</NativeMenu>
+	</NativeMenu.Menu>
+</Application>

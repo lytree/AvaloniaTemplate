@@ -17,7 +17,7 @@ sealed class Program
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
     {
-        return AppBuilder.Configure<DesktopApp>()
+        return AppBuilder.Configure<App>()
                 .UseManagedSystemDialogs()
                 .UsePlatformDetect()
                 .With(new Win32PlatformOptions())

@@ -14,27 +14,32 @@ using Avalonia.UI.Views;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace Avalonia.Desktop;
 
-public class DesktopApp : Avalonia.UI.App
+public partial class App : Application
 {
-    public static new IServiceProvider? ServiceProvider { get; private set; }
+    public static IServiceProvider? ServiceProvider { get; private set; }
+
+    public App()
+    {
+    }
 
     public override void Initialize()
     {
+        AvaloniaXamlLoader.Load(this);
+        
         // 配置依赖注入
         var services = new ServiceCollection();
         services.AddAvaloniaServices();
-        // 注册插件加载器
-        services.AddSingleton<PluginLoader>();
         ServiceProvider = services.BuildServiceProvider();
+
+        // 初始化服务定位器
+        ServiceLocator.Initialize(ServiceProvider);
 
         // 加载插件
         LoadPlugins();
 
-        AvaloniaXamlLoader.Load(this);
         DataContext = new ApplicationViewModel();
     }
 

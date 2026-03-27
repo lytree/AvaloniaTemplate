@@ -28,10 +28,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Avalonia.UI\Avalonia.UI.csproj" />
-    <ProjectReference Include="..\..\Plugins\Avalonia.Plugin.ButtonsInputs\Avalonia.Plugin.ButtonsInputs.csproj" />
-    <ProjectReference Include="..\..\Plugins\Avalonia.Plugin.DateTime\Avalonia.Plugin.DateTime.csproj" />
-    <ProjectReference Include="..\..\Plugins\Avalonia.Plugin.DialogFeedbacks\Avalonia.Plugin.DialogFeedbacks.csproj" />
-    <ProjectReference Include="..\..\Plugins\Avalonia.Plugin.NavigationMenus\Avalonia.Plugin.NavigationMenus.csproj" />
-    <ProjectReference Include="..\..\Plugins\Avalonia.Plugin.LayoutDisplay\Avalonia.Plugin.LayoutDisplay.csproj" />
+    <ProjectReference Include="..\..\plugins\Avalonia.Plugin.ButtonsInputs\Avalonia.Plugin.ButtonsInputs.csproj" />
+    <ProjectReference Include="..\..\plugins\Avalonia.Plugin.DateTime\Avalonia.Plugin.DateTime.csproj" />
+    <ProjectReference Include="..\..\plugins\Avalonia.Plugin.DialogFeedbacks\Avalonia.Plugin.DialogFeedbacks.csproj" />
+    <ProjectReference Include="..\..\plugins\Avalonia.Plugin.LayoutDisplay\Avalonia.Plugin.LayoutDisplay.csproj" />
+    <ProjectReference Include="..\..\plugins\Avalonia.Plugin.NavigationMenus\Avalonia.Plugin.NavigationMenus.csproj" />
+    <ProjectReference Include="..\..\plugins\Avalonia.Plugin.Shared\Avalonia.Plugin.Shared.csproj" />
   </ItemGroup>
 </Project>
