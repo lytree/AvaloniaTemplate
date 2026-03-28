@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Avalonia.Desktop;
@@ -25,7 +26,7 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        
+
         // 配置依赖注入
         var services = new ServiceCollection();
         services.AddAvaloniaServices();
@@ -78,21 +79,24 @@ public partial class App : Application
     {
         var pluginTypes = new List<Type>();
 
-        // 1. 从当前程序集查找插件类型
-        var currentAssembly = Assembly.GetExecutingAssembly();
-        pluginTypes.AddRange(FindPluginsInAssembly(currentAssembly));
 
-        // 2. 从引用的程序集查找插件类型
-        foreach (var assemblyName in currentAssembly.GetReferencedAssemblies())
+
+        // 3. 从程序目录查找插件类型
+        var AppDirectory = Path.Combine(AppContext.BaseDirectory);
+        if (Directory.Exists(AppDirectory))
         {
-            try
+            var dllFiles = Directory.GetFiles(AppDirectory, "*.dll");
+            foreach (var dllFile in dllFiles)
             {
-                var assembly = Assembly.Load(assemblyName);
-                pluginTypes.AddRange(FindPluginsInAssembly(assembly));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading assembly {assemblyName.Name}: {ex.Message}");
+                try
+                {
+                    var assembly = SafeLoad(dllFile);
+                    pluginTypes.AddRange(FindPluginsInAssembly(assembly));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error loading plugin {dllFile}: {ex.Message}");
+                }
             }
         }
 
@@ -105,7 +109,7 @@ public partial class App : Application
             {
                 try
                 {
-                    var assembly = Assembly.LoadFrom(dllFile);
+                    var assembly = SafeLoad(dllFile);
                     pluginTypes.AddRange(FindPluginsInAssembly(assembly));
                 }
                 catch (Exception ex)
@@ -124,6 +128,7 @@ public partial class App : Application
 
         try
         {
+            var types = assembly.GetTypes();
             foreach (var type in assembly.GetTypes())
             {
                 if (typeof(IPlugin).IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface)
@@ -139,7 +144,23 @@ public partial class App : Application
 
         return pluginTypes;
     }
+    public Assembly SafeLoad(string dllPath)
+    {
+        // 1. 获取要加载的程序集的名称（不加载文件，只读元数据）
+        AssemblyName targetName = AssemblyName.GetAssemblyName(dllPath);
 
+        // 2. 检查当前已加载的程序集
+        var loadedAssembly = AppDomain.CurrentDomain.GetAssemblies()
+            .FirstOrDefault(a => AssemblyName.ReferenceMatchesDefinition(a.GetName(), targetName));
+
+        if (loadedAssembly != null)
+        {
+            return loadedAssembly; // 已存在，直接返回
+        }
+
+        // 3. 不存在则加载
+        return Assembly.LoadFrom(dllPath);
+    }
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

@@ -2,16 +2,16 @@
     <Folder Name="/src/">
         <Project Path="src/Avalonia.Plugin.CodeGenerator/Avalonia.Plugin.CodeGenerator.csproj" />
         <Project Path="src/Avalonia.UI/Avalonia.UI.csproj" />
-        <Project Path="src/plugins/Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj" />
+        <Project Path="src/Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj" />
     </Folder>
     <Folder Name="/src/launcher/">
         <Project Path="src/launcher/Avalonia.Launcher.Desktop/Avalonia.Launcher.Desktop.csproj" />
     </Folder>
-    <Folder Name="/src/plugins/">
-        <Project Path="src/plugins/Avalonia.Plugin.ButtonsInputs/Avalonia.Plugin.ButtonsInputs.csproj" />
-        <Project Path="src/plugins/Avalonia.Plugin.DateTime/Avalonia.Plugin.DateTime.csproj" />
-        <Project Path="src/plugins/Avalonia.Plugin.DialogFeedbacks/Avalonia.Plugin.DialogFeedbacks.csproj" />
-        <Project Path="src/plugins/Avalonia.Plugin.LayoutDisplay/Avalonia.Plugin.LayoutDisplay.csproj" />
-        <Project Path="src/plugins/Avalonia.Plugin.NavigationMenus/Avalonia.Plugin.NavigationMenus.csproj" />
+    <Folder Name="/plugins/">
+        <Project Path="plugins/Avalonia.Plugin.ButtonsInputs/Avalonia.Plugin.ButtonsInputs.csproj" />
+        <Project Path="plugins/Avalonia.Plugin.DateTime/Avalonia.Plugin.DateTime.csproj" />
+        <Project Path="plugins/Avalonia.Plugin.DialogFeedbacks/Avalonia.Plugin.DialogFeedbacks.csproj" />
+        <Project Path="plugins/Avalonia.Plugin.LayoutDisplay/Avalonia.Plugin.LayoutDisplay.csproj" />
+        <Project Path="plugins/Avalonia.Plugin.NavigationMenus/Avalonia.Plugin.NavigationMenus.csproj" />
     </Folder>
 </Solution>
