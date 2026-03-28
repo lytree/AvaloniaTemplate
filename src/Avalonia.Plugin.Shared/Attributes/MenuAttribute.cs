@@ -34,6 +34,11 @@ public class MenuAttribute : Attribute
     public int Order { get; set; }
 
     /// <summary>
+    /// 页面分组
+    /// </summary>
+    public string? Group { get; set; }
+
+    /// <summary>
     /// 初始化菜单项特性
     /// </summary>
     /// <param name="header">菜单项标题</param>
@@ -45,5 +50,6 @@ public class MenuAttribute : Attribute
         ParentKey = null;
         Status = null;
         Order = 0;
+        Group = null;
     }
 }

@@ -18,6 +18,7 @@ public class MenuItemViewModel: ViewModelBase
     public string? MenuIconName { get; set; }
     public string? Key { get; set; }
     public string? Status { get; set; }
+    public string? Group { get; set; }
     public int Order { get; set; }
     
     public bool IsSeparator { get; set; }

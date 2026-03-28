@@ -163,6 +163,9 @@ namespace Avalonia.Plugin.CodeGenerator
                         if (namedArg.Value.Value is int order)
                             info.Order = order;
                         break;
+                    case "Group":
+                        info.Group = namedArg.Value.Value?.ToString();
+                        break;
                 }
             }
 
@@ -252,29 +255,50 @@ namespace Avalonia.Plugin.CodeGenerator
             sb.AppendLine();
 
             // 类声明
-            sb.AppendLine($"public class {GeneratedClassName} : IPlugin, IResourceAssemblyIdentifier");
+            sb.AppendLine($"public class {GeneratedClassName} : IPlugin");
             sb.AppendLine("{");
 
-            // IResourceAssemblyIdentifier 接口实现
+            // IPlugin 接口实现
             sb.AppendLine("    /// <inheritdoc />");
-            sb.AppendLine($"    public string PluginId => \"{projectNamespace}\";");
+            sb.AppendLine("    public string Name => \"Generated Plugin\";");
             sb.AppendLine();
             sb.AppendLine("    /// <inheritdoc />");
-            sb.AppendLine("    public string Author => \"Generated\");");
+            sb.AppendLine("    public string Version => \"1.0.0\";");
             sb.AppendLine();
             sb.AppendLine("    /// <inheritdoc />");
-            sb.AppendLine("    public string Description => \"Auto-generated plugin\");");
+            sb.AppendLine("    public string Author => \"Generated\";");
+            sb.AppendLine();
+            sb.AppendLine("    /// <inheritdoc />");
+            sb.AppendLine("    public string Description => \"Auto-generated plugin\";");
             sb.AppendLine();
             sb.AppendLine("    /// <inheritdoc />");
             sb.AppendLine("    public System.Collections.Generic.IEnumerable<string> Dependencies => System.Array.Empty<string>();");
             sb.AppendLine();
-
-            // IPlugin 接口实现
             sb.AppendLine("    /// <inheritdoc />");
-            sb.AppendLine("    public string Name => \"Generated Plugin\");");
+            sb.AppendLine($"    public string PluginId => \"{projectNamespace}\";");
             sb.AppendLine();
-            sb.AppendLine("    /// <inheritdoc />");
-            sb.AppendLine("    public string Version => \"1.0.0\");");
+
+            // 目录信息属性
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine("    /// 插件目录信息");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine($"    public string DirectoryInfo => \"{projectNamespace.Replace('.', '/')}\";\n");
+            sb.AppendLine();
+
+            // 页面信息属性
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine("    /// 插件页面信息");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine("    public Dictionary<string, string> PageInfo => new Dictionary<string, string>");
+            sb.AppendLine("    {");
+            foreach (var info in classes)
+            {
+                if (!string.IsNullOrEmpty(info.Key))
+                {
+                    sb.AppendLine($"        {{ \"{info.Key}\", \"{info.ClassName}\" }},");
+                }
+            }
+            sb.AppendLine("    };");
             sb.AppendLine();
 
             // Initialize 方法
@@ -353,6 +377,11 @@ namespace Avalonia.Plugin.CodeGenerator
                     sb.AppendLine($"            Status = \"{info.Status}\",");
                 }
 
+                if (!string.IsNullOrEmpty(info.Group))
+                {
+                    sb.AppendLine($"            Group = \"{info.Group}\",");
+                }
+
                 if (info.Order != 0)
                 {
                     sb.AppendLine($"            Order = {info.Order}");
@@ -403,6 +432,7 @@ namespace Avalonia.Plugin.CodeGenerator
             public string ParentKey { get; set; } = string.Empty;
             public string Status { get; set; } = string.Empty;
             public int Order { get; set; }
+            public string Group { get; set; } = string.Empty;
         }
     }
 }
