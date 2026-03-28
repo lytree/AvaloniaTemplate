@@ -25,7 +25,7 @@ x:DataType="viewmodels:ApplicationViewModel">
 			<NativeMenuItem
 			Header="About Us"
 			Command="{Binding JumpToCommand}"
-			CommandParameter="{x:Static viewmodels:MenuKeys.MenuKeyAboutUs}"/>
+			CommandParameter="AboutUs"/>
 		</NativeMenu>
 	</NativeMenu.Menu>
 </Application>

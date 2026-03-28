@@ -32,7 +32,7 @@ public partial class MainViewViewModel : ViewModelBase
         _menuConfigurationService = menuConfigurationService;
         Menus = _menuConfigurationService.GetMenuStructure();
         WeakReferenceMessenger.Default.Register<MainViewViewModel, string, string>(this, "JumpTo", OnNavigation);
-        OnNavigation(this, MenuKeys.MenuKeyIntroduction);
+        OnNavigation(this, "Introduction");
     }
 
     private void OnNavigation(MainViewViewModel vm, string s)
