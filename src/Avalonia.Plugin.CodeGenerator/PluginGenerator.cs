@@ -70,7 +70,12 @@ public class PluginGenerator : IIncrementalGenerator
             Location.None));
 
         if (!classes.Any())
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                new DiagnosticDescriptor("PG004", "Plugin Generator", "No classes with MenuAttribute found", "Plugin Generator", DiagnosticSeverity.Info, true),
+                Location.None));
             return;
+        }
 
         // 获取当前项目的命名空间
         var projectNamespace = GetProjectNamespace(compilation);
@@ -79,7 +84,12 @@ public class PluginGenerator : IIncrementalGenerator
             Location.None));
 
         if (string.IsNullOrEmpty(projectNamespace))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                new DiagnosticDescriptor("PG005", "Plugin Generator", "No project namespace found", "Plugin Generator", DiagnosticSeverity.Info, true),
+                Location.None));
             return;
+        }
 
         // 生成插件实现类
         var pluginClassCode = GeneratePluginClassCode(projectNamespace, classes, compilation);
