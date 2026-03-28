@@ -19,7 +19,12 @@ x:DataType="viewmodels:ApplicationViewModel">
 				<Setter Property="iri:ClassHelper.Classes" Value="Warning" />
 			</Style>
 		</Style>
+
 	</Application.Styles>
+	<Application.Resources>
+		<!-- 定义矢量图标资源 -->
+		<StreamGeometry x:Key="Icon_About">M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z</StreamGeometry>
+	</Application.Resources>
 	<NativeMenu.Menu>
 		<NativeMenu>
 			<NativeMenuItem

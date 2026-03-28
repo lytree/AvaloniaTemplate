@@ -11,7 +11,6 @@ public class MenuViewModel : ViewModelBase
         MenuItems =
         [
             new() { MenuHeader = "Introduction", Key = "Introduction", IsSeparator = false },
-            new() { MenuHeader = "About Us", Key = "AboutUs", IsSeparator = false },
         ];
     }
 
