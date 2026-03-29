@@ -17,9 +17,9 @@ public partial class MainViewViewModel : ViewModelBase
 
     public WindowNotificationManager? NotificationManager { get; set; }
     public MenuViewModel Menus { get; }
-
+    [ObservableProperty] private string? _footerText = "Settings";
     [ObservableProperty] private object? _content;
-
+    [ObservableProperty] private bool _isCollapsed;
     [RelayCommand]
     public void Activate(string key)
     {
@@ -38,5 +38,9 @@ public partial class MainViewViewModel : ViewModelBase
     private void OnNavigation(MainViewViewModel vm, string s)
     {
         Content = _navigationService.CreateViewModel(s);
+    }
+    partial void OnIsCollapsedChanged(bool value)
+    {
+        FooterText = value ? null : "Settings";
     }
 }

@@ -12,5 +12,6 @@
         <Project Path="plugins/Avalonia.Plugin.DialogFeedbacks/Avalonia.Plugin.DialogFeedbacks.csproj" />
         <Project Path="plugins/Avalonia.Plugin.LayoutDisplay/Avalonia.Plugin.LayoutDisplay.csproj" />
         <Project Path="plugins/Avalonia.Plugin.NavigationMenus/Avalonia.Plugin.NavigationMenus.csproj" />
+        <Project Path="plugins/Avalonia.Plugin.Template/Avalonia.Plugin.Template.csproj" />
     </Folder>
 </Solution>

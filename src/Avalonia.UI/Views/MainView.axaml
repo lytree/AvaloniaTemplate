@@ -40,7 +40,7 @@
                     SubMenuBinding="{Binding Children}"
                     HeaderBinding="{Binding}"
                     IconBinding="{Binding MenuHeader}"
-
+                    IsHorizontalCollapsed="{Binding IsCollapsed, Mode=TwoWay}"
                     ItemsSource="{Binding Menus.MenuItems}">
                     <u:NavMenu.Styles>
                         <Style x:DataType="viewmodels:MenuItemViewModel" Selector="u|NavMenuItem">
@@ -95,7 +95,7 @@
                             HorizontalAlignment="Stretch"
                             Classes="Tertiary"
                             Icon="{StaticResource SemiIconSetting}"
-                            Content="Settings"
+                            Content="{Binding FooterText}"
                             RenderTransform="{x:Null}"
                             ToolTip.Tip="Settings"
                             FontWeight="Normal"
