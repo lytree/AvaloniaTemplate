@@ -172,9 +172,7 @@ public class ViewLocator: IDataTemplate
             // 4. 尝试其他常见的命名空间映射
             var alternativeMappings = new List<string>
             {
-                viewModelNamespace.Replace(".ViewModels", ".Views"),
                 viewModelNamespace.Replace(".ViewModels", ".Pages"),
-                viewModelNamespace.Replace("ViewModels", "Views"),
                 viewModelNamespace.Replace("ViewModels", "Pages")
             };
 
