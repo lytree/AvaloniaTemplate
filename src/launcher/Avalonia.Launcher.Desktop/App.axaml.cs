@@ -62,6 +62,8 @@ public partial class App : Application
                     // 注册插件提供的菜单项
                     var menuItems = plugin.GetMenuItems();
                     menuConfigurationService.RegisterMenuItems(menuItems);
+
+                    ViewLocator.RegisterPlugin(plugin);
                 }
                 catch (Exception ex)
                 {

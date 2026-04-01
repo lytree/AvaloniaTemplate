@@ -85,20 +85,44 @@ namespace {ns}
             var allItems = new List<(string? Parent, MenuItemViewModel Item, int Order)>();
 {menuLines}
 
-            var result = new List<KeyValuePair<string, MenuItemViewModel>>();
-            var roots = allItems.Where(x => string.IsNullOrEmpty(x.Parent)).OrderBy(x => x.Order);
 
-            foreach (var root in roots)
-            {{
-                var children = allItems
-                    .Where(x => x.Parent == root.Item.MenuHeader)
-                    .OrderBy(x => x.Order)
-                    .Select(x => x.Item);
-                
-                foreach(var child in children) root.Item.Children.Add(child);
-                result.Add(new KeyValuePair<string, MenuItemViewModel>(null, root.Item));
-            }}
-            return result;
+
+// 2. 建立索引字典，用于快速查找父节点
+var itemLookup = allItems.ToDictionary(x => x.Item.MenuHeader, x => x.Item);
+
+// 3. 递归补全：如果子项引用了不存在的 ParentHeader，则自动创建虚拟根节点
+var missingParents = allItems
+    .Where(x => !string.IsNullOrEmpty(x.Parent) && !itemLookup.ContainsKey(x.Parent!))
+    .Select(x => x.Parent)
+    .Distinct()
+    .ToList();
+
+foreach (var pHeader in missingParents)
+{{
+    var virtualParent = new MenuItemViewModel {{MenuHeader = pHeader!,Key = pHeader!}};
+    itemLookup[pHeader!] = virtualParent;
+    allItems.Add((null, virtualParent,0)); // 虚拟节点作为顶级根节点
+}}
+
+// 4. 构造树形结构：将子项挂载到父项的 Children 集合中
+foreach (var entry in allItems)
+{{
+    if (!string.IsNullOrEmpty(entry.Parent) && itemLookup.TryGetValue(entry.Parent!, out var parentNode))
+    {{
+        // 避免重复挂载
+        if (!parentNode.Children.Contains(entry.Item))
+        {{
+            parentNode.Children.Add(entry.Item);
+        }}
+    }}
+}}
+
+// 5. 结果输出：只返回顶级节点（ParentHeader 为空的项），并按 Order 排序
+ return allItems
+    .Where(x => string.IsNullOrEmpty(x.Parent))
+    .OrderBy(x => x.Item.Order)
+    .Select(x => new KeyValuePair<string, MenuItemViewModel>(null, x.Item))
+    .ToList();
         }}
     }}
 }}";
