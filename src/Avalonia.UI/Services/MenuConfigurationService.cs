@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.ViewModels;
 using Avalonia.UI.ViewModels;
 
@@ -121,7 +120,7 @@ public class MenuConfigurationService : IMenuConfigurationService
         return null;
     }
 
-    public void RegisterMenuItems(IEnumerable<(string? ParentKey, MenuItemViewModel MenuItem)> menuItems)
+    public void RegisterMenuItems(List<KeyValuePair<string, MenuItemViewModel>> menuItems)
     {
         foreach (var (parentKey, menuItem) in menuItems)
         {

@@ -1,5 +1,6 @@
 <Solution>
     <Folder Name="/src/">
+        <Project Path="src/Avalonia.Plugin.Generators/Avalonia.Plugin.Generators.csproj" />
         <Project Path="src/Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj" />
         <Project Path="src/Avalonia.UI/Avalonia.UI.csproj" />
     </Folder>

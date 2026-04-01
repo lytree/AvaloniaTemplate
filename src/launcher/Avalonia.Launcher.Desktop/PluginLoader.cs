@@ -35,6 +35,10 @@ public class PluginLoader
                     {
                         var plugin = (IPlugin)Activator.CreateInstance(type)!;
                         _plugins.Add(plugin);
+                    }
+                    if (typeof(IPluginMetadata).IsAssignableFrom(type) && !type.IsAbstract)
+                    {
+                        var plugin = (IPluginMetadata)Activator.CreateInstance(type)!;
                         plugin.Initialize();
                     }
                 }
@@ -60,9 +64,9 @@ public class PluginLoader
     /// 获取所有插件提供的导航项
     /// </summary>
     /// <returns>导航项字典</returns>
-    public Dictionary<string, Avalonia.Plugin.Shared.ViewModelFactory> GetAllNavigationItems()
+    public Dictionary<string, ViewModelFactory> GetAllNavigationItems()
     {
-        var navigationItems = new Dictionary<string, Avalonia.Plugin.Shared.ViewModelFactory>();
+        var navigationItems = new Dictionary<string, ViewModelFactory>();
         foreach (var plugin in _plugins)
         {
             var items = plugin.GetNavigationItems();
@@ -78,9 +82,9 @@ public class PluginLoader
     /// 获取所有插件提供的菜单项
     /// </summary>
     /// <returns>菜单项列表</returns>
-    public IEnumerable<(string? ParentKey, MenuItemViewModel MenuItem)> GetAllMenuItems()
+    public List<KeyValuePair<string, MenuItemViewModel>> GetAllMenuItems()
     {
-        var menuItems = new List<(string? ParentKey, MenuItemViewModel MenuItem)>();
+        var menuItems = new List<KeyValuePair<string, MenuItemViewModel>>();
         foreach (var plugin in _plugins)
         {
             var items = plugin.GetMenuItems();

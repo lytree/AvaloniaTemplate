@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using Avalonia;
 using Avalonia.Plugin.Shared;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;

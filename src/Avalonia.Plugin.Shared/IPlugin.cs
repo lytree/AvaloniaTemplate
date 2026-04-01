@@ -1,65 +1,39 @@
+
+using Avalonia.Controls;
 using Avalonia.Plugin.Shared.ViewModels;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace Avalonia.Plugin.Shared;
 
+
 public interface IPlugin
 {
     /// <summary>
-    /// 插件名称
+    /// 【新增】获取插件提供的 ViewModel 与 View 的映射关系
     /// </summary>
-    string Name { get; }
-
-    /// <summary>
-    /// 插件版本
-    /// </summary>
-    string Version { get; }
-
-    /// <summary>
-    /// 插件作者
-    /// </summary>
-    string Author { get; }
-
-    /// <summary>
-    /// 插件描述
-    /// </summary>
-    string Description { get; }
-
-    /// <summary>
-    /// 插件依赖
-    /// </summary>
-    IEnumerable<string> Dependencies { get; }
-
-    /// <summary>
-    /// 插件唯一标识
-    /// </summary>
-    string PluginId { get; }
-
-    /// <summary>
-    /// 初始化插件
-    /// </summary>
-    void Initialize();
-
+    /// <returns>Key 为 ViewModel 类型，Value 为创建对应 View 的工厂方法</returns>
+    IEnumerable<KeyValuePair<Type, ViewFactory>> GetViewDefinitions();
     /// <summary>
     /// 获取插件提供的导航项
     /// </summary>
     /// <returns>导航项字典，键为导航键，值为 ViewModel 工厂方法</returns>
     Dictionary<string, ViewModelFactory> GetNavigationItems();
-
     /// <summary>
     /// 获取插件提供的菜单项
     /// </summary>
     /// <returns>菜单项列表，包含菜单项和其父菜单项键（可选）</returns>
-    IEnumerable<(string? ParentKey, MenuItemViewModel MenuItem)> GetMenuItems();
-    
+    List<KeyValuePair<string, MenuItemViewModel>> GetMenuItems();
 }
+
 
 /// <summary>
 /// ViewModel 工厂委托
 /// </summary>
 public delegate object ViewModelFactory();
-
+/// <summary>
+/// 视图工厂委托
+/// </summary>
+public delegate Control ViewFactory();
 
 
 
@@ -127,6 +101,3 @@ public class ToolBarComboBoxItemViewModel : ToolBarItemViewModel
     public object SelectedItem { get; set; }
     public object Items { get; set; }
 }
-
-
-

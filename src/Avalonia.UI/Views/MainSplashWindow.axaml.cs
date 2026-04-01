@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using Ursa.Controls;
 using Avalonia.Plugin.Shared;
 using Avalonia.UI.ViewModels;

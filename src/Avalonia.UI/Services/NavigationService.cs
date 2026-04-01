@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Avalonia.Plugin.Shared;
+using Avalonia.UI.Pages;
 using Avalonia.UI.ViewModels;
 
 namespace Avalonia.UI.Services;
@@ -20,6 +21,10 @@ public class NavigationService : INavigationService
         RegisterNavigation("Introduction", () => new IntroductionDemoViewModel());
         RegisterNavigation("AboutUs", () => new AboutUsDemoViewModel());
         RegisterNavigation("Settings", () => new SettingsPageViewModel());
+
+        ViewLocator.Register<IntroductionDemoViewModel, IntroductionDemo>();
+        ViewLocator.Register<AboutUsDemoViewModel, AboutUsDemo>();
+        ViewLocator.Register<SettingsPageViewModel, SettingsPage>();
     }
 
     public void RegisterNavigation(string key, ViewModelFactory factory)

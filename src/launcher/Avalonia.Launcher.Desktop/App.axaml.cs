@@ -1,5 +1,3 @@
-using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Plugin.Shared;
@@ -56,7 +54,6 @@ public partial class App : Application
                 try
                 {
                     var plugin = (IPlugin)Activator.CreateInstance(pluginType)!;
-                    plugin.Initialize();
 
                     // 注册插件提供的导航项
                     var navigationItems = plugin.GetNavigationItems();
@@ -78,8 +75,6 @@ public partial class App : Application
     private List<Type> FindPluginTypes()
     {
         var pluginTypes = new List<Type>();
-
-
 
         // 3. 从程序目录查找插件类型
         var AppDirectory = Path.Combine(AppContext.BaseDirectory);

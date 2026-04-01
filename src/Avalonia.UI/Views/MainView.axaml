@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:iri="https://irihi.tech/shared"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:plugin="clr-namespace:Avalonia.Plugin.Shared"
+    xmlns:plugin="using:Avalonia.Plugin.Shared"
     xmlns:u="https://irihi.tech/ursa"
     xmlns:viewmodels="using:Avalonia.Plugin.Shared.ViewModels"
     xmlns:vm="using:Avalonia.UI.ViewModels"
@@ -111,7 +111,7 @@
                 Margin="12,36,12,12"
                 Content="{Binding Content}">
                 <ContentControl.ContentTemplate>
-                    <converters:ViewLocator />
+                    <plugin:ViewLocator />
                 </ContentControl.ContentTemplate>
             </ContentControl>
         </Grid>
