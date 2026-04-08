@@ -11,13 +11,12 @@
 
 	<ItemGroup>
 
-		<PackageReference Include="Avalonia" Version="11.3.12" />
-
+		<PackageReference Include="Avalonia" Version="12.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
-		<PackageReference Include="Semi.Avalonia" Version="11.3.7.3" />
+		<PackageReference Include="Semi.Avalonia" Version="12.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="Irihi.Ursa" Version="1.15.0" />
-		<PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.15.0" />
+		<PackageReference Include="Irihi.Ursa" Version="2.0.0-rc1" />
+		<PackageReference Include="Irihi.Ursa.Themes.Semi" Version="2.0.0-rc1" />
 	</ItemGroup>
 
 	<ItemGroup>
