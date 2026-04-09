@@ -1,0 +1,30 @@
+<UserControl
+    x:Class="Avalonia.UI.Pages.WebPageDemo"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Avalonia.UI.ViewModels"
+    x:CompileBindings="True"
+    x:DataType="vm:WebPageDemoViewModel"
+    mc:Ignorable="d"
+    d:DesignHeight="450"
+    d:DesignWidth="800">
+
+    <Design.DataContext>
+        <vm:WebPageDemoViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*" RowSpacing="8">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Grid.Column="0"
+                     PlaceholderText="输入网页地址，例如：https://docs.avaloniaui.net"
+                     Text="{Binding Url, Mode=TwoWay}" />
+            <Button Grid.Column="1"
+                    Content="打开"
+                    Command="{Binding NavigateCommand}" />
+        </Grid>
+
+        <NativeWebView Grid.Row="1" Source="{Binding CurrentUri}" />
+    </Grid>
+</UserControl>

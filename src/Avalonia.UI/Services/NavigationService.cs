@@ -21,10 +21,12 @@ public class NavigationService : INavigationService
         RegisterNavigation("Introduction", () => new IntroductionDemoViewModel());
         RegisterNavigation("AboutUs", () => new AboutUsDemoViewModel());
         RegisterNavigation("Settings", () => new SettingsPageViewModel());
+        RegisterNavigation("WebPage", () => new WebPageDemoViewModel());
 
         ViewLocator.Register<IntroductionDemoViewModel, IntroductionDemo>();
         ViewLocator.Register<AboutUsDemoViewModel, AboutUsDemo>();
         ViewLocator.Register<SettingsPageViewModel, SettingsPage>();
+        ViewLocator.Register<WebPageDemoViewModel, WebPageDemo>();
     }
 
     public void RegisterNavigation(string key, ViewModelFactory factory)
