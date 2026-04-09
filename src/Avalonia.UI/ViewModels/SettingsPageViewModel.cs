@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using Avalonia.Plugin.Shared;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Ursa.Themes.Semi;
 
 namespace Avalonia.UI.ViewModels;
 
@@ -11,11 +10,7 @@ public partial class SettingsPageViewModel : ViewModelBase
     public ObservableCollection<ThemeItem> Themes { get; } = [
         new("Default", ThemeVariant.Default),
         new("Light", ThemeVariant.Light),
-        new("Dark", ThemeVariant.Dark),
-        new("Aquatic", SemiTheme.Aquatic),
-        new("Desert", SemiTheme.Desert),
-        new("Dusk", SemiTheme.Dusk),
-        new("NightSky", SemiTheme.NightSky)
+        new("Dark", ThemeVariant.Dark)
     ];
 
     [ObservableProperty] private ThemeItem? _selectedTheme;

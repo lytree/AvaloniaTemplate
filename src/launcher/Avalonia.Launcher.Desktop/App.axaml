@@ -2,25 +2,24 @@
 x:Class="Avalonia.Desktop.App"
 xmlns="https://github.com/avaloniaui"
 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-xmlns:semi="https://irihi.tech/semi"
-xmlns:u-semi="https://irihi.tech/ursa/themes/semi"
+    xmlns:semi="https://irihi.tech/semi"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:iri="https://irihi.tech/shared"
+    RequestedThemeVariant="Light"
 xmlns:viewmodels="using:Avalonia.UI.ViewModels"
-xmlns:u="https://irihi.tech/ursa"
-xmlns:iri="https://irihi.tech/shared"
 x:DataType="viewmodels:ApplicationViewModel">
-	<Application.Styles>
-		<semi:SemiTheme Locale="zh-CN" />
-		<semi:SemiPopupAnimations />
-		<u-semi:SemiTheme Locale="zh-CN" />
-		<!--This style is created to demonstrate Dialog StyleClass feature. This style is applied to Dialog Window-->
-		<Style Selector="u|DefaultDialogWindow.Custom">
-			<Style Selector="^ /template/ Button#PART_OKButton">
-				<Setter Property="Content" Value="CUSTOM" />
-				<Setter Property="iri:ClassHelper.Classes" Value="Warning" />
-			</Style>
-		</Style>
-
-	</Application.Styles>
+    <Application.Styles>
+        <semi:SemiTheme Locale="zh-CN" />
+        <semi:UrsaSemiTheme Locale="zh-CN" />
+        <semi:SemiPopupAnimations />
+        <!--This style is created to demonstrate Dialog StyleClass feature. This style is applied to Dialog Window-->
+        <Style Selector="u|StandardDialogWindow.Custom">
+            <Style Selector="^ /template/ Button#PART_OKButton">
+                <Setter Property="Content" Value="CUSTOM" />
+                <Setter Property="iri:ClassHelper.Classes" Value="Warning" />
+            </Style>
+        </Style>
+    </Application.Styles>
 	<Application.Resources>
 		<!-- 定义矢量图标资源 -->
 		<StreamGeometry x:Key="Icon_About">M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z</StreamGeometry>
