@@ -5,7 +5,7 @@ using System.Reflection;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.ViewModels;
 
-namespace Avalonia.Desktop;
+namespace Avalonia.Launcher.Desktop;
 
 public class PluginLoader
 {

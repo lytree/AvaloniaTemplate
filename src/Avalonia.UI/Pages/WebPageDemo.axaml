@@ -14,17 +14,14 @@
     <Design.DataContext>
         <vm:WebPageDemoViewModel />
     </Design.DataContext>
-
-    <Grid RowDefinitions="Auto,*" RowSpacing="8">
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <TextBox Grid.Column="0"
-                     PlaceholderText="输入网页地址，例如：https://docs.avaloniaui.net"
-                     Text="{Binding Url, Mode=TwoWay}" />
-            <Button Grid.Column="1"
-                    Content="打开"
-                    Command="{Binding NavigateCommand}" />
-        </Grid>
-
-        <NativeWebView Grid.Row="1" Source="{Binding CurrentUri}" />
-    </Grid>
+   <TabControl x:Name="TabControl">
+        <TabItem Header="AvaloniaUI">
+            <Grid x:Name="GridContainer" RowDefinitions="Auto, 3*, *">
+                <NativeWebView Grid.Row="1" x:Name="WebView"
+                               Source="https://baidu.com/"
+                               />
+                <TextBox IsReadOnly="True" Grid.Row="2" x:Name="LogList" />
+            </Grid>
+        </TabItem>
+    </TabControl>
 </UserControl>
