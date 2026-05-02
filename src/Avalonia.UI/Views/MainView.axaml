@@ -91,18 +91,32 @@
                         </DockPanel>
                     </u:NavMenu.Header>
                     <u:NavMenu.Footer>
-                        <u:IconButton
-                            HorizontalAlignment="Stretch"
-                            Classes="Tertiary"
-                            Icon="{StaticResource SemiIconSetting}"
-                            Content="{Binding FooterText}"
-                            RenderTransform="{x:Null}"
-                            ToolTip.Tip="Settings"
-                            FontWeight="Normal"
-                            Theme="{DynamicResource BorderlessIconButton}"
-                            Command="{Binding ActivateCommand}"
-                            CommandParameter="Settings">
-                        </u:IconButton>
+                        <StackPanel Spacing="4">
+                            <u:IconButton
+                                HorizontalAlignment="Stretch"
+                                Classes="Tertiary"
+                                Icon="{StaticResource SemiIconSetting}"
+                                Content="{Binding FooterText}"
+                                RenderTransform="{x:Null}"
+                                ToolTip.Tip="Settings"
+                                FontWeight="Normal"
+                                Theme="{DynamicResource BorderlessIconButton}"
+                                Command="{Binding ActivateCommand}"
+                                CommandParameter="Settings">
+                            </u:IconButton>
+                            <u:IconButton
+                                HorizontalAlignment="Stretch"
+                                Classes="Tertiary"
+                                Icon="{StaticResource SemiIconSetting}"
+                                Content="Plugins"
+                                RenderTransform="{x:Null}"
+                                ToolTip.Tip="Plugin Management"
+                                FontWeight="Normal"
+                                Theme="{DynamicResource BorderlessIconButton}"
+                                Command="{Binding ActivateCommand}"
+                                CommandParameter="PluginManagement">
+                            </u:IconButton>
+                        </StackPanel>
                     </u:NavMenu.Footer>
                 </u:NavMenu>
             </Border>

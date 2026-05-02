@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Services;
 using Avalonia.UI.Pages;
 using Avalonia.UI.ViewModels;
 
@@ -17,14 +18,17 @@ public class NavigationService : INavigationService
 
     private void RegisterDefaultNavigations()
     {
-        // 保留默认导航项：Introduction、AboutUs 和 Settings
         RegisterNavigation("Introduction", () => new IntroductionDemoViewModel());
         RegisterNavigation("AboutUs", () => new AboutUsDemoViewModel());
         RegisterNavigation("Settings", () => new SettingsPageViewModel());
+        RegisterNavigation("PluginManagement", () => new PluginManagementViewModel(
+            ServiceLocator.GetService<IPluginLoader>(),
+            ServiceLocator.GetService<IPluginInstallationManager>()));
 
         ViewLocator.Register<IntroductionDemoViewModel, IntroductionDemo>();
         ViewLocator.Register<AboutUsDemoViewModel, AboutUsDemo>();
         ViewLocator.Register<SettingsPageViewModel, SettingsPage>();
+        ViewLocator.Register<PluginManagementViewModel, PluginManagementPage>();
     }
 
     public void RegisterNavigation(string key, ViewModelFactory factory)
