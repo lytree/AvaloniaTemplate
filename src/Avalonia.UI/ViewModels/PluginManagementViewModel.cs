@@ -37,7 +37,7 @@ public partial class PluginManagementViewModel : ViewModelBase
     {
         Plugins.Clear();
         var installedPlugins = _pluginLoader.GetInstalledPlugins();
-        foreach (var plugin in installedPlugins)
+        foreach (var plugin in installedPlugins.Where(p => p.HasMetadata))
         {
             Plugins.Add(new PluginItemViewModel(plugin));
         }
@@ -116,6 +116,8 @@ public partial class PluginManagementViewModel : ViewModelBase
 
     private void OnPluginInstalled(object? sender, PluginInfo e)
     {
+        if (!e.HasMetadata) return;
+
         var existing = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
         if (existing != null)
         {
@@ -138,8 +140,17 @@ public partial class PluginManagementViewModel : ViewModelBase
 
     private void OnPluginStateChanged(object? sender, PluginInfo e)
     {
+        if (!e.HasMetadata) return;
+
         var item = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
-        item?.UpdateFrom(e);
+        if (item != null)
+        {
+            item.UpdateFrom(e);
+        }
+        else
+        {
+            Plugins.Add(new PluginItemViewModel(e));
+        }
     }
 }
 

@@ -122,6 +122,7 @@ public class PluginLoader : IPluginLoader, IDisposable
                 if (metadata != null)
                 {
                     _loadedMetadata[pluginInfo.PluginId] = metadata;
+                    pluginInfo.HasMetadata = true;
                 }
 
                 pluginInfo.State = PluginState.Loaded;
@@ -192,32 +193,47 @@ public class PluginLoader : IPluginLoader, IDisposable
 
         foreach (var dllPath in Directory.GetFiles(_extraPluginPath, "*.dll", SearchOption.TopDirectoryOnly))
         {
-            try
+            TryLoadExtraPluginDll(dllPath);
+        }
+
+        foreach (var subDir in Directory.GetDirectories(_extraPluginPath))
+        {
+            var dirName = Path.GetFileName(subDir);
+            var candidateDll = Path.Combine(subDir, $"{dirName}.dll");
+            if (File.Exists(candidateDll))
             {
-                var assemblyName = AssemblyName.GetAssemblyName(dllPath);
-                var pluginId = assemblyName.Name ?? Path.GetFileNameWithoutExtension(dllPath);
-
-                if (_loadedPlugins.ContainsKey(pluginId))
-                    continue;
-
-                var pluginInfo = new PluginInfo
-                {
-                    PluginId = pluginId,
-                    Name = assemblyName.Name ?? pluginId,
-                    Version = assemblyName.Version?.ToString() ?? "0.0.0",
-                    AssemblyPath = dllPath,
-                    InstallPath = Path.GetDirectoryName(dllPath) ?? _extraPluginPath,
-                    State = PluginState.Installed,
-                    IsBuiltIn = false
-                };
-
-                _pluginRegistry[pluginId] = pluginInfo;
-                LoadPlugin(pluginInfo);
+                TryLoadExtraPluginDll(candidateDll);
             }
-            catch (Exception ex)
+        }
+    }
+
+    private void TryLoadExtraPluginDll(string dllPath)
+    {
+        try
+        {
+            var assemblyName = AssemblyName.GetAssemblyName(dllPath);
+            var pluginId = assemblyName.Name ?? Path.GetFileNameWithoutExtension(dllPath);
+
+            if (_loadedPlugins.ContainsKey(pluginId))
+                return;
+
+            var pluginInfo = new PluginInfo
             {
-                Console.WriteLine($"Failed to load extra plugin from '{dllPath}': {ex.Message}");
-            }
+                PluginId = pluginId,
+                Name = assemblyName.Name ?? pluginId,
+                Version = assemblyName.Version?.ToString() ?? "0.0.0",
+                AssemblyPath = dllPath,
+                InstallPath = Path.GetDirectoryName(dllPath) ?? _extraPluginPath,
+                State = PluginState.Installed,
+                IsBuiltIn = false
+            };
+
+            _pluginRegistry[pluginId] = pluginInfo;
+            LoadPlugin(pluginInfo);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load extra plugin from '{dllPath}': {ex.Message}");
         }
     }
 

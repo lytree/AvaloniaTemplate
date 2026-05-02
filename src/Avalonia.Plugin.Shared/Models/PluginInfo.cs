@@ -14,4 +14,5 @@ public class PluginInfo
     public string? ErrorMessage { get; set; }
     public DateTime? InstallTime { get; set; }
     public bool IsBuiltIn { get; set; }
+    public bool HasMetadata { get; set; }
 }
