@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Plugin - Template",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-plugin-template",
+            "program": "${workspaceFolder}/src/launcher/Avalonia.Launcher.Desktop/bin/Debug/net10.0/Avalonia.Launcher.Desktop.dll",
+            "cwd": "${workspaceFolder}/src/launcher/Avalonia.Launcher.Desktop",
+            "env": {
+                "AVALONIA_EXTRA_PLUGINS_PATH": "${workspaceFolder}/plugins/Avalonia.Plugin.Template/bin/Debug/net10.0"
+            },
+            "console": "internalConsole",
+            "stopAtEntry": false
+        }
+    ]
+}
