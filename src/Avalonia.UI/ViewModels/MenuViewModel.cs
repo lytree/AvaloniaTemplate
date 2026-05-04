@@ -11,7 +11,6 @@ public class MenuViewModel : ViewModelBase
         MenuItems =
         [
             new() { MenuHeader = "Introduction", Key = "Introduction", IsSeparator = false },
-            new() { MenuHeader = "Web 页面", Key = "WebPage", IsSeparator = false },
         ];
     }
 
