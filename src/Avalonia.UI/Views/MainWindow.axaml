@@ -15,7 +15,6 @@
     x:DataType="viewModels:MainWindowViewModel"
     WindowStartupLocation="CenterScreen"
     Icon="/Assets/irihi.ico"
-    Background="{DynamicResource FluentBackgroundBrush}"
     IsFullScreenButtonVisible="{OnPlatform {x:True}, macOS={x:False}}"
     IsManagedResizerVisible="{OnPlatform {x:False}, Linux={x:True}}"
     mc:Ignorable="d">

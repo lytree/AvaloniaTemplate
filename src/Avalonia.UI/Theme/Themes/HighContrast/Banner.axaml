@@ -1,6 +1,0 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <StaticResource x:Key="BannerInformationBackground" ResourceKey="SemiColorWindow" />
-    <StaticResource x:Key="BannerBorderBrush" ResourceKey="SemiColorWindowText" />
-    <StaticResource x:Key="BannerInformationBorderBrush" ResourceKey="SemiColorWindowText" />
-    <StaticResource x:Key="BannerCloseButtonForeground" ResourceKey="SemiColorWindowText" />
-</ResourceDictionary>
