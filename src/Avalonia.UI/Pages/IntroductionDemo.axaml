@@ -22,16 +22,18 @@
             <Setter Property="Margin" Value="3" />
         </Style>
         <Style Selector="Border.SectionCard">
-            <Setter Property="Background" Value="{DynamicResource SemiColorBgDefault}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource SemiColorBorder}" />
+            <Setter Property="Background" Value="{DynamicResource FluentCardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource FluentCardBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="10" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12" />
             <Setter Property="Margin" Value="4" />
+            <Setter Property="BoxShadow" Value="0 1 4 0 #0A000000" />
         </Style>
         <Style Selector="TextBlock.SectionTitle">
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{DynamicResource FluentTextPrimaryBrush}" />
         </Style>
     </UserControl.Styles>
 

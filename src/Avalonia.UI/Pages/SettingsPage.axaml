@@ -6,48 +6,43 @@
              x:Class="Avalonia.UI.Pages.SettingsPage"
              x:DataType="viewModels:SettingsPageViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        
-        <TextBlock Grid.Row="0" Text="Settings" FontSize="24" FontWeight="Bold" Margin="0 0 0 24"/>
-        
-        <StackPanel Grid.Row="1" Spacing="24">
-            <!-- Theme Section -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="Theme" FontSize="18" FontWeight="SemiBold"/>
-                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Select a theme for the application" FontSize="14" Opacity="0.7"/>
-                        <ComboBox Width="200" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" DisplayMemberBinding="{Binding Name}"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-            
-            <!-- Interface Section -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="Interface" FontSize="18" FontWeight="SemiBold"/>
-                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Customize the interface appearance" FontSize="14" Opacity="0.7"/>
-                        <CheckBox IsChecked="{Binding IsCollapsed}" Content="Collapse Sidebar"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-            
-            <!-- About Section -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="About" FontSize="18" FontWeight="SemiBold"/>
-                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Avalonia UI Template" FontSize="16" FontWeight="Medium"/>
-                        <TextBlock Text="Version 1.0.0" FontSize="14" Opacity="0.7"/>
-                        <TextBlock Text="A modern UI template built with Avalonia and Ursa controls." FontSize="14" Opacity="0.7"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24" Spacing="16">
+            <TextBlock Text="Settings" FontSize="28" FontWeight="SemiBold"
+                       Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+
+            <Border Classes="FluentCard">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Theme" FontSize="20" FontWeight="SemiBold"
+                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+                    <TextBlock Text="Select a theme for the application" FontSize="14"
+                               Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                    <ComboBox Width="200" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" DisplayMemberBinding="{Binding Name}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="FluentCard">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Interface" FontSize="20" FontWeight="SemiBold"
+                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+                    <TextBlock Text="Customize the interface appearance" FontSize="14"
+                               Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                    <CheckBox IsChecked="{Binding IsCollapsed}" Content="Collapse Sidebar"/>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="FluentCard">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="About" FontSize="20" FontWeight="SemiBold"
+                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+                    <TextBlock Text="Avalonia UI Template" FontSize="16" FontWeight="Medium"
+                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+                    <TextBlock Text="Version 1.0.0" FontSize="14"
+                               Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                    <TextBlock Text="A modern UI template built with Avalonia and Ursa controls." FontSize="14"
+                               Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
         </StackPanel>
-    </Grid>
+    </ScrollViewer>
 </UserControl>

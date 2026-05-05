@@ -6,5 +6,6 @@ public enum PluginState
     Installed,
     Loaded,
     Disabled,
+    PendingUninstall,
     Error
 }

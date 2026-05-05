@@ -93,18 +93,19 @@
             Name="Backdrop"
             Margin="18"
             Padding="24"
-            CornerRadius="26"
-            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-            BorderBrush="{DynamicResource ControlAltFillColorSecondaryBrush}"
-            BorderThickness="1">
+            CornerRadius="8"
+            Background="{DynamicResource FluentCardBackgroundBrush}"
+            BorderBrush="{DynamicResource FluentCardBorderBrush}"
+            BorderThickness="1"
+            BoxShadow="0 4 16 0 #22000000">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="14">
                 <Border
                     Name="HeroImagePanel"
                     Grid.Row="0"
                     Height="150"
-                    CornerRadius="16"
+                    CornerRadius="8"
                     ClipToBounds="True"
-                    Background="{DynamicResource SubtleFillColorSecondaryBrush}">
+                    Background="{DynamicResource FluentHoverBackgroundBrush}">
                     <Grid>
                         <Image Source="/Assets/jk-girl.jpg" Stretch="UniformToFill" Opacity="0.82" />
                         <Border Background="#55000000" />
@@ -125,39 +126,41 @@
                     RowDefinitions="Auto,Auto"
                     ColumnSpacing="14">
                     <Grid Grid.RowSpan="2" Width="82" Height="82" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Border Name="HaloPulse" Background="{DynamicResource InfoBackgroundBrush}" CornerRadius="41" />
+                        <Border Name="HaloPulse" Background="{DynamicResource FluentAccentBrush}" CornerRadius="41" Opacity="0.15" />
                         <iri:IrihiLogo
                             Name="BrandLogo"
                             Width="56"
                             Height="56"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Fill="{DynamicResource SemiColorText2}" />
+                            Fill="{DynamicResource FluentAccentBrush}" />
                     </Grid>
 
                     <TextBlock
                         Grid.Column="1"
-                        Classes="H2"
                         VerticalAlignment="Bottom"
+                        FontSize="24"
+                        FontWeight="SemiBold"
                         Text="铱泓科技"
-                        Theme="{DynamicResource TitleTextBlock}" />
+                        Foreground="{DynamicResource FluentTextPrimaryBrush}" />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="1"
                         FontSize="16"
                         FontWeight="SemiBold"
-                        Opacity="0.82"
+                        Foreground="{DynamicResource FluentTextSecondaryBrush}"
                         Text="IRIHI Technology" />
                 </Grid>
 
                 <StackPanel Grid.Row="2" Spacing="4">
-                    <TextBlock HorizontalAlignment="Center" FontSize="15" FontWeight="Medium" Text="聚焦生产力的美学进化" />
-                    <TextBlock HorizontalAlignment="Center" FontSize="13" Opacity="0.72" Text="Aesthetic Evolution of Productivity" />
+                    <TextBlock HorizontalAlignment="Center" FontSize="15" FontWeight="Medium" Text="聚焦生产力的美学进化"
+                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+                    <TextBlock HorizontalAlignment="Center" FontSize="13" Foreground="{DynamicResource FluentTextSecondaryBrush}" Text="Aesthetic Evolution of Productivity" />
                 </StackPanel>
 
                 <StackPanel Grid.Row="3" Spacing="8">
                     <ProgressBar IsIndeterminate="True" Height="5" CornerRadius="999" />
-                    <TextBlock HorizontalAlignment="Center" FontSize="12" Opacity="0.68" Text="正在加载组件... / Initializing modules..." />
+                    <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource FluentTextTertiaryBrush}" Text="正在加载组件... / Initializing modules..." />
                 </StackPanel>
             </Grid>
         </Border>

@@ -157,20 +157,7 @@ public class PluginInstallationManager : IPluginInstallationManager
 
         if (pluginInfo.IsBuiltIn) return Task.FromResult(false);
 
-        _pluginLoader.UnregisterPlugin(pluginId);
-
-        var installDir = GetPluginDirectory(pluginId);
-        if (Directory.Exists(installDir))
-        {
-            try
-            {
-                Directory.Delete(installDir, true);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to delete plugin directory: {ex.Message}");
-            }
-        }
+        _pluginLoader.MarkForUninstall(pluginId);
 
         PluginUninstalled?.Invoke(this, pluginInfo);
         return Task.FromResult(true);
@@ -178,19 +165,13 @@ public class PluginInstallationManager : IPluginInstallationManager
 
     public Task<bool> EnablePluginAsync(string pluginId)
     {
-        var pluginInfo = _pluginLoader.GetPlugin(pluginId);
-        if (pluginInfo == null) return Task.FromResult(false);
-
-        var result = _pluginLoader.LoadPlugin(pluginInfo);
-        return Task.FromResult(result.Success);
+        _pluginLoader.EnablePlugin(pluginId);
+        return Task.FromResult(true);
     }
 
     public Task<bool> DisablePluginAsync(string pluginId)
     {
-        var pluginInfo = _pluginLoader.GetPlugin(pluginId);
-        if (pluginInfo == null) return Task.FromResult(false);
-
-        _pluginLoader.UnloadPlugin(pluginId);
+        _pluginLoader.DisablePlugin(pluginId);
         return Task.FromResult(true);
     }
 

@@ -1,0 +1,95 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="SemiColorPrimary" Color="#005FB8" />
+    <SolidColorBrush x:Key="SemiColorPrimaryPointerover" Color="#004E9A" />
+    <SolidColorBrush x:Key="SemiColorPrimaryActive" Color="#003D7C" />
+    <SolidColorBrush x:Key="SemiColorPrimaryDisabled" Color="#A0C4E8" />
+    <SolidColorBrush x:Key="SemiColorPrimaryLight" Color="#E5F2FA" />
+    <SolidColorBrush x:Key="SemiColorPrimaryLightPointerover" Color="#CCE6F5" />
+    <SolidColorBrush x:Key="SemiColorPrimaryLightActive" Color="#B3D9F0" />
+
+    <SolidColorBrush x:Key="SemiColorSecondary" Color="#8B5CF6" />
+    <SolidColorBrush x:Key="SemiColorSecondaryPointerover" Color="#7C3AED" />
+    <SolidColorBrush x:Key="SemiColorSecondaryActive" Color="#6D28D9" />
+    <SolidColorBrush x:Key="SemiColorSecondaryLight" Color="#EDE9FE" />
+
+    <SolidColorBrush x:Key="SemiColorTertiary" Color="#6B7280" />
+    <SolidColorBrush x:Key="SemiColorTertiaryPointerover" Color="#4B5563" />
+    <SolidColorBrush x:Key="SemiColorTertiaryActive" Color="#374151" />
+    <SolidColorBrush x:Key="SemiColorTertiaryLight" Color="#F3F4F6" />
+
+    <SolidColorBrush x:Key="SemiColorSuccess" Color="#0F7B0F" />
+    <SolidColorBrush x:Key="SemiColorSuccessPointerover" Color="#0C660C" />
+    <SolidColorBrush x:Key="SemiColorSuccessActive" Color="#095209" />
+    <SolidColorBrush x:Key="SemiColorSuccessLight" Color="#E6F4E6" />
+
+    <SolidColorBrush x:Key="SemiColorWarning" Color="#9D5D00" />
+    <SolidColorBrush x:Key="SemiColorWarningPointerover" Color="#844D00" />
+    <SolidColorBrush x:Key="SemiColorWarningActive" Color="#6B3E00" />
+    <SolidColorBrush x:Key="SemiColorWarningLight" Color="#FFF4CE" />
+
+    <SolidColorBrush x:Key="SemiColorDanger" Color="#C42B1C" />
+    <SolidColorBrush x:Key="SemiColorDangerPointerover" Color="#A52317" />
+    <SolidColorBrush x:Key="SemiColorDangerActive" Color="#871B12" />
+    <SolidColorBrush x:Key="SemiColorDangerLight" Color="#FDE7E7" />
+
+    <SolidColorBrush x:Key="SemiColorWhite" Color="#FFFFFF" />
+
+    <SolidColorBrush x:Key="SemiColorText0" Color="#1A1A1A" />
+    <SolidColorBrush x:Key="SemiColorText1" Color="#4A4A4A" />
+    <SolidColorBrush x:Key="SemiColorText2" Color="#8C8C8C" />
+    <SolidColorBrush x:Key="SemiColorDisabledText" Color="#BDBDBD" />
+    <SolidColorBrush x:Key="SemiColorGrayText" Color="#8C8C8C" />
+
+    <SolidColorBrush x:Key="SemiColorFill0" Color="#F5F5F5" />
+    <SolidColorBrush x:Key="SemiColorFill1" Color="#EBEBEB" />
+    <SolidColorBrush x:Key="SemiColorFill2" Color="#E0E0E0" />
+    <SolidColorBrush x:Key="SemiColorDisabledFill" Color="#F5F5F5" />
+
+    <SolidColorBrush x:Key="SemiColorBackground0" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SemiColorBackground1" Color="#FAFAFA" />
+    <SolidColorBrush x:Key="SemiColorBackground2" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SemiColorBackground3" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SemiColorBackground4" Color="#F0F0F0" />
+
+    <SolidColorBrush x:Key="SemiColorBorder" Color="#E0E0E0" />
+    <SolidColorBrush x:Key="SemiColorButtonFace" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SemiColorButtonText" Color="#1A1A1A" />
+    <SolidColorBrush x:Key="SemiColorHighlight" Color="#005FB8" />
+    <SolidColorBrush x:Key="SemiColorHighlightText" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SemiColorHotlight" Color="#005FB8" />
+    <SolidColorBrush x:Key="SemiColorWindow" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SemiColorWindowText" Color="#1A1A1A" />
+    <SolidColorBrush x:Key="SemiColorOverlayBackground" Color="#80000000" />
+
+    <SolidColorBrush x:Key="SemiRed3" Color="#E54D42" />
+    <SolidColorBrush x:Key="SemiYellow3" Color="#F5C542" />
+    <SolidColorBrush x:Key="SemiYellow5" Color="#9D5D00" />
+    <SolidColorBrush x:Key="SemiOrange3" Color="#F77234" />
+    <SolidColorBrush x:Key="SemiBlue1" Color="#E5F2FA" />
+    <SolidColorBrush x:Key="SemiBlue3" Color="#3491FA" />
+    <SolidColorBrush x:Key="SemiGreen3" Color="#00B42A" />
+    <SolidColorBrush x:Key="SemiGrey3" Color="#C9CDD4" />
+    <SolidColorBrush x:Key="SemiGrey4" Color="#A9AEB8" />
+    <SolidColorBrush x:Key="SemiCyan3" Color="#14C9C9" />
+    <SolidColorBrush x:Key="SemiPurple3" Color="#8B5CF6" />
+    <SolidColorBrush x:Key="SemiPink3" Color="#F7729C" />
+    <SolidColorBrush x:Key="SemiIndigo3" Color="#6366F1" />
+    <SolidColorBrush x:Key="SemiViolet3" Color="#7C3AED" />
+    <SolidColorBrush x:Key="SemiTeal3" Color="#14B8A6" />
+    <SolidColorBrush x:Key="SemiLime3" Color="#84CC16" />
+    <SolidColorBrush x:Key="SemiLightBlue3" Color="#38BDF8" />
+    <SolidColorBrush x:Key="SemiLightGreen3" Color="#4ADE80" />
+    <SolidColorBrush x:Key="SemiAmber3" Color="#F59E0B" />
+
+    <x:Double x:Key="SemiFontSizeHeader2">28</x:Double>
+    <x:Double x:Key="SemiFontSizeHeader4">20</x:Double>
+    <x:Double x:Key="SemiFontSizeHeader6">14</x:Double>
+    <x:Double x:Key="SemiFontSizeRegular">14</x:Double>
+    <x:Double x:Key="SemiFontSizeSmall">12</x:Double>
+    <FontWeight x:Key="SemiFontWeightBold">SemiBold</FontWeight>
+    <x:Double x:Key="SemiSpacingTight">8</x:Double>
+
+    <BoxShadows x:Key="SemiShadowElevated">0 8 16 0 #1F000000, 0 2 4 0 #1A000000</BoxShadows>
+
+</ResourceDictionary>

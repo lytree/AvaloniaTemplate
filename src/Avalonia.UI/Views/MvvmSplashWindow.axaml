@@ -16,9 +16,10 @@ CountDown="{x:Null}"
 mc:Ignorable="d">
 	<Border
 	Margin="16"
-	CornerRadius="20"
+	CornerRadius="8"
 	ClipToBounds="True"
-	BoxShadow="0 8 24 0 #44000000">
+	BoxShadow="0 4 16 0 #22000000"
+	Background="{DynamicResource FluentCardBackgroundBrush}">
 		<Grid ColumnDefinitions="2*,3*">
 			<Image
 			Grid.Column="0"
@@ -31,15 +32,17 @@ mc:Ignorable="d">
 			VerticalAlignment="Center"
 			Spacing="10">
 				<TextBlock
-				Classes="H2"
+				FontSize="24"
+				FontWeight="SemiBold"
 				Text="Main Splash Window"
-				Theme="{DynamicResource TitleTextBlock}" />
+				Foreground="{DynamicResource FluentTextPrimaryBrush}" />
 				<TextBlock
 				FontSize="16"
 				FontWeight="SemiBold"
-				Text="二次元 JK 少女启动页" />
+				Text="二次元 JK 少女启动页"
+				Foreground="{DynamicResource FluentTextPrimaryBrush}" />
 				<TextBlock
-				Foreground="{DynamicResource SemiColorText2}"
+				Foreground="{DynamicResource FluentTextSecondaryBrush}"
 				TextWrapping="Wrap"
 				Text="欢迎来到 AvaloniaTemplate，启动页已加载本地图像资源：Assets/jk-girl.png" />
 			</StackPanel>
