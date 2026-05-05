@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StaticResource x:Key="ButtonGroupSeparatorForeground" ResourceKey="SemiColorButtonText" />
+    <!--  Light  -->
+    <StaticResource x:Key="ButtonGroupDefaultPrimaryForeground" ResourceKey="SemiColorButtonText" />
+    <StaticResource x:Key="ButtonGroupDefaultDisabledForeground" ResourceKey="SemiColorGrayText" />
+
+    <StaticResource x:Key="ButtonGroupDefaultBackground" ResourceKey="ButtonFaceColor" />
+    <StaticResource x:Key="ButtonGroupDefaultPointeroverBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="ButtonGroupDefaultPressedBackground" ResourceKey="SemiColorHighlight" />
+
+    <StaticResource x:Key="ButtonGroupDefaultBorderBrush" ResourceKey="SemiColorButtonText" />
+    <StaticResource x:Key="ButtonGroupDefaultPointeroverBorderBrush" ResourceKey="SemiColorHighlight" />
+    <SolidColorBrush x:Key="ButtonGroupDefaultPressedBorderBrush" Color="Transparent" />
+    <StaticResource x:Key="ButtonGroupDefaultDisabledBorderBrush" ResourceKey="SemiColorGrayText" />
+
+    <!--  end Light  -->
+
+    <!--  Solid  -->
+    <StaticResource x:Key="ButtonGroupSolidForeground" ResourceKey="SemiColorHighlightText" />
+    <StaticResource x:Key="ButtonGroupSolidDisabledForeground" ResourceKey="SemiColorGrayText" />
+
+    <StaticResource x:Key="ButtonGroupSolidPrimaryBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="ButtonGroupSolidPrimaryPointeroverBackground" ResourceKey="SemiColorButtonText" />
+    <StaticResource x:Key="ButtonGroupSolidPrimaryPressedBackground" ResourceKey="SemiColorHighlight" />
+
+    <StaticResource x:Key="ButtonGroupSolidPrimaryBorderBrush" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="ButtonGroupSolidPrimaryPointeroverBorderBrush" ResourceKey="SemiColorButtonText" />
+    <StaticResource x:Key="ButtonGroupSolidPrimaryPressedBorderBrush" ResourceKey="SemiColorHighlight" />
+
+    <StaticResource x:Key="ButtonGroupSolidDisabledBorderBrush" ResourceKey="SemiColorGrayText" />
+    <!--  end Solid  -->
+</ResourceDictionary>

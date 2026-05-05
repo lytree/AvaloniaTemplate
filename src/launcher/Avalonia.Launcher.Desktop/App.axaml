@@ -3,18 +3,21 @@ x:Class="Avalonia.Launcher.Desktop.App"
 xmlns="https://github.com/avaloniaui"
 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 xmlns:fluent="using:Avalonia.Themes.Fluent"
+xmlns:sizeanimations="using:Avalonia.UI.Theme.SizeAnimations"
+xmlns:theme="using:Avalonia.UI.Theme"
 xmlns:u="https://irihi.tech/ursa"
 RequestedThemeVariant="Light"
 xmlns:viewmodels="using:Avalonia.UI.ViewModels"
 x:DataType="viewmodels:ApplicationViewModel">
-    <Application.Styles>
-        <fluent:FluentTheme />
-        <StyleInclude Source="avares://Avalonia.UI/Styles/UrsaFluent/Index.axaml" />
-    </Application.Styles>
+	<Application.Styles>
+		<fluent:FluentTheme />
+		<theme:UrsaSemiTheme Locale="zh-CN" />
+		<sizeanimations:SemiPopupAnimations />
+	</Application.Styles>
 	<Application.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
-				<ResourceInclude Source="avares://Avalonia.UI/Styles/FluentDesignResources.axaml" />
+
 			</ResourceDictionary.MergedDictionaries>
 			<StreamGeometry x:Key="Icon_About">M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z</StreamGeometry>
 		</ResourceDictionary>

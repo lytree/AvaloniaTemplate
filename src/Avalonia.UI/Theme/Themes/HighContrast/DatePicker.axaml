@@ -1,0 +1,42 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--CalenderDayButton-->
+    <SolidColorBrush x:Key="CalenderDayBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="CalenderDayBorderBrush" Color="Transparent" />
+    <StaticResource x:Key="CalenderDayInRangeBackground" ResourceKey="SemiColorHotlight" />
+    <StaticResource x:Key="CalenderDayTodayBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderDayTodayForeground" ResourceKey="SemiColorButtonText" />
+    <StaticResource x:Key="CalenderDayNotCurrentMonthForeground" ResourceKey="SemiColorGrayText" />
+    <StaticResource x:Key="CalenderDayPointeroverBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderDayPressedBackground" ResourceKey="SemiColorHighlight" />
+
+    <StaticResource x:Key="CalenderDaySelectedBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderDaySelectedForeground" ResourceKey="SemiColorHighlightText" />
+    <StaticResource x:Key="CalenderDaySelectedPointeroverBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderDaySelectedPressedBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalendarDayInRangeForeground" ResourceKey="SemiColorHighlightText" />
+
+    <StaticResource x:Key="CalenderDayStartEndDateBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderDayStartEndDateBorderBrush" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderDayStartEndDatePointeroverBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderDayStartEndDatePressedBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderDayStartEndDateInRangeBackground" ResourceKey="SemiColorHighlight" />
+
+    <StaticResource x:Key="CalenderDayPreviewStartEndDateBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderDayPreviewStartEndDatePressedBackground" ResourceKey="SemiColorHighlight" />
+
+    <StaticResource x:Key="CalenderDayBlackoutForeground" ResourceKey="SemiColorGrayText" />
+    <SolidColorBrush x:Key="CalenderDayBlackoutBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="CalenderDayBlackoutTodayBackground" Color="Transparent" />
+
+    <!--CalenderYearButton-->
+    <SolidColorBrush x:Key="CalenderYearBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="CalenderYearBorderBrush" Color="Transparent" />
+    <StaticResource x:Key="CalenderYearPointeroverBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderYearPressedBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderYearSelectedBackground" ResourceKey="SemiColorHighlight" />
+    <StaticResource x:Key="CalenderYearSelectedForeground" ResourceKey="SemiColorHighlightText" />
+    <StaticResource x:Key="CalenderYearSelectedPointeroverBackground" ResourceKey="SemiColorHighlight" />
+
+    <!--CalenderView-->
+    <SolidColorBrush x:Key="CalenderViewBackground" Color="Transparent" />
+</ResourceDictionary>
