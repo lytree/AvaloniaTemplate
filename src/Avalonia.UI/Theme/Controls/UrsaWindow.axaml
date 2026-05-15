@@ -14,7 +14,7 @@
         <Setter Property="IsRestoreButtonVisible" Value="{OnPlatform {x:True},macOS={x:False}}" />
         <Setter Property="IsCloseButtonVisible" Value="{OnPlatform {x:True},macOS={x:False}}" />
         <Setter Property="WindowDecorationsTheme" Value="{DynamicResource KEY_URSAWINDOW_DRAWN_DECORATIONS}" />
-        <Setter Property="WindowDecorations" Value="{OnPlatform {x:Static WindowDecorations.Full},Linux={x:Static WindowDecorations.None}}" />
+        <Setter Property="WindowDecorations" Value="{OnPlatform {x:Static WindowDecorations.Full}}" />
         <Setter Property="Template">
             <ControlTemplate TargetType="u:UrsaWindow">
                 <Panel>
