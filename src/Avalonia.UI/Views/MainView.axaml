@@ -32,8 +32,7 @@
             <Border
                 Padding="8,4"
                 VerticalAlignment="Stretch"
-                Background="{DynamicResource FluentCardBackgroundBrush}"
-                BorderBrush="{DynamicResource FluentCardBorderBrush}"
+                Theme="{DynamicResource CardBorder}"
                 BorderThickness="0,0,1,0">
                 <u:NavMenu
                     Name="menu"
@@ -57,9 +56,9 @@
                                 ActiveForeground="{DynamicResource FluentAccentBrush}"
                                 ActiveStrokeBrush="{DynamicResource FluentAccentBrush}"
                                 Data="{Binding Converter={StaticResource IconConverter}}"
-                                Foreground="{DynamicResource FluentTextSecondaryBrush}"
+                                Foreground="{DynamicResource TextBlockSecondaryForeground}"
                                 IsActive="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=u:NavMenuItem}, Path=IsHighlighted, Mode=TwoWay}"
-                                StrokeBrush="{DynamicResource FluentTextSecondaryBrush}" />
+                                StrokeBrush="{DynamicResource TextBlockSecondaryForeground}" />
                         </DataTemplate>
                     </u:NavMenu.IconTemplate>
                     <u:NavMenu.HeaderTemplate>
@@ -89,8 +88,7 @@
                                 Margin="16,0,0,0"
                                 IsVisible="{Binding !#menu.IsHorizontalCollapsed}"
                                 Text="Ursa"
-                                FontWeight="SemiBold"
-                                Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+                                FontWeight="SemiBold" />
                         </DockPanel>
                     </u:NavMenu.Header>
                     <u:NavMenu.Footer>

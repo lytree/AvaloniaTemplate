@@ -8,39 +8,30 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24" Spacing="16">
-            <TextBlock Text="Settings" FontSize="28" FontWeight="SemiBold"
-                       Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+            <TextBlock Text="Settings" Theme="{StaticResource TitleTextBlock}" Classes="H2" />
 
-            <Border Classes="FluentCard">
+            <Border Theme="{DynamicResource CardBorder}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Theme" FontSize="20" FontWeight="SemiBold"
-                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
-                    <TextBlock Text="Select a theme for the application" FontSize="14"
-                               Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                    <TextBlock Text="Theme" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
+                    <TextBlock Text="Select a theme for the application" Classes="Secondary" />
                     <ComboBox Width="200" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" DisplayMemberBinding="{Binding Name}"/>
                 </StackPanel>
             </Border>
 
-            <Border Classes="FluentCard">
+            <Border Theme="{DynamicResource CardBorder}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Interface" FontSize="20" FontWeight="SemiBold"
-                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
-                    <TextBlock Text="Customize the interface appearance" FontSize="14"
-                               Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                    <TextBlock Text="Interface" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
+                    <TextBlock Text="Customize the interface appearance" Classes="Secondary" />
                     <CheckBox IsChecked="{Binding IsCollapsed}" Content="Collapse Sidebar"/>
                 </StackPanel>
             </Border>
 
-            <Border Classes="FluentCard">
+            <Border Theme="{DynamicResource CardBorder}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="About" FontSize="20" FontWeight="SemiBold"
-                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
-                    <TextBlock Text="Avalonia UI Template" FontSize="16" FontWeight="Medium"
-                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
-                    <TextBlock Text="Version 1.0.0" FontSize="14"
-                               Foreground="{DynamicResource FluentTextSecondaryBrush}" />
-                    <TextBlock Text="A modern UI template built with Avalonia and Ursa controls." FontSize="14"
-                               Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                    <TextBlock Text="About" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
+                    <TextBlock Text="Avalonia UI Template" Theme="{StaticResource TitleTextBlock}" Classes="H6" />
+                    <TextBlock Text="Version 1.0.0" Classes="Secondary" />
+                    <TextBlock Text="A modern UI template built with Avalonia and Ursa controls." Classes="Tertiary" />
                 </StackPanel>
             </Border>
         </StackPanel>

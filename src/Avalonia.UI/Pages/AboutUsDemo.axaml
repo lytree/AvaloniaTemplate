@@ -55,9 +55,7 @@
                             Padding="0"
                             Classes="Hover"
                             Cursor="Hand"
-                            Background="{DynamicResource FluentCardBackgroundBrush}"
-                            BorderBrush="{DynamicResource FluentCardBorderBrush}"
-                            BorderThickness="1"
+                            Theme="{DynamicResource CardBorder}"
                             CornerRadius="8"
                             BoxShadow="0 2 8 0 #18000000">
                             <Border.Transitions>
@@ -115,29 +113,25 @@
                         VerticalAlignment="Bottom"
                         FontSize="48"
                         FontWeight="700"
-                        Text="铱泓科技"
-                        Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+                        Text="铱泓科技" />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="1"
                         Margin="12,0,0,0"
                         HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
                         FontSize="16"
                         Text="IRIHI Technology"
-                        Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                        Classes="Secondary" />
                 </Grid>
                 <TextBlock
                     HorizontalAlignment="Center"
-                    FontSize="20"
-                    FontWeight="700"
-                    Text="聚焦生产力的美学进化"
-                    Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+                    Theme="{StaticResource TitleTextBlock}" Classes="H4"
+                    Text="聚焦生产力的美学进化" />
                 <TextBlock
                     HorizontalAlignment="Center"
                     FontSize="20"
                     Text="Aesthetic Evolution of Productivity"
-                    Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                    Classes="Secondary" />
                 <UniformGrid
                     MaxWidth="810"
                     Margin="24"
@@ -154,9 +148,9 @@
                                 <Label Theme="{DynamicResource TagLabel}" Classes="Blue Ghost">Open Source</Label>
                             </StackPanel>
                             <TextBlock Text="开箱即用的独立主题库"
-                                       Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                                       Classes="Secondary" />
                             <TextBlock Text="A ready-to-use standalone theme library"
-                                       Foreground="{DynamicResource FluentTextTertiaryBrush}" />
+                                       Classes="Tertiary" />
                         </StackPanel>
                     </Button>
                     <Button
@@ -170,9 +164,9 @@
                                 <Label Theme="{DynamicResource TagLabel}" Classes="Blue Ghost">Open Source</Label>
                             </StackPanel>
                             <TextBlock Text="高性能企业级桌面客户端控件库"
-                                       Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                                       Classes="Secondary" />
                             <TextBlock Text="High-performance enterprise level control library for desktop apps"
-                                       Foreground="{DynamicResource FluentTextTertiaryBrush}" />
+                                       Classes="Tertiary" />
                         </StackPanel>
                     </Button>
                     <Button
@@ -186,9 +180,9 @@
                                 <Label Theme="{DynamicResource TagLabel}" Classes="Purple Ghost">Commercial</Label>
                             </StackPanel>
                             <TextBlock Text="高性能文字排版渲染控件库"
-                                       Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                                       Classes="Secondary" />
                             <TextBlock Text="High-performance typography control library"
-                                       Foreground="{DynamicResource FluentTextTertiaryBrush}" />
+                                       Classes="Tertiary" />
                         </StackPanel>
                     </Button>
                     <Button
@@ -202,9 +196,9 @@
                                 <Label Theme="{DynamicResource TagLabel}" Classes="Purple Ghost">Commercial</Label>
                             </StackPanel>
                             <TextBlock Text="手绘风格主题库"
-                                       Foreground="{DynamicResource FluentTextSecondaryBrush}" />
+                                       Classes="Secondary" />
                             <TextBlock Text="Hand-drawing theme library"
-                                       Foreground="{DynamicResource FluentTextTertiaryBrush}" />
+                                       Classes="Tertiary" />
                         </StackPanel>
                     </Button>
                 </UniformGrid>
