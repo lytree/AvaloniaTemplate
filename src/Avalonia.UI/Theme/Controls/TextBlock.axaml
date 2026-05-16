@@ -43,6 +43,9 @@
                 </TextDecorationCollection>
             </Setter>
         </Style>
+        <Style Selector="^.SectionTitle">
+            <Setter Property="FontWeight" Value="{DynamicResource TextBlockTitleFontWeight}" />
+        </Style>
         <Style Selector="^:disabled">
             <Setter Property="Foreground" Value="{DynamicResource TextBlockDisabledForeground}" />
         </Style>

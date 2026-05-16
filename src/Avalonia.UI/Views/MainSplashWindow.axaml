@@ -94,9 +94,7 @@
             Margin="18"
             Padding="24"
             CornerRadius="8"
-            Background="{DynamicResource FluentCardBackgroundBrush}"
-            BorderBrush="{DynamicResource FluentCardBorderBrush}"
-            BorderThickness="1"
+            Theme="{DynamicResource CardBorder}"
             BoxShadow="0 4 16 0 #22000000">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="14">
                 <Border
@@ -139,28 +137,23 @@
                     <TextBlock
                         Grid.Column="1"
                         VerticalAlignment="Bottom"
-                        FontSize="24"
-                        FontWeight="SemiBold"
-                        Text="铱泓科技"
-                        Foreground="{DynamicResource FluentTextPrimaryBrush}" />
+                        Theme="{StaticResource TitleTextBlock}" Classes="H3"
+                        Text="铱泓科技" />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="1"
-                        FontSize="16"
-                        FontWeight="SemiBold"
-                        Foreground="{DynamicResource FluentTextSecondaryBrush}"
+                        Theme="{StaticResource TitleTextBlock}" Classes="H6 Secondary"
                         Text="IRIHI Technology" />
                 </Grid>
 
                 <StackPanel Grid.Row="2" Spacing="4">
-                    <TextBlock HorizontalAlignment="Center" FontSize="15" FontWeight="Medium" Text="聚焦生产力的美学进化"
-                               Foreground="{DynamicResource FluentTextPrimaryBrush}" />
-                    <TextBlock HorizontalAlignment="Center" FontSize="13" Foreground="{DynamicResource FluentTextSecondaryBrush}" Text="Aesthetic Evolution of Productivity" />
+                    <TextBlock HorizontalAlignment="Center" FontSize="15" FontWeight="Medium" Text="聚焦生产力的美学进化" />
+                    <TextBlock HorizontalAlignment="Center" FontSize="13" Classes="Secondary" Text="Aesthetic Evolution of Productivity" />
                 </StackPanel>
 
                 <StackPanel Grid.Row="3" Spacing="8">
                     <ProgressBar IsIndeterminate="True" Height="5" CornerRadius="999" />
-                    <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource FluentTextTertiaryBrush}" Text="正在加载组件... / Initializing modules..." />
+                    <TextBlock HorizontalAlignment="Center" FontSize="12" Classes="Tertiary" Text="正在加载组件... / Initializing modules..." />
                 </StackPanel>
             </Grid>
         </Border>
