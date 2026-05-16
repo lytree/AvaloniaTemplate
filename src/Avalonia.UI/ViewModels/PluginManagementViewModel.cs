@@ -95,8 +95,8 @@ public partial class PluginManagementViewModel : ViewModelBase
         var success = await _installationManager.UninstallAsync(pluginItem.PluginId);
         if (success)
         {
-            Plugins.Remove(pluginItem);
-            StatusMessage = $"Plugin '{pluginItem.Name}' uninstalled";
+            pluginItem.UpdateFrom(_pluginLoader.GetPlugin(pluginItem.PluginId) ?? new PluginInfo { PluginId = pluginItem.PluginId, State = PluginState.PendingUninstall });
+            StatusMessage = $"Plugin '{pluginItem.Name}' will be uninstalled after restart";
         }
     }
 
@@ -134,7 +134,11 @@ public partial class PluginManagementViewModel : ViewModelBase
         var item = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
         if (item != null)
         {
-            Plugins.Remove(item);
+            var updatedInfo = _pluginLoader.GetPlugin(e.PluginId);
+            if (updatedInfo != null)
+            {
+                item.UpdateFrom(updatedInfo);
+            }
         }
     }
 
@@ -166,6 +170,9 @@ public partial class PluginItemViewModel : ViewModelBase
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private string _stateText = string.Empty;
     [ObservableProperty] private string _stateColor = "#808080";
+    [ObservableProperty] private bool _canEnable;
+    [ObservableProperty] private bool _canDisable;
+    [ObservableProperty] private bool _canUninstall;
 
     public PluginItemViewModel(PluginInfo info)
     {
@@ -188,8 +195,13 @@ public partial class PluginItemViewModel : ViewModelBase
             PluginState.Loaded => ("Loaded", "#4CAF50"),
             PluginState.Installed => ("Installed", "#2196F3"),
             PluginState.Disabled => ("Disabled", "#FF9800"),
+            PluginState.PendingUninstall => ("Pending Uninstall", "#9C27B0"),
             PluginState.Error => ("Error", "#F44336"),
             _ => ("Not Installed", "#808080")
         };
+
+        CanEnable = info.State == PluginState.Disabled;
+        CanDisable = info.State == PluginState.Loaded || info.State == PluginState.Installed;
+        CanUninstall = !info.IsBuiltIn && info.State != PluginState.PendingUninstall;
     }
 }

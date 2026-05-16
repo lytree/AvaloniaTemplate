@@ -6,48 +6,68 @@
              x:Class="Avalonia.UI.Pages.SettingsPage"
              x:DataType="viewModels:SettingsPageViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        
-        <TextBlock Grid.Row="0" Text="Settings" FontSize="24" FontWeight="Bold" Margin="0 0 0 24"/>
-        
-        <StackPanel Grid.Row="1" Spacing="24">
-            <!-- Theme Section -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="Theme" FontSize="18" FontWeight="SemiBold"/>
-                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Select a theme for the application" FontSize="14" Opacity="0.7"/>
-                        <ComboBox Width="200" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" DisplayMemberBinding="{Binding Name}"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-            
-            <!-- Interface Section -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="Interface" FontSize="18" FontWeight="SemiBold"/>
-                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Customize the interface appearance" FontSize="14" Opacity="0.7"/>
-                        <CheckBox IsChecked="{Binding IsCollapsed}" Content="Collapse Sidebar"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-            
-            <!-- About Section -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="About" FontSize="18" FontWeight="SemiBold"/>
-                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Avalonia UI Template" FontSize="16" FontWeight="Medium"/>
-                        <TextBlock Text="Version 1.0.0" FontSize="14" Opacity="0.7"/>
-                        <TextBlock Text="A modern UI template built with Avalonia and Ursa controls." FontSize="14" Opacity="0.7"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24" Spacing="16">
+            <TextBlock Text="Settings" Theme="{StaticResource TitleTextBlock}" Classes="H2" />
+
+            <ItemsControl ItemsSource="{Binding Groups}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Spacing="16" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:SettingsGroupViewModel">
+                        <Border Theme="{DynamicResource CardBorder}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="{Binding GroupName}" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
+                                <ItemsControl ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Spacing="8" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="viewModels:SettingEntryViewModel">
+                                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                                    <TextBlock Text="{Binding DisplayName}" Classes="Primary" />
+                                                    <TextBlock Text="{Binding Description}" Classes="Tertiary"
+                                                               IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                </StackPanel>
+
+                                                <TextBox Grid.Column="1" Grid.RowSpan="2"
+                                                         Text="{Binding TextValue}"
+                                                         Width="240"
+                                                         IsVisible="{Binding IsText}" />
+
+                                                <ToggleSwitch Grid.Column="1" Grid.RowSpan="2"
+                                                              IsChecked="{Binding SwitchValue, Mode=TwoWay}"
+                                                              IsVisible="{Binding IsSwitch}" />
+
+                                                <ComboBox Grid.Column="1" Grid.RowSpan="2"
+                                                          ItemsSource="{Binding DropdownOptions}"
+                                                          SelectedItem="{Binding DropdownValue, Mode=TwoWay}"
+                                                          Width="240"
+                                                          IsVisible="{Binding IsDropdown}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Border Theme="{DynamicResource CardBorder}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="About" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
+                    <TextBlock Text="Avalonia UI Template" Theme="{StaticResource TitleTextBlock}" Classes="H6" />
+                    <TextBlock Text="Version 1.0.0" Classes="Secondary" />
+                    <TextBlock Text="A modern UI template built with Avalonia and Ursa controls." Classes="Tertiary" />
+                </StackPanel>
+            </Border>
         </StackPanel>
-    </Grid>
+    </ScrollViewer>
 </UserControl>

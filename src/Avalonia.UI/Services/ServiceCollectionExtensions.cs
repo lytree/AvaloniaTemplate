@@ -1,4 +1,6 @@
 using Avalonia.Plugin.Shared.Services;
+using Avalonia.UI.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Avalonia.UI.Services;
@@ -13,6 +15,14 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<PluginLoader>();
         services.AddSingleton<IPluginLoader>(sp => sp.GetRequiredService<PluginLoader>());
         services.AddSingleton<IPluginInstallationManager, PluginInstallationManager>();
+
+        services.AddDbContextFactory<AppDbContext>(options =>
+        {
+            var dbPath = Path.Combine(AppContext.BaseDirectory, "appdata.db");
+            options.UseSqlite($"Data Source={dbPath}");
+        });
+
+        services.AddSingleton<ISettingsService, SettingsService>();
 
         return services;
     }

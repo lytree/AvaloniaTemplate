@@ -31,6 +31,7 @@ public class PluginLoader : IPluginLoader, IDisposable
         _extraPluginPath = Environment.GetEnvironmentVariable(ExtraPluginEnvironmentVariableName);
         Directory.CreateDirectory(_pluginsDirectory);
         LoadRegistry();
+        ProcessPendingUninstalls();
     }
 
     public IReadOnlyList<PluginInfo> GetInstalledPlugins()
@@ -60,6 +61,15 @@ public class PluginLoader : IPluginLoader, IDisposable
                     Success = true,
                     Plugin = _loadedPlugins[pluginInfo.PluginId],
                     Metadata = _loadedMetadata.GetValueOrDefault(pluginInfo.PluginId)
+                };
+            }
+
+            if (pluginInfo.State == PluginState.Disabled || pluginInfo.State == PluginState.PendingUninstall)
+            {
+                return new PluginLoadResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Plugin is {pluginInfo.State}, cannot load"
                 };
             }
 
@@ -167,6 +177,74 @@ public class PluginLoader : IPluginLoader, IDisposable
                 PluginUnloaded?.Invoke(this, info);
                 PluginStateChanged?.Invoke(this, info);
             }
+        }
+    }
+
+    public void DisablePlugin(string pluginId)
+    {
+        lock (_lock)
+        {
+            if (!_pluginRegistry.TryGetValue(pluginId, out var info)) return;
+
+            if (_loadedPlugins.ContainsKey(pluginId))
+            {
+                _loadedPlugins.Remove(pluginId);
+                _loadedMetadata.Remove(pluginId);
+
+                if (_loadContexts.TryGetValue(pluginId, out var context))
+                {
+                    context.Unload();
+                    _loadContexts.Remove(pluginId);
+                }
+            }
+
+            info.State = PluginState.Disabled;
+            info.ErrorMessage = null;
+            SaveRegistry();
+            PluginUnloaded?.Invoke(this, info);
+            PluginStateChanged?.Invoke(this, info);
+        }
+    }
+
+    public void EnablePlugin(string pluginId)
+    {
+        lock (_lock)
+        {
+            if (!_pluginRegistry.TryGetValue(pluginId, out var info)) return;
+            if (info.State != PluginState.Disabled) return;
+
+            info.State = PluginState.Installed;
+            SaveRegistry();
+            PluginStateChanged?.Invoke(this, info);
+
+            LoadPlugin(info);
+        }
+    }
+
+    public void MarkForUninstall(string pluginId)
+    {
+        lock (_lock)
+        {
+            if (!_pluginRegistry.TryGetValue(pluginId, out var info)) return;
+            if (info.IsBuiltIn) return;
+
+            if (_loadedPlugins.ContainsKey(pluginId))
+            {
+                _loadedPlugins.Remove(pluginId);
+                _loadedMetadata.Remove(pluginId);
+
+                if (_loadContexts.TryGetValue(pluginId, out var context))
+                {
+                    context.Unload();
+                    _loadContexts.Remove(pluginId);
+                }
+            }
+
+            info.State = PluginState.PendingUninstall;
+            info.ErrorMessage = null;
+            SaveRegistry();
+            PluginUnloaded?.Invoke(this, info);
+            PluginStateChanged?.Invoke(this, info);
         }
     }
 
@@ -291,6 +369,39 @@ public class PluginLoader : IPluginLoader, IDisposable
 
         error = null;
         return true;
+    }
+
+    private void ProcessPendingUninstalls()
+    {
+        lock (_lock)
+        {
+            var pendingPlugins = _pluginRegistry.Values
+                .Where(p => p.State == PluginState.PendingUninstall)
+                .ToList();
+
+            foreach (var plugin in pendingPlugins)
+            {
+                var installDir = plugin.InstallPath;
+                if (!string.IsNullOrEmpty(installDir) && Directory.Exists(installDir))
+                {
+                    try
+                    {
+                        Directory.Delete(installDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to delete plugin directory '{installDir}': {ex.Message}");
+                    }
+                }
+
+                _pluginRegistry.Remove(plugin.PluginId);
+            }
+
+            if (pendingPlugins.Count > 0)
+            {
+                SaveRegistry();
+            }
+        }
     }
 
     private void LoadRegistry()

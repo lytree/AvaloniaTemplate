@@ -14,36 +14,34 @@
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
                     <collections:AvaloniaList x:Key="CanvasPalette" x:TypeArguments="Color">
-                        <Color>#FFFDB7A5</Color>
-                        <Color>#FFF6A0B5</Color>
-                        <Color>#FFDD9BE0</Color>
-                        <Color>#FFC4A7E9</Color>
-                        <Color>#FFA7B3E1</Color>
-                        <Color>#FF98CDFD</Color>
-                        <Color>#FF95D8F8</Color>
+                        <Color>#FF0078D4</Color>
+                        <Color>#FF106EBE</Color>
+                        <Color>#FF005A9E</Color>
+                        <Color>#FF004578</Color>
+                        <Color>#FF2B88D8</Color>
+                        <Color>#FF4CA0E0</Color>
+                        <Color>#FF6CB8E8</Color>
                     </collections:AvaloniaList>
                     <LinearGradientBrush x:Key="TileTitleForeground">
-                        <GradientStop Offset="0.0" Color="#FFA20B48" />
-                        <GradientStop Offset="0.3" Color="#FF71168A" />
-                        <GradientStop Offset="0.6" Color="#FF46259E" />
-                        <GradientStop Offset="1.0" Color="#FF28348C" />
+                        <GradientStop Offset="0.0" Color="#FF0078D4" />
+                        <GradientStop Offset="0.5" Color="#FF106EBE" />
+                        <GradientStop Offset="1.0" Color="#FF005A9E" />
                     </LinearGradientBrush>
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <collections:AvaloniaList x:Key="CanvasPalette" x:TypeArguments="Color">
-                        <Color>#FFB42019</Color>
-                        <Color>#FFA41751</Color>
-                        <Color>#FF731F8A</Color>
-                        <Color>#FF582EA0</Color>
-                        <Color>#FF29368E</Color>
-                        <Color>#FF135CB8</Color>
-                        <Color>#FF0366A9</Color>
+                        <Color>#FF60CDFF</Color>
+                        <Color>#FF4CC2FF</Color>
+                        <Color>#FF38B8FF</Color>
+                        <Color>#FF2BA8E6</Color>
+                        <Color>#FF1E99CC</Color>
+                        <Color>#FF118AB2</Color>
+                        <Color>#FF0A7A99</Color>
                     </collections:AvaloniaList>
                     <LinearGradientBrush x:Key="TileTitleForeground">
-                        <GradientStop Offset="0.0" Color="#FFF7A8BC" />
-                        <GradientStop Offset="0.3" Color="#FFDDA0E1" />
-                        <GradientStop Offset="0.6" Color="#FFBEADE9" />
-                        <GradientStop Offset="1.0" Color="#FFA7B4E2" />
+                        <GradientStop Offset="0.0" Color="#FF60CDFF" />
+                        <GradientStop Offset="0.5" Color="#FF4CC2FF" />
+                        <GradientStop Offset="1.0" Color="#FF38B8FF" />
                     </LinearGradientBrush>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
@@ -57,10 +55,13 @@
                             Padding="0"
                             Classes="Hover"
                             Cursor="Hand"
-                            Theme="{DynamicResource CardBorder}">
+                            Theme="{DynamicResource CardBorder}"
+                            CornerRadius="8"
+                            BoxShadow="0 2 8 0 #18000000">
                             <Border.Transitions>
                                 <Transitions>
-                                    <BrushTransition Property="BorderBrush" Duration="0.5" />
+                                    <BrushTransition Property="BorderBrush" Duration="0.3" />
+                                    <BoxShadowsTransition Property="BoxShadow" Duration="0.3" />
                                 </Transitions>
                             </Border.Transitions>
                             <ContentPresenter
@@ -75,7 +76,8 @@
                     </ControlTemplate>
                 </Setter>
                 <Style Selector="^:pointerover /template/ Border">
-                    <Setter Property="BorderBrush" Value="{DynamicResource TileTitleForeground}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource SemiColorPrimary}" />
+                    <Setter Property="BoxShadow" Value="0 4 16 0 #22000000" />
                 </Style>
             </ControlTheme>
         </ResourceDictionary>
@@ -84,7 +86,7 @@
         <Style Selector="TextBlock.TileTitle">
             <Setter Property="FontWeight" Value="700" />
             <Setter Property="FontSize" Value="24" />
-            <Setter Property="Margin" Value="0 0 0 8" />
+            <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Foreground" Value="{DynamicResource TileTitleForeground}" />
         </Style>
     </UserControl.Styles>
@@ -100,7 +102,7 @@
                         Grid.Row="0"
                         Grid.RowSpan="2"
                         Grid.Column="0"
-                        Fill="{DynamicResource TextBlockSecondaryForeground}"
+                        Fill="{DynamicResource SemiColorPrimary}"
                         Width="96"
                         Margin="0,0,24,0"
                         VerticalAlignment="Center" />
@@ -109,7 +111,6 @@
                         Grid.Column="1"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
-                        Classes="Secondary"
                         FontSize="48"
                         FontWeight="700"
                         Text="铱泓科技" />
@@ -118,22 +119,19 @@
                         Grid.Column="1"
                         Margin="12,0,0,0"
                         HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        Classes="Secondary"
                         FontSize="16"
-                        Text="IRIHI Technology" />
+                        Text="IRIHI Technology"
+                        Classes="Secondary" />
                 </Grid>
                 <TextBlock
                     HorizontalAlignment="Center"
-                    Classes="Tertiary"
-                    FontSize="20"
-                    FontWeight="700"
+                    Theme="{StaticResource TitleTextBlock}" Classes="H4"
                     Text="聚焦生产力的美学进化" />
                 <TextBlock
                     HorizontalAlignment="Center"
-                    Classes="Tertiary"
                     FontSize="20"
-                    Text="Aesthetic Evolution of Productivity" />
+                    Text="Aesthetic Evolution of Productivity"
+                    Classes="Secondary" />
                 <UniformGrid
                     MaxWidth="810"
                     Margin="24"
@@ -146,11 +144,13 @@
                         Theme="{DynamicResource TileButton}">
                         <StackPanel HorizontalAlignment="Left">
                             <TextBlock Classes="TileTitle" Text="Semi" />
-                            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <Label Theme="{DynamicResource TagLabel}" Classes="Blue Ghost">Open Source</Label>
                             </StackPanel>
-                            <TextBlock Text="开箱即用的独立主题库" />
-                            <TextBlock Text="A ready-to-use standalone theme library" />
+                            <TextBlock Text="开箱即用的独立主题库"
+                                       Classes="Secondary" />
+                            <TextBlock Text="A ready-to-use standalone theme library"
+                                       Classes="Tertiary" />
                         </StackPanel>
                     </Button>
                     <Button
@@ -160,11 +160,13 @@
                         Theme="{DynamicResource TileButton}">
                         <StackPanel HorizontalAlignment="Left">
                             <TextBlock Classes="TileTitle" Text="Ursa" />
-                            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <Label Theme="{DynamicResource TagLabel}" Classes="Blue Ghost">Open Source</Label>
                             </StackPanel>
-                            <TextBlock Text="高性能企业级桌面客户端控件库" />
-                            <TextBlock Text="High-performance enterprise level control library for desktop apps" />
+                            <TextBlock Text="高性能企业级桌面客户端控件库"
+                                       Classes="Secondary" />
+                            <TextBlock Text="High-performance enterprise level control library for desktop apps"
+                                       Classes="Tertiary" />
                         </StackPanel>
                     </Button>
                     <Button
@@ -174,11 +176,13 @@
                         Theme="{DynamicResource TileButton}">
                         <StackPanel HorizontalAlignment="Left">
                             <TextBlock Classes="TileTitle" Text="Mantra" />
-                            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <Label Theme="{DynamicResource TagLabel}" Classes="Purple Ghost">Commercial</Label>
                             </StackPanel>
-                            <TextBlock Text="高性能文字排版渲染控件库" />
-                            <TextBlock Text="High-performance typography control library" />
+                            <TextBlock Text="高性能文字排版渲染控件库"
+                                       Classes="Secondary" />
+                            <TextBlock Text="High-performance typography control library"
+                                       Classes="Tertiary" />
                         </StackPanel>
                     </Button>
                     <Button
@@ -188,11 +192,13 @@
                         Theme="{DynamicResource TileButton}">
                         <StackPanel HorizontalAlignment="Left">
                             <TextBlock Classes="TileTitle" Text="Huska" />
-                            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <Label Theme="{DynamicResource TagLabel}" Classes="Purple Ghost">Commercial</Label>
                             </StackPanel>
-                            <TextBlock Text="手绘风格主题库" />
-                            <TextBlock Text="Hand-drawing theme library" />
+                            <TextBlock Text="手绘风格主题库"
+                                       Classes="Secondary" />
+                            <TextBlock Text="Hand-drawing theme library"
+                                       Classes="Tertiary" />
                         </StackPanel>
                     </Button>
                 </UniformGrid>

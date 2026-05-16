@@ -19,6 +19,12 @@ public partial class MainViewViewModel : ViewModelBase
     [ObservableProperty] private string? _pluginText = "Plugins";
     [ObservableProperty] private object? _content;
     [ObservableProperty] private bool _isCollapsed;
+    [ObservableProperty] private bool _isSidebarHidden;
+    [RelayCommand]
+    public void ToggleSidebar()
+    {
+        IsSidebarHidden = !IsSidebarHidden;
+    }
     [RelayCommand]
     public void Activate(string key)
     {
