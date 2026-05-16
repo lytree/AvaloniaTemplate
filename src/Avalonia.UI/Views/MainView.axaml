@@ -81,7 +81,9 @@
                                 u:NavMenu.CanToggle="True"
                                 Background="Transparent"
                                 DockPanel.Dock="Left">
-                                <iri:IrihiLogo Width="32" Fill="{DynamicResource FluentAccentBrush}" />
+                                <PathIcon Width="32" Height="32"
+                                    Data="{StaticResource Icon_AvaloniaLogo}"
+                                    Foreground="{DynamicResource FluentAccentBrush}" />
                             </Panel>
                             <TextBlock
                                 VerticalAlignment="Center"

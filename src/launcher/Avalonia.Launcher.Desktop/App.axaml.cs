@@ -3,9 +3,11 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.Models;
 using Avalonia.Plugin.Shared.Services;
+using Avalonia.UI.Data;
 using Avalonia.UI.Services;
 using Avalonia.UI.ViewModels;
 using Avalonia.UI.Views;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Avalonia.Launcher.Desktop;
@@ -30,9 +32,23 @@ public partial class App : Application
 
         ServiceLocator.Initialize(ServiceProvider);
 
+        InitializeDatabase();
+
         LoadPlugins();
 
         DataContext = new ApplicationViewModel();
+    }
+
+    private void InitializeDatabase()
+    {
+        var dbFactory = ServiceProvider?.GetRequiredService<IDbContextFactory<AppDbContext>>();
+        if (dbFactory == null) return;
+
+        using var db = dbFactory.CreateDbContext();
+        db.Database.EnsureCreated();
+
+        var settingsService = ServiceProvider?.GetRequiredService<ISettingsService>() as SettingsService;
+        settingsService?.InitializeDefaults();
     }
 
     private void LoadPlugins()

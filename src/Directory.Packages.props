@@ -5,5 +5,6 @@
         <CommunityToolkit>8.4.2</CommunityToolkit>
         <MicrosoftExtensionsDI>10.0.7</MicrosoftExtensionsDI>
         <AvaloniaDiagnosticsSupport>2.2.1</AvaloniaDiagnosticsSupport>
+        <EfCoreVersion>10.0.7</EfCoreVersion>
     </PropertyGroup>
-</Project>
+</Project> 

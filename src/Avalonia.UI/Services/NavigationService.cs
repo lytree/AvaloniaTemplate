@@ -20,7 +20,8 @@ public class NavigationService : INavigationService
     {
         RegisterNavigation("Introduction", () => new IntroductionDemoViewModel());
         RegisterNavigation("AboutUs", () => new AboutUsDemoViewModel());
-        RegisterNavigation("Settings", () => new SettingsPageViewModel());
+        RegisterNavigation("Settings", () => new SettingsPageViewModel(
+            ServiceLocator.GetService<ISettingsService>()));
         RegisterNavigation("PluginManagement", () => new PluginManagementViewModel(
             ServiceLocator.GetService<IPluginLoader>(),
             ServiceLocator.GetService<IPluginInstallationManager>()));

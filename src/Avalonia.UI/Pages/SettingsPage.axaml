@@ -10,21 +10,55 @@
         <StackPanel Margin="24" Spacing="16">
             <TextBlock Text="Settings" Theme="{StaticResource TitleTextBlock}" Classes="H2" />
 
-            <Border Theme="{DynamicResource CardBorder}">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Theme" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
-                    <TextBlock Text="Select a theme for the application" Classes="Secondary" />
-                    <ComboBox Width="200" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" DisplayMemberBinding="{Binding Name}"/>
-                </StackPanel>
-            </Border>
+            <ItemsControl ItemsSource="{Binding Groups}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Spacing="16" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:SettingsGroupViewModel">
+                        <Border Theme="{DynamicResource CardBorder}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="{Binding GroupName}" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
+                                <ItemsControl ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Spacing="8" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="viewModels:SettingEntryViewModel">
+                                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                                    <TextBlock Text="{Binding DisplayName}" Classes="Primary" />
+                                                    <TextBlock Text="{Binding Description}" Classes="Tertiary"
+                                                               IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                </StackPanel>
 
-            <Border Theme="{DynamicResource CardBorder}">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Interface" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
-                    <TextBlock Text="Customize the interface appearance" Classes="Secondary" />
-                    <CheckBox IsChecked="{Binding IsCollapsed}" Content="Collapse Sidebar"/>
-                </StackPanel>
-            </Border>
+                                                <TextBox Grid.Column="1" Grid.RowSpan="2"
+                                                         Text="{Binding TextValue}"
+                                                         Width="240"
+                                                         IsVisible="{Binding IsText}" />
+
+                                                <ToggleSwitch Grid.Column="1" Grid.RowSpan="2"
+                                                              IsChecked="{Binding SwitchValue, Mode=TwoWay}"
+                                                              IsVisible="{Binding IsSwitch}" />
+
+                                                <ComboBox Grid.Column="1" Grid.RowSpan="2"
+                                                          ItemsSource="{Binding DropdownOptions}"
+                                                          SelectedItem="{Binding DropdownValue, Mode=TwoWay}"
+                                                          Width="240"
+                                                          IsVisible="{Binding IsDropdown}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <Border Theme="{DynamicResource CardBorder}">
                 <StackPanel Spacing="12">

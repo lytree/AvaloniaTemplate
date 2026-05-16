@@ -20,6 +20,7 @@ x:DataType="viewmodels:ApplicationViewModel">
 
 			</ResourceDictionary.MergedDictionaries>
 			<StreamGeometry x:Key="Icon_About">M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z</StreamGeometry>
+			<StreamGeometry x:Key="Icon_AvaloniaLogo">M12 2L2 22L12 16L22 22Z</StreamGeometry>
 		</ResourceDictionary>
 	</Application.Resources>
 	<NativeMenu.Menu>

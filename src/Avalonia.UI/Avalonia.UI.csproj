@@ -17,6 +17,8 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDI)" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="$(CommunityToolkit)" />
 		<PackageReference Include="Irihi.Ursa" Version="$(IrihiUrsaVersion)" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EfCoreVersion)" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(EfCoreVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
