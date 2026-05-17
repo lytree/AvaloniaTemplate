@@ -5,9 +5,23 @@ namespace Avalonia.UI.Services;
 
 internal class PluginLoadContext : AssemblyLoadContext
 {
-    private static readonly HashSet<string> SharedAssemblies = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly string[] ExcludedPrefixes =
+    [
+        "System.",
+        "Microsoft.",
+        "Avalonia.",
+        "CommunityToolkit.",
+        "Irihi.",
+        "SQLitePCLRaw.",
+    ];
+
+    private static readonly HashSet<string> ExcludedExactNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Avalonia.Plugin.Shared",
+        "Avalonia",
+        "Ursa",
+        "Semi.Avalonia",
+        "Microsoft.Data.Sqlite",
+        "MicroCom.Runtime",
     };
 
     private readonly AssemblyDependencyResolver _resolver;
@@ -21,7 +35,9 @@ internal class PluginLoadContext : AssemblyLoadContext
 
     protected override Assembly? Load(AssemblyName assemblyName)
     {
-        if (SharedAssemblies.Contains(assemblyName.Name ?? string.Empty))
+        var name = assemblyName.Name ?? string.Empty;
+
+        if (IsExcluded(name))
         {
             return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
         }
@@ -39,6 +55,20 @@ internal class PluginLoadContext : AssemblyLoadContext
         }
 
         return null;
+    }
+
+    private static bool IsExcluded(string name)
+    {
+        if (ExcludedExactNames.Contains(name))
+            return true;
+
+        foreach (var prefix in ExcludedPrefixes)
+        {
+            if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     private string? ProbePluginDirectory(AssemblyName assemblyName)

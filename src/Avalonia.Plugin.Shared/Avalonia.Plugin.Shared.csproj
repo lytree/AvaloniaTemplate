@@ -8,10 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <AvaloniaXaml Remove="Controls\**" />
-	  <Compile Remove="Controls\**" />
-	  <EmbeddedResource Remove="Controls\**" />
-	  <None Remove="Controls\**" />
+		<AvaloniaXaml Remove="Controls\**" />
+		<Compile Remove="Controls\**" />
+		<EmbeddedResource Remove="Controls\**" />
+		<None Remove="Controls\**" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -19,6 +19,17 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDI)" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="$(CommunityToolkit)" />
 		<PackageReference Include="Irihi.Ursa" Version="$(IrihiUrsaVersion)" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EfCoreVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsDI)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="buildTransitive\Avalonia.Plugin.Shared.props"
+		      Pack="true"
+		      PackagePath="buildTransitive\net10.0\Avalonia.Plugin.Shared.props" />
+		<None Include="buildTransitive\Avalonia.Plugin.Shared.targets"
+		      Pack="true"
+		      PackagePath="buildTransitive\net10.0\Avalonia.Plugin.Shared.targets" />
 	</ItemGroup>
 
 </Project>

@@ -9,7 +9,7 @@
     "Launcher + Template Plugin": {
       "commandName": "Project",
       "environmentVariables": {
-        "AVALONIA_EXTRA_PLUGINS_PATH": "$(SolutionDir)plugins/Avalonia.Plugin.Template/bin/Debug/net10.0"
+        "AVALONIA_EXTRA_PLUGINS_PATH": "$(SolutionDir)plugins/Avalonia.Plugin.TDLSharp/bin/Debug/net10.0"
       }
     }
   }
