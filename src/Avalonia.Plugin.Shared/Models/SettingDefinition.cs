@@ -11,9 +11,12 @@ public class SettingDefinition
     public SettingType SettingType { get; set; }
     public string? DefaultValue { get; set; }
     public List<string>? Options { get; set; }
+
+    public string? PlaceholderText { get; set; }
+
     public string? PluginId { get; set; }
 
-    public static SettingDefinition Text(string key, string displayName, string? description = null,
+    public static SettingDefinition Text(string key, string displayName, string? description = null,string placeholder = "",
         string group = "General", int groupOrder = 0, int itemOrder = 0, string? defaultValue = null, string? pluginId = null)
     {
         return new SettingDefinition
@@ -26,6 +29,7 @@ public class SettingDefinition
             ItemOrder = itemOrder,
             SettingType = SettingType.Text,
             DefaultValue = defaultValue,
+            PlaceholderText = placeholder,
             PluginId = pluginId
         };
     }
@@ -60,6 +64,23 @@ public class SettingDefinition
             ItemOrder = itemOrder,
             SettingType = SettingType.Dropdown,
             Options = options,
+            DefaultValue = defaultValue,
+            PluginId = pluginId
+        };
+    }
+
+    public static SettingDefinition Path(string key, string displayName, string? description = null,
+        string group = "General", int groupOrder = 0, int itemOrder = 0, string? defaultValue = null, string? pluginId = null)
+    {
+        return new SettingDefinition
+        {
+            Key = key,
+            DisplayName = displayName,
+            Description = description,
+            GroupName = group,
+            GroupOrder = groupOrder,
+            ItemOrder = itemOrder,
+            SettingType = SettingType.Path,
             DefaultValue = defaultValue,
             PluginId = pluginId
         };

@@ -4,5 +4,6 @@ public enum SettingType
 {
     Text,
     Switch,
-    Dropdown
+    Dropdown,
+    Path
 }

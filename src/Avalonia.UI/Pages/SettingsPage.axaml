@@ -1,73 +1,116 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewModels="clr-namespace:Avalonia.UI.ViewModels"
-             x:Class="Avalonia.UI.Pages.SettingsPage"
-             x:DataType="viewModels:SettingsPageViewModel"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="24" Spacing="16">
-            <TextBlock Text="Settings" Theme="{StaticResource TitleTextBlock}" Classes="H2" />
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:viewModels="clr-namespace:Avalonia.UI.ViewModels"
+			 x:Class="Avalonia.UI.Pages.SettingsPage"
+			 x:DataType="viewModels:SettingsPageViewModel"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
+	<DockPanel>
+		<Border DockPanel.Dock="Bottom" Theme="{DynamicResource CardBorder}" Padding="16,12" Margin="24,0,24,0">
+			<Grid ColumnDefinitions="*,Auto,Auto">
+				<TextBlock Grid.Column="0" Text="{Binding SaveStatusText}" Classes="Tertiary" VerticalAlignment="Center"
+						   IsVisible="{Binding SaveStatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+				<Button Grid.Column="1" Content="重置" Command="{Binding ResetCommand}" MinWidth="80" Margin="0,0,12,0"
+						IsEnabled="{Binding IsDirty}" />
+				<Button Grid.Column="2" Content="保存" Command="{Binding SaveCommand}" Classes="Primary" MinWidth="80"
+						IsEnabled="{Binding IsDirty}" />
+			</Grid>
+		</Border>
 
-            <ItemsControl ItemsSource="{Binding Groups}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Spacing="16" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="viewModels:SettingsGroupViewModel">
-                        <Border Theme="{DynamicResource CardBorder}">
-                            <StackPanel Spacing="12">
-                                <TextBlock Text="{Binding GroupName}" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
-                                <ItemsControl ItemsSource="{Binding Items}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Spacing="8" />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="viewModels:SettingEntryViewModel">
-                                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
-                                                    <TextBlock Text="{Binding DisplayName}" Classes="Primary" />
-                                                    <TextBlock Text="{Binding Description}" Classes="Tertiary"
-                                                               IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                                                </StackPanel>
+		<ScrollViewer VerticalScrollBarVisibility="Auto">
+			<StackPanel Margin="24" Spacing="16">
+				<TextBlock Text="Settings" Theme="{StaticResource TitleTextBlock}" Classes="H2" />
 
-                                                <TextBox Grid.Column="1" Grid.RowSpan="2"
-                                                         Text="{Binding TextValue}"
-                                                         Width="240"
-                                                         IsVisible="{Binding IsText}" />
+				<ItemsControl ItemsSource="{Binding Groups}">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel Spacing="16" />
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="viewModels:SettingsGroupViewModel">
+							<Border Theme="{DynamicResource CardBorder}">
+								<StackPanel Spacing="12">
+									<TextBlock Text="{Binding GroupName}" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
+									<ItemsControl ItemsSource="{Binding Items}">
+										<ItemsControl.ItemsPanel>
+											<ItemsPanelTemplate>
+												<StackPanel Spacing="8" />
+											</ItemsPanelTemplate>
+										</ItemsControl.ItemsPanel>
+										<ItemsControl.DataTemplates>
+											<DataTemplate x:DataType="viewModels:TextSettingEntryViewModel">
+												<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+													<StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+														<TextBlock Text="{Binding DisplayName}" Classes="Primary" />
+														<TextBlock Text="{Binding Description}" Classes="Tertiary"
+																   IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+													</StackPanel>
+													<TextBox Grid.Column="1" Grid.RowSpan="2"
+															 Text="{Binding TextValue}"
+															 Width="240"
+															 PlaceholderText="{Binding PlaceholderText}" />
+												</Grid>
+											</DataTemplate>
+											<DataTemplate x:DataType="viewModels:SwitchSettingEntryViewModel">
+												<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+													<StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+														<TextBlock Text="{Binding DisplayName}" Classes="Primary" />
+														<TextBlock Text="{Binding Description}" Classes="Tertiary"
+																   IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+													</StackPanel>
+													<ToggleSwitch Grid.Column="1" Grid.RowSpan="2"
+																  IsChecked="{Binding SwitchValue, Mode=TwoWay}" />
+												</Grid>
+											</DataTemplate>
+											<DataTemplate x:DataType="viewModels:DropdownSettingEntryViewModel">
+												<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+													<StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+														<TextBlock Text="{Binding DisplayName}" Classes="Primary" />
+														<TextBlock Text="{Binding Description}" Classes="Tertiary"
+																   IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+													</StackPanel>
+													<ComboBox Grid.Column="1" Grid.RowSpan="2"
+															  ItemsSource="{Binding DropdownOptions}"
+															  SelectedItem="{Binding DropdownValue, Mode=TwoWay}"
+															  Width="240" />
+												</Grid>
+											</DataTemplate>
+											<DataTemplate x:DataType="viewModels:PathSettingEntryViewModel">
+												<Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
+													<StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+														<TextBlock Text="{Binding DisplayName}" Classes="Primary" />
+														<TextBlock Text="{Binding Description}" Classes="Tertiary"
+																   IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+													</StackPanel>
+													<TextBox Grid.Column="1" Grid.RowSpan="2"
+															 Text="{Binding PathValue}"
+															 Width="200"
+															 PlaceholderText="{Binding PlaceholderText}"
+															 IsReadOnly="True" />
+													<Button Grid.Column="2" Grid.RowSpan="2"
+															Content="浏览" Command="{Binding BrowseCommand}"
+															VerticalAlignment="Center" Margin="8,0,0,0" />
+												</Grid>
+											</DataTemplate>
+										</ItemsControl.DataTemplates>
+									</ItemsControl>
+								</StackPanel>
+							</Border>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
 
-                                                <ToggleSwitch Grid.Column="1" Grid.RowSpan="2"
-                                                              IsChecked="{Binding SwitchValue, Mode=TwoWay}"
-                                                              IsVisible="{Binding IsSwitch}" />
-
-                                                <ComboBox Grid.Column="1" Grid.RowSpan="2"
-                                                          ItemsSource="{Binding DropdownOptions}"
-                                                          SelectedItem="{Binding DropdownValue, Mode=TwoWay}"
-                                                          Width="240"
-                                                          IsVisible="{Binding IsDropdown}" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-            <Border Theme="{DynamicResource CardBorder}">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="About" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
-                    <TextBlock Text="Avalonia UI Template" Theme="{StaticResource TitleTextBlock}" Classes="H6" />
-                    <TextBlock Text="Version 1.0.0" Classes="Secondary" />
-                    <TextBlock Text="A modern UI template built with Avalonia and Ursa controls." Classes="Tertiary" />
-                </StackPanel>
-            </Border>
-        </StackPanel>
-    </ScrollViewer>
+				<Border Theme="{DynamicResource CardBorder}">
+					<StackPanel Spacing="12">
+						<TextBlock Text="About" Theme="{StaticResource TitleTextBlock}" Classes="H4" />
+						<TextBlock Text="Avalonia UI Template" Theme="{StaticResource TitleTextBlock}" Classes="H6" />
+						<TextBlock Text="Version 1.0.0" Classes="Secondary" />
+						<TextBlock Text="A modern UI template built with Avalonia and Ursa controls." Classes="Tertiary" />
+					</StackPanel>
+				</Border>
+			</StackPanel>
+		</ScrollViewer>
+	</DockPanel>
 </UserControl>

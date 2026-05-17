@@ -131,6 +131,6 @@ public class SettingsService : ISettingsService
             "Collapse the sidebar navigation", "Appearance", 0, 1, false));
 
         RegisterSetting(SettingDefinition.Text("App.UserName", "User Name",
-            "Set your display name", "General", 1, 0, ""));
+            "Set your display name", "General", "",1, 0, ""));
     }
 }

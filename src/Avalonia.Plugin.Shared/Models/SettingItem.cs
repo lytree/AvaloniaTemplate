@@ -17,6 +17,8 @@ public class SettingItem
     public string? PluginId { get; set; }
     public string? DefaultValue { get; set; }
 
+    public string? PlaceholderText { get; set; }
+
     public List<string> GetOptions()
     {
         if (string.IsNullOrEmpty(OptionsJson))
