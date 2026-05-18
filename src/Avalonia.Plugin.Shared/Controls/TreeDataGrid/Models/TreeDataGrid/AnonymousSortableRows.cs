@@ -1,8 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using Avalonia.Controls.Utils;
 using Avalonia.Controls.Utils;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
