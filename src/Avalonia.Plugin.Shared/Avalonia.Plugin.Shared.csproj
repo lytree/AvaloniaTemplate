@@ -8,19 +8,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<AvaloniaXaml Remove="Controls\**" />
-		<Compile Remove="Controls\**" />
-		<EmbeddedResource Remove="Controls\**" />
-		<None Remove="Controls\**" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDI)" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="$(CommunityToolkit)" />
 		<PackageReference Include="Irihi.Ursa" Version="$(IrihiUrsaVersion)" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EfCoreVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsDI)" />
+		<PackageReference Include="System.Reactive" Version="6.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>

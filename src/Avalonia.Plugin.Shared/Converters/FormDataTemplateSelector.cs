@@ -1,8 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Avalonia.Plugin.ButtonsInputs.ViewModels;
+using Avalonia.Plugin.Shared.Models;
 
-namespace Avalonia.Plugin.ButtonsInputs.Converters;
+namespace Avalonia.Plugin.Shared.Converters;
 
 public class FormDataTemplateSelector: ResourceDictionary, IDataTemplate
 {
