@@ -32,11 +32,21 @@ public partial class App : Application
 
         ServiceLocator.Initialize(ServiceProvider);
 
+        InitializeLocalization();
+
         InitializeDatabase();
 
         LoadPlugins();
 
         DataContext = new ApplicationViewModel();
+    }
+
+    private void InitializeLocalization()
+    {
+        if (ServiceLocator.TryGetService<ILocalizationService>(out var loc) && loc is not null)
+        {
+            loc.SetCulture(new System.Globalization.CultureInfo("zh-CN"));
+        }
     }
 
     private void InitializeDatabase()

@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<ILocalizationService, LocalizationService>();
 
         return services;
     }

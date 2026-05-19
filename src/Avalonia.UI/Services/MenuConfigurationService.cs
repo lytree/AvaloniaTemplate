@@ -24,21 +24,21 @@ public class MenuConfigurationService : IMenuConfigurationService
             {
                 _menuItemsMap[menuItem.Key] = new MenuItemViewModel
                 {
-                    MenuHeader = menuItem.MenuHeader,
+                    MenuHeader = menuItem.RawHeader ?? menuItem.MenuHeader,
                     Key = menuItem.Key,
                     Status = menuItem.Status,
                     IsSeparator = menuItem.IsSeparator,
                     Children = menuItem.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
                         menuItem.Children.Select(child => new MenuItemViewModel
                         {
-                            MenuHeader = child.MenuHeader,
+                            MenuHeader = child.RawHeader ?? child.MenuHeader,
                             Key = child.Key,
                             Status = child.Status,
                             IsSeparator = child.IsSeparator,
                             Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
                                 child.Children.Select(c => new MenuItemViewModel
                                 {
-                                    MenuHeader = c.MenuHeader,
+                                    MenuHeader = c.RawHeader ?? c.MenuHeader,
                                     Key = c.Key,
                                     Status = c.Status,
                                     IsSeparator = c.IsSeparator,

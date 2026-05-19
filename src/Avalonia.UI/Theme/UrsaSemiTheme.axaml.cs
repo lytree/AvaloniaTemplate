@@ -2,25 +2,15 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Services;
 using Avalonia.Styling;
 using Avalonia.UI.Theme.Animations;
-using Avalonia.UI.Theme.Locale;
 
 namespace Avalonia.UI.Theme;
 
-/// <summary>
-///     Notice: Don't set Locale if your app is in InvariantGlobalization mode.
-/// </summary>
 public partial class UrsaSemiTheme : Styles
 {
-    private static readonly Dictionary<CultureInfo, ResourceDictionary> LocaleToResource = new()
-    {
-        { new CultureInfo("zh-CN"), new zh_cn() },
-        { new CultureInfo("en-US"), new en_us() },
-    };
-
-    private static readonly ResourceDictionary DefaultResource = new zh_cn();
-
     public UrsaSemiTheme(IServiceProvider? provider = null)
     {
         AvaloniaXamlLoader.Load(provider, this);
@@ -35,16 +25,8 @@ public partial class UrsaSemiTheme : Styles
         {
             try
             {
-                if (TryGetLocaleResource(value, out var resource) && resource is not null)
-                {
-                    field = value;
-                    SetResources(this.Resources, resource);
-                }
-                else
-                {
-                    field = new CultureInfo("zh-CN");
-                    SetResources(Resources, DefaultResource);
-                }
+                field = value ?? new CultureInfo("zh-CN");
+                SyncLocalizationService(field!);
             }
             catch
             {
@@ -53,53 +35,47 @@ public partial class UrsaSemiTheme : Styles
         }
     }
 
-    private static bool TryGetLocaleResource(CultureInfo? locale, out ResourceDictionary? resourceDictionary)
+    private static void SyncLocalizationService(CultureInfo culture)
     {
-        if (Equals(locale, CultureInfo.InvariantCulture))
+        try
         {
-            resourceDictionary = DefaultResource;
-            return true;
+            if (ServiceLocator.TryGetService<ILocalizationService>(out var service) && service is not null)
+            {
+                service.SetCulture(culture);
+            }
         }
-
-        if (locale is null)
+        catch
         {
-            resourceDictionary = DefaultResource;
-            return false;
         }
-
-        if (LocaleToResource.TryGetValue(locale, out var resource))
-        {
-            resourceDictionary = resource;
-            return true;
-        }
-
-        resourceDictionary = DefaultResource;
-        return false;
     }
 
     public static void OverrideLocaleResources(Application application, CultureInfo? culture)
     {
         if (culture is null) return;
-        if (!LocaleToResource.TryGetValue(culture, out var resources)) return;
-        SetResources(application.Resources, resources);
+        try
+        {
+            if (ServiceLocator.TryGetService<ILocalizationService>(out var service) && service is not null)
+            {
+                service.SetCulture(culture);
+            }
+        }
+        catch
+        {
+        }
     }
 
     public static void OverrideLocaleResources(StyledElement element, CultureInfo? culture)
     {
         if (culture is null) return;
-        if (!LocaleToResource.TryGetValue(culture, out var resources)) return;
-        SetResources(element.Resources, resources);
-    }
-
-    private static void SetResources(IResourceDictionary source, IResourceDictionary content)
-    {
-        if (source is ResourceDictionary resourceDictionary)
+        try
         {
-             resourceDictionary.SetItems(content);
+            if (ServiceLocator.TryGetService<ILocalizationService>(out var service) && service is not null)
+            {
+                service.SetCulture(culture);
+            }
         }
-        else
+        catch
         {
-            foreach (var kv in content) source[kv.Key] = kv.Value;
         }
     }
 }

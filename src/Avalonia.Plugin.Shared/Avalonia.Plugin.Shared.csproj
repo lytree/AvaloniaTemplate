@@ -18,6 +18,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Update="Resources\Strings.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Strings.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Include="buildTransitive\Avalonia.Plugin.Shared.props"
 		      Pack="true"
 		      PackagePath="buildTransitive\net10.0\Avalonia.Plugin.Shared.props" />
