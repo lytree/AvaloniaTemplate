@@ -1,3 +1,6 @@
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Attributes;
+using Avalonia.Plugin.DialogFeedbacks.Pages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows.Input;
 using Avalonia.Controls;
@@ -8,7 +11,9 @@ using Avalonia.Plugin.Shared.Dialogs;
 
 namespace Avalonia.Plugin.DialogFeedbacks.ViewModels;
 
-
+[NavigationItem("KeyDialog")]
+[Menu("Dialog", "KeyDialog", "Dialog & Feedbacks")]
+[ViewMap(typeof(DialogDemo))]
 public partial class DialogDemoViewModel: ObservableObject
 {
     public const string LocalHost = "LocalHost";
@@ -47,7 +52,7 @@ public partial class DefaultWindowDialogDemoViewModel: ObservableObject
     {
         if(OperatingSystem.IsBrowser() || OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
         {
-            await MessageBox.ShowOverlayAsync("Window dialogs are not supported on this platform. Please use overlay dialogs instead.");
+            await OverlayMessageBox.ShowAsync("Window dialogs are not supported on this platform. Please use overlay dialogs instead.");
             return;
         }
         var options = new DialogOptions()
@@ -66,7 +71,7 @@ public partial class DefaultWindowDialogDemoViewModel: ObservableObject
         {
             options.Position = new PixelPoint(X.Value, Y.Value);
         }
-        await Dialog.ShowModal<DefaultDemoDialog, DefaultDemoDialogViewModel>(new DefaultDemoDialogViewModel(), options: options);
+        await Dialog.ShowStandardAsync<DefaultDemoDialog, DefaultDemoDialogViewModel>(new DefaultDemoDialogViewModel(), options: options);
     }
 }
 
@@ -96,7 +101,7 @@ public partial class CustomWindowDialogDemoViewModel: ObservableObject
     {
         if(OperatingSystem.IsBrowser() || OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
         {
-            await MessageBox.ShowOverlayAsync("Window dialogs are not supported on this platform. Please use overlay dialogs instead.");
+            await OverlayMessageBox.ShowAsync("Window dialogs are not supported on this platform. Please use overlay dialogs instead.");
             return;
         }
         var options = new DialogOptions()
@@ -115,7 +120,7 @@ public partial class CustomWindowDialogDemoViewModel: ObservableObject
 
         if (IsModal)
         {
-            await Dialog.ShowCustomModal<CustomDemoDialog, CustomDemoDialogViewModel, object>(new CustomDemoDialogViewModel(),
+            await Dialog.ShowCustomAsync<CustomDemoDialog, CustomDemoDialogViewModel, object>(new CustomDemoDialogViewModel(),
                 options: options);
         }
         else
@@ -178,11 +183,11 @@ public partial class DefaultOverlayDialogDemoViewModel : ObservableObject
         string? dialogHostId = IsLocal ? DialogDemoViewModel.LocalHost : null;
         if (IsModal)
         {
-            await OverlayDialog.ShowModal<DefaultDemoDialog, DefaultDemoDialogViewModel>(new DefaultDemoDialogViewModel(), dialogHostId, options: options);
+            await OverlayDialog.ShowStandardAsync<DefaultDemoDialog, DefaultDemoDialogViewModel>(new DefaultDemoDialogViewModel(), dialogHostId, options: options);
         }
         else
         {
-            OverlayDialog.Show<DefaultDemoDialog, DefaultDemoDialogViewModel>(new DefaultDemoDialogViewModel(), dialogHostId, options: options);
+            OverlayDialog.ShowStandard<DefaultDemoDialog, DefaultDemoDialogViewModel>(new DefaultDemoDialogViewModel(), dialogHostId, options: options);
         }
     }
 }
@@ -231,7 +236,7 @@ public partial class CustomOverlayDialogDemoViewModel: ObservableObject
         var dialogHostId = IsLocal ? DialogDemoViewModel.LocalHost : null;
         if (IsModal)
         {
-            await OverlayDialog.ShowCustomModal<CustomDemoDialog, CustomDemoDialogViewModel, object>(new CustomDemoDialogViewModel(), dialogHostId, options: options);
+            await OverlayDialog.ShowCustomAsync<CustomDemoDialog, CustomDemoDialogViewModel, object>(new CustomDemoDialogViewModel(), dialogHostId, options: options);
         }
         else
         {

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
@@ -11,16 +12,17 @@
 
 	<ItemGroup>
 
-		<PackageReference Include="Avalonia" Version="12.0.1" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
-		<PackageReference Include="Semi.Avalonia" Version="12.0.1" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="Irihi.Ursa" Version="2.0.0-rc2" />
-		<PackageReference Include="Irihi.Ursa.Themes.Semi" Version="2.0.0-rc2" />
+		<PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDI)" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="$(CommunityToolkit)" />
+		<PackageReference Include="Irihi.Ursa" Version="$(IrihiUrsaVersion)" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EfCoreVersion)" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(EfCoreVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="../Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj" />
+		<ProjectReference Include="../Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj" />
 	</ItemGroup>
 
 </Project>

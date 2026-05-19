@@ -1,4 +1,7 @@
 using System.Collections.ObjectModel;
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Attributes;
+using Avalonia.Plugin.NavigationMenus.Pages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
@@ -6,8 +9,10 @@ using Ursa.Controls;
 
 namespace Avalonia.Plugin.NavigationMenus.ViewModels;
 
-
-public class NavMenuDemoViewModel: ObservableObject
+[NavigationItem("NavMenu")]
+[Menu("Nav Menu", "NavMenu", "Navigation & Menus", Status = "Updated")]
+[ViewMap(typeof(NavMenuDemo))]
+public partial class NavMenuDemoViewModel: ObservableObject
 {
     private MenuItem? _selectedMenuItem;
 
@@ -104,7 +109,7 @@ public class MenuItem
 
     private async Task OnNavigate()
     {
-        await MessageBox.ShowOverlayAsync(Header??string.Empty, "Navigation Result");
+        await OverlayMessageBox.ShowAsync(Header??string.Empty, "Navigation Result");
     }
 
     public ObservableCollection<MenuItem> Children { get; set; } = new ObservableCollection<MenuItem>();

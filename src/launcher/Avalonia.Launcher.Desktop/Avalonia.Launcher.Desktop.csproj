@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -18,20 +19,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="12.0.1" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDI)" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="$(AvaloniaDiagnosticsSupport)" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- <ProjectReference Include="..\..\..\plugins\Avalonia.Plugin.ButtonsInputs\Avalonia.Plugin.ButtonsInputs.csproj" /> -->
     <ProjectReference Include="..\..\Avalonia.UI\Avalonia.UI.csproj" />
-    <!-- <ProjectReference Include="..\..\..\plugins\Avalonia.Plugin.ButtonsInputs\Avalonia.Plugin.ButtonsInputs.csproj" />
-    <ProjectReference Include="..\..\..\plugins\Avalonia.Plugin.DateTime\Avalonia.Plugin.DateTime.csproj" />
-    <ProjectReference Include="..\..\..\plugins\Avalonia.Plugin.DialogFeedbacks\Avalonia.Plugin.DialogFeedbacks.csproj" />
-    <ProjectReference Include="..\..\..\plugins\Avalonia.Plugin.LayoutDisplay\Avalonia.Plugin.LayoutDisplay.csproj" />
-    <ProjectReference Include="..\..\..\plugins\Avalonia.Plugin.NavigationMenus\Avalonia.Plugin.NavigationMenus.csproj" /> -->
     <ProjectReference Include="..\..\Avalonia.Plugin.Shared\Avalonia.Plugin.Shared.csproj" />
   </ItemGroup>
 </Project>

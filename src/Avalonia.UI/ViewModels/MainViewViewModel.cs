@@ -14,9 +14,17 @@ public partial class MainViewViewModel : ViewModelBase
 
     public WindowNotificationManager? NotificationManager { get; set; }
     public MenuViewModel Menus { get; }
-    [ObservableProperty] private string? _footerText = "Settings";
+    [ObservableProperty] private string? _settingText = "Settings";
+
+    [ObservableProperty] private string? _pluginText = "Plugins";
     [ObservableProperty] private object? _content;
     [ObservableProperty] private bool _isCollapsed;
+    [ObservableProperty] private bool _isSidebarHidden;
+    [RelayCommand]
+    public void ToggleSidebar()
+    {
+        IsSidebarHidden = !IsSidebarHidden;
+    }
     [RelayCommand]
     public void Activate(string key)
     {
@@ -38,6 +46,7 @@ public partial class MainViewViewModel : ViewModelBase
     }
     partial void OnIsCollapsedChanged(bool value)
     {
-        FooterText = value ? null : "Settings";
+        SettingText = value ? null : "Settings";
+        PluginText = value ? null : "Plugin";
     }
 }

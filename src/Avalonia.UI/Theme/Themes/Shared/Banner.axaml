@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StaticResource x:Key="BannerInformationIconGeometry" ResourceKey="SemiIconInfoCircle" />
+    <StaticResource x:Key="BannerSuccessIconGeometry" ResourceKey="SemiIconTickCircle" />
+    <StaticResource x:Key="BannerWarningIconGeometry" ResourceKey="SemiIconAlertTriangle" />
+    <StaticResource x:Key="BannerErrorIconGeometry" ResourceKey="SemiIconAlertCircle" />
+    <StaticResource x:Key="BannerCloseIconGeometry" ResourceKey="SemiIconClose" />
+
+    <CornerRadius x:Key="BannerCornerRadius">3</CornerRadius>
+    <Thickness x:Key="BannerBorderPadding">12</Thickness>
+    <Thickness x:Key="BannerBorderThickness">1</Thickness>
+    <Thickness x:Key="BannerIconMargin">0 0 12 0</Thickness>
+    <Thickness x:Key="BannerCloseButtonMargin">12 0 0 0</Thickness>
+    <x:Double x:Key="BannerTitleFontSize">18</x:Double>
+</ResourceDictionary>

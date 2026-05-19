@@ -1,0 +1,66 @@
+<Project>
+  <Target Name="ExcludeSharedAssembliesFromCopyLocal"
+          AfterTargets="ResolveAssemblyReferences"
+          Condition="'$(AvaloniaPluginSharedExclusionsEnabled)' == 'true'">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('System.'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'Avalonia'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Avalonia.'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('CommunityToolkit.'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Irihi.'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'Ursa'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'Semi.Avalonia'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('SQLitePCLRaw.'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'Microsoft.Data.Sqlite'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'MicroCom.Runtime'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="PluginCopyDependencies"
+          AfterTargets="ResolveReferences"
+          Condition="'$(AvaloniaPluginSharedExclusionsEnabled)' == 'true'">
+    <ItemGroup>
+      <_PluginDeps Include="@(RuntimeCopyLocalItems)" />
+
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('System.'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'Avalonia'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Avalonia.'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('CommunityToolkit.'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Irihi.'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'Ursa'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'Semi.Avalonia'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('SQLitePCLRaw.'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'Microsoft.Data.Sqlite'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'MicroCom.Runtime'" />
+    </ItemGroup>
+
+    <Copy
+        SourceFiles="@(_PluginDeps)"
+        DestinationFiles="@(_PluginDeps->'$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')"
+        SkipUnchangedFiles="true" />
+  </Target>
+</Project>

@@ -53,7 +53,7 @@ public partial class CustomDemoDialogViewModel : ObservableObject, IDialogContex
 
     private async Task ShowDialog()
     {
-        await OverlayDialog.ShowCustomModal<CustomDemoDialog, CustomDemoDialogViewModel, bool>(
+        await OverlayDialog.ShowCustomAsync<CustomDemoDialog, CustomDemoDialogViewModel, bool>(
             new CustomDemoDialogViewModel());
     }
 

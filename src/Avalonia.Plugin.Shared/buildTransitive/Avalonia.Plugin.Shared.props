@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AvaloniaPluginSharedExclusionsEnabled Condition="'$(AvaloniaPluginSharedExclusionsEnabled)' == ''">true</AvaloniaPluginSharedExclusionsEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(AvaloniaPluginSharedExclusionsEnabled)' == 'true'">
+    <PluginExclude Include="System.*" />
+    <PluginExclude Include="Microsoft.*" />
+    <PluginExclude Include="Avalonia" />
+    <PluginExclude Include="Avalonia.*" />
+    <PluginExclude Include="CommunityToolkit.*" />
+    <PluginExclude Include="Irihi.*" />
+    <PluginExclude Include="Ursa" />
+    <PluginExclude Include="Semi.Avalonia" />
+    <PluginExclude Include="SQLitePCLRaw.*" />
+    <PluginExclude Include="Microsoft.Data.Sqlite" />
+    <PluginExclude Include="MicroCom.Runtime" />
+  </ItemGroup>
+</Project>

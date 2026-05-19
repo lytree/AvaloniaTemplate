@@ -1,28 +1,17 @@
+using System.Collections.Concurrent;
+
 namespace Avalonia.Plugin.Shared;
 
-/// <summary>
-/// 服务定位器，用于获取依赖注入容器中的服务
-/// </summary>
 public static class ServiceLocator
 {
-    /// <summary>
-    /// 依赖注入容器
-    /// </summary>
     private static IServiceProvider? _serviceProvider;
+    private static readonly ConcurrentDictionary<Type, object> _registeredServices = new();
 
-    /// <summary>
-    /// 初始化服务定位器
-    /// </summary>
-    /// <param name="serviceProvider">依赖注入容器</param>
     public static void Initialize(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
 
-    /// <summary>
-    /// 获取依赖注入容器
-    /// </summary>
-    /// <returns>依赖注入容器</returns>
     public static IServiceProvider GetServiceProvider()
     {
         if (_serviceProvider == null)
@@ -32,13 +21,18 @@ public static class ServiceLocator
         return _serviceProvider;
     }
 
-    /// <summary>
-    /// 获取指定类型的服务
-    /// </summary>
-    /// <typeparam name="T">服务类型</typeparam>
-    /// <returns>服务实例</returns>
+    public static void RegisterService<T>(T service) where T : class
+    {
+        _registeredServices[typeof(T)] = service;
+    }
+
     public static T GetService<T>() where T : class
     {
+        if (_registeredServices.TryGetValue(typeof(T), out var registered))
+        {
+            return (T)registered;
+        }
+
         var service = GetServiceProvider().GetService(typeof(T)) as T;
         if (service == null)
         {
@@ -47,14 +41,14 @@ public static class ServiceLocator
         return service;
     }
 
-    /// <summary>
-    /// 尝试获取指定类型的服务
-    /// </summary>
-    /// <typeparam name="T">服务类型</typeparam>
-    /// <param name="service">服务实例</param>
-    /// <returns>是否获取成功</returns>
     public static bool TryGetService<T>(out T? service) where T : class
     {
+        if (_registeredServices.TryGetValue(typeof(T), out var registered))
+        {
+            service = (T)registered;
+            return true;
+        }
+
         try
         {
             service = GetServiceProvider().GetService(typeof(T)) as T;

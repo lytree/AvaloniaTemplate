@@ -1,0 +1,11 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  DrawerPage top bar  -->
+    <x:Double x:Key="DrawerPageTopBarMinHeight">32</x:Double>
+
+    <!--  DrawerPage pane button  -->
+    <StaticResource x:Key="DrawerPageMenuGlyph" ResourceKey="SemiIconMenu" />
+
+    <StaticResource x:Key="DrawerPageTitleFontSize" ResourceKey="SemiFontSizeHeader6" />
+    <StaticResource x:Key="DrawerPageTitleFontWeight" ResourceKey="SemiFontWeightBold" />
+    <Thickness x:Key="DrawerPageTitleMargin">8 0 0 0</Thickness>
+</ResourceDictionary>

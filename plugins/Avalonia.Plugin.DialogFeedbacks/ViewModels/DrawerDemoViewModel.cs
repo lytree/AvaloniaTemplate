@@ -1,3 +1,6 @@
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Attributes;
+using Avalonia.Plugin.DialogFeedbacks.Pages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
@@ -9,7 +12,9 @@ using Avalonia.Plugin.Shared.Dialogs;
 
 namespace Avalonia.Plugin.DialogFeedbacks.ViewModels;
 
-
+[NavigationItem("KeyDrawer")]
+[Menu("Drawer", "KeyDrawer", "Dialog & Feedbacks")]
+[ViewMap(typeof(DrawerDemo))]
 public partial class DrawerDemoViewModel : ObservableObject
 {
     public ICommand ShowDialogCommand { get; set; }
@@ -51,11 +56,11 @@ public partial class DrawerDemoViewModel : ObservableObject
             var vm = new CustomDemoDialogViewModel();
             if (IsModal)
             {
-                await Drawer.ShowCustomModal<CustomDemoDialog, CustomDemoDialogViewModel, object?>(vm, hostId, options);
+                await OverlayDrawer.ShowCustomAsync<CustomDemoDialog, CustomDemoDialogViewModel, object?>(vm, hostId, options);
             }
             else
             {
-                Drawer.ShowCustom<CustomDemoDialog, CustomDemoDialogViewModel>(vm, hostId, options);
+                OverlayDrawer.ShowCustom<CustomDemoDialog, CustomDemoDialogViewModel>(vm, hostId, options);
             }
         }
         else
@@ -63,11 +68,11 @@ public partial class DrawerDemoViewModel : ObservableObject
             var vm = new DefaultDemoDialogViewModel();
             if (IsModal)
             {
-                await Drawer.ShowModal<DefaultDemoDialog, DefaultDemoDialogViewModel>(vm, hostId, options);
+                await OverlayDrawer.ShowStandardAsync<DefaultDemoDialog, DefaultDemoDialogViewModel>(vm, hostId, options);
             }
             else
             {
-                Drawer.Show<DefaultDemoDialog, DefaultDemoDialogViewModel>(vm, hostId, options);
+                OverlayDrawer.ShowStandard<DefaultDemoDialog, DefaultDemoDialogViewModel>(vm, hostId, options);
             }
         }
         
