@@ -31,7 +31,7 @@ public partial class MainViewViewModel : ViewModelBase
     [RelayCommand]
     public void Activate(string key)
     {
-        OnNavigation(this, key);
+        WeakReferenceMessenger.Default.Send(key, "JumpTo");
     }
 
     public MainViewViewModel(INavigationService navigationService, IMenuConfigurationService menuConfigurationService)

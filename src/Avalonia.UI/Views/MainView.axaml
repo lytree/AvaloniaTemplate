@@ -100,22 +100,68 @@
 					</u:NavMenu.Header>
 					<u:NavMenu.Footer>
 						<StackPanel>
-							<u:IconButton
-								Classes="Tertiary"
-								Icon="{StaticResource SemiIconSetting}"
-								Content="{Binding SettingText}"
+							<StackPanel.Styles>
+								<Style Selector="Button.NavFooterItem">
+									<Setter Property="Foreground" Value="{DynamicResource SemiColorText1}" />
+								</Style>
+								<Style Selector="Button.NavFooterItem:pointerover /template/ Border#PART_Background">
+									<Setter Property="Background" Value="{DynamicResource ListBoxItemPointeroverBackground}" />
+								</Style>
+								<Style Selector="Button.NavFooterItem:pointerover">
+									<Setter Property="Foreground" Value="{DynamicResource ListBoxItemPointeroverForeground}" />
+								</Style>
+								<Style Selector="Button.NavFooterItem:pressed /template/ Border#PART_Background">
+									<Setter Property="Background" Value="{DynamicResource ListBoxItemPointeroverBackground}" />
+								</Style>
+							</StackPanel.Styles>
+							<Button
+								Classes="NavFooterItem"
+								HorizontalAlignment="Stretch"
+								Background="Transparent"
+								BorderThickness="0"
+								Padding="0"
+								CornerRadius="4"
 								ToolTip.Tip="{DynamicResource STRING_TOOLTIP_SETTINGS}"
-								Theme="{DynamicResource BorderlessIconButton}"
 								Command="{Binding ActivateCommand}"
-								CommandParameter="Settings" />
-							<u:IconButton
-								Classes="Tertiary"
-								Icon="{StaticResource SemiIconPuzzle}"
-								Content="{Binding PluginText}"
+								CommandParameter="Settings">
+								<Grid ColumnDefinitions="Auto, *">
+									<PathIcon
+										Width="18" Height="18"
+										Margin="8"
+										Data="{StaticResource SemiIconSetting}"
+										Foreground="{DynamicResource SemiColorText1}" />
+									<TextBlock
+										Grid.Column="1"
+										Margin="0,8,8,8"
+										VerticalAlignment="Center"
+										FontSize="14"
+										Text="{Binding SettingText}" />
+								</Grid>
+							</Button>
+							<Button
+								Classes="NavFooterItem"
+								HorizontalAlignment="Stretch"
+								Background="Transparent"
+								BorderThickness="0"
+								Padding="0"
+								CornerRadius="4"
 								ToolTip.Tip="{DynamicResource STRING_TOOLTIP_PLUGIN_MANAGEMENT}"
-								Theme="{DynamicResource BorderlessIconButton}"
 								Command="{Binding ActivateCommand}"
-								CommandParameter="PluginManagement" />
+								CommandParameter="PluginManagement">
+								<Grid ColumnDefinitions="Auto, *">
+									<PathIcon
+										Width="18" Height="18"
+										Margin="8"
+										Data="{StaticResource SemiIconPuzzle}"
+										Foreground="{DynamicResource SemiColorText1}" />
+									<TextBlock
+										Grid.Column="1"
+										Margin="0,8,8,8"
+										VerticalAlignment="Center"
+										FontSize="14"
+										Text="{Binding PluginText}" />
+								</Grid>
+							</Button>
 						</StackPanel>
 					</u:NavMenu.Footer>
 				</u:NavMenu>
