@@ -1,178 +1,168 @@
 <UserControl
-    x:Class="Avalonia.UI.Views.MainView"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:converters="using:Avalonia.Plugin.Shared.Converters"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:iri="https://irihi.tech/shared"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:plugin="using:Avalonia.Plugin.Shared"
-    xmlns:u="https://irihi.tech/ursa"
-    xmlns:viewmodels="using:Avalonia.Plugin.Shared.ViewModels"
-    xmlns:vm="using:Avalonia.UI.ViewModels"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    x:CompileBindings="True"
-    x:DataType="vm:MainViewViewModel"
-    mc:Ignorable="d">
+	x:Class="Avalonia.UI.Views.MainView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:converters="using:Avalonia.Plugin.Shared.Converters"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:iri="https://irihi.tech/shared"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:plugin="using:Avalonia.Plugin.Shared"
+	xmlns:u="https://irihi.tech/ursa"
+	xmlns:viewmodels="using:Avalonia.Plugin.Shared.ViewModels"
+	xmlns:vm="using:Avalonia.UI.ViewModels"
+	d:DesignHeight="450"
+	d:DesignWidth="800"
+	x:CompileBindings="True"
+	x:DataType="vm:MainViewViewModel"
+	mc:Ignorable="d">
 
-    <Design.DataContext>
-        <vm:MainViewViewModel />
-    </Design.DataContext>
-    <UserControl.Resources>
-        <converters:IconNameToPathConverter x:Key="IconConverter" />
-    </UserControl.Resources>
-    <Panel>
-        <Panel.Styles>
-            <Style Selector="Grid.Blur">
-                <Setter Property="Effect" Value="blur(10)" />
-            </Style>
-        </Panel.Styles>
-        <Grid Classes.Blur="{Binding $parent[u:UrsaWindow].(u:OverlayDialogHost.IsInModalStatus)}" ColumnDefinitions="Auto, *">
-            <Border
-                Padding="4,0"
-                VerticalAlignment="Stretch"
-                Background="{DynamicResource SemiColorFill0}"
-                BorderBrush="{DynamicResource SemiColorBorder}"
-                BorderThickness="0,0,1,0"
-                IsVisible="{Binding !IsSidebarHidden}">
-                <u:NavMenu
-                    Name="menu"
-                    CommandBinding="{Binding ActivateCommand}"
-                    ExpandWidth="280"
-                    SubMenuBinding="{Binding Children}"
-                    HeaderBinding="{Binding}"
-                    IconBinding="{Binding MenuHeader}"
-                    IsHorizontalCollapsed="{Binding IsCollapsed, Mode=TwoWay}"
-                    ItemsSource="{Binding Menus.MenuItems}">
-                    <u:NavMenu.Styles>
-                        <Style x:DataType="viewmodels:MenuItemViewModel" Selector="u|NavMenuItem">
-                            <Setter Property="IsSeparator" Value="{Binding IsSeparator}" />
-                        </Style>
-                    </u:NavMenu.Styles>
-                    <u:NavMenu.IconTemplate>
-                        <DataTemplate x:DataType="x:String">
-                            <u:TwoTonePathIcon
-                                Width="18"
-                                Height="18"
-                                ActiveForeground="{DynamicResource SemiColorPrimary}"
-                                ActiveStrokeBrush="{DynamicResource SemiColorPrimary}"
-                                Data="{Binding Converter={StaticResource IconConverter}}"
-                                Foreground="{DynamicResource SemiColorText1}"
-                                IsActive="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=u:NavMenuItem}, Path=IsHighlighted, Mode=TwoWay}"
-                                StrokeBrush="{DynamicResource SemiColorText1}" />
-                        </DataTemplate>
-                    </u:NavMenu.IconTemplate>
-                    <u:NavMenu.HeaderTemplate>
-                        <DataTemplate x:DataType="viewmodels:MenuItemViewModel">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock
-                                    HorizontalAlignment="Left"
-                                    FontSize="14"
-                                    Text="{Binding MenuHeader}" />
-                                <Label
-                                    Theme="{StaticResource TagLabel}"
-                                    Classes="Purple"
-                                    Content="{Binding Status}"
-                                    IsVisible="{Binding Status, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </u:NavMenu.HeaderTemplate>
-                    <u:NavMenu.Header>
-                        <DockPanel Margin="12,24,12,12" HorizontalAlignment="Center">
-                            <Panel
-                                VerticalAlignment="Center"
-                                u:NavMenu.CanToggle="True"
-                                Background="Transparent"
-                                DockPanel.Dock="Left">
-                                <PathIcon Width="28" Height="28"
-                                    Data="{StaticResource Icon_AvaloniaLogo}"
-                                    Foreground="{DynamicResource SemiColorPrimary}" />
-                            </Panel>
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                Classes="H4"
-                                Margin="12,0,0,0"
-                                IsVisible="{Binding !#menu.IsHorizontalCollapsed}"
-                                Text="Ursa"
-                                FontWeight="SemiBold" />
-                        </DockPanel>
-                    </u:NavMenu.Header>
-                    <u:NavMenu.Footer>
-                        <StackPanel Spacing="2">
-                            <u:IconButton
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Classes="Tertiary"
-                                Icon="{StaticResource SemiIconSetting}"
-                                Content="{Binding SettingText}"
-                                RenderTransform="{x:Null}"
-                                ToolTip.Tip="Settings"
-                                FontSize="13"
-                                FontWeight="Normal"
-                                Theme="{DynamicResource BorderlessIconButton}"
-                                Command="{Binding ActivateCommand}"
-                                CommandParameter="Settings" />
-                            <u:IconButton
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Classes="Tertiary"
-                                Icon="{StaticResource SemiIconPuzzle}"
-                                Content="{Binding PluginText}"
-                                RenderTransform="{x:Null}"
-                                ToolTip.Tip="Plugin Management"
-                                FontSize="13"
-                                FontWeight="Normal"
-                                Theme="{DynamicResource BorderlessIconButton}"
-                                Command="{Binding ActivateCommand}"
-                                CommandParameter="PluginManagement" />
-                        </StackPanel>
-                    </u:NavMenu.Footer>
-                </u:NavMenu>
-            </Border>
-            <Grid Grid.Column="1" RowDefinitions="Auto, *">
-                <Border
-                    Padding="16,8"
-                    BorderBrush="{DynamicResource SemiColorBorder}"
-                    BorderThickness="0,0,0,1"
-                    Background="{DynamicResource SemiColorBackground0}">
-                    <DockPanel>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <u:IconButton
-                                Theme="{StaticResource BorderlessIconButton}"
-                                Classes="Tertiary"
-                                Icon="{StaticResource Icon_About}"
-                                Click="JumpToAbout" />
-                            <u:IconButton
-                                Theme="{StaticResource BorderlessIconButton}"
-                                Classes="Tertiary"
-                                Icon="{StaticResource SemiIconGithubLogo}"
-                                Click="OpenRepository" />
-                            <u:ThemeToggleButton
-                                IsThreeState="True"
-                                Mode="Controller" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <u:IconButton
-                                Theme="{StaticResource BorderlessIconButton}"
-                                Classes="Tertiary"
-                                Icon="{StaticResource SemiIconSidebar}"
-                                ToolTip.Tip="Toggle Sidebar"
-                                Command="{Binding ToggleSidebarCommand}" />
-                            <u:Breadcrumb Name="Breadcrumb" VerticalAlignment="Center" Separator="/" FontSize="14" />
-                        </StackPanel>
-                    </DockPanel>
-                </Border>
-                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-                    <ContentControl
-                        Margin="24,20"
-                        Content="{Binding Content}">
-                        <ContentControl.ContentTemplate>
-                            <plugin:ViewLocator />
-                        </ContentControl.ContentTemplate>
-                    </ContentControl>
-                </ScrollViewer>
-            </Grid>
-        </Grid>
-    </Panel>
+	<Design.DataContext>
+		<vm:MainViewViewModel />
+	</Design.DataContext>
+	<UserControl.Resources>
+		<converters:IconNameToPathConverter x:Key="IconConverter" />
+	</UserControl.Resources>
+	<Panel>
+		<Panel.Styles>
+			<Style Selector="Grid.Blur">
+				<Setter Property="Effect" Value="blur(10)" />
+			</Style>
+		</Panel.Styles>
+		<Grid Classes.Blur="{Binding $parent[u:UrsaWindow].(u:OverlayDialogHost.IsInModalStatus)}" ColumnDefinitions="Auto, *">
+			<Border
+				Padding="4,0"
+				VerticalAlignment="Stretch"
+				Background="{DynamicResource SemiColorFill0}"
+				BorderBrush="{DynamicResource SemiColorBorder}"
+				BorderThickness="0,0,1,0"
+				IsVisible="{Binding !IsSidebarHidden}">
+				<u:NavMenu
+					Name="menu"
+					CommandBinding="{Binding ActivateCommand}"
+					ExpandWidth="280"
+					SubMenuBinding="{Binding Children}"
+					HeaderBinding="{Binding}"
+					IconBinding="{Binding MenuHeader}"
+					IsHorizontalCollapsed="{Binding IsCollapsed, Mode=TwoWay}"
+					ItemsSource="{Binding Menus.MenuItems}">
+					<u:NavMenu.Styles>
+						<Style x:DataType="viewmodels:MenuItemViewModel" Selector="u|NavMenuItem">
+							<Setter Property="IsSeparator" Value="{Binding IsSeparator}" />
+						</Style>
+					</u:NavMenu.Styles>
+					<u:NavMenu.IconTemplate>
+						<DataTemplate x:DataType="x:String">
+							<u:TwoTonePathIcon
+								Width="18"
+								Height="18"
+								ActiveForeground="{DynamicResource SemiColorPrimary}"
+								ActiveStrokeBrush="{DynamicResource SemiColorPrimary}"
+								Data="{Binding Converter={StaticResource IconConverter}}"
+								Foreground="{DynamicResource SemiColorText1}"
+								IsActive="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=u:NavMenuItem}, Path=IsHighlighted, Mode=TwoWay}"
+								StrokeBrush="{DynamicResource SemiColorText1}" />
+						</DataTemplate>
+					</u:NavMenu.IconTemplate>
+					<u:NavMenu.HeaderTemplate>
+						<DataTemplate x:DataType="viewmodels:MenuItemViewModel">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<TextBlock
+									HorizontalAlignment="Left"
+									FontSize="14"
+									Text="{Binding MenuHeader}" />
+								<Label
+									Theme="{StaticResource TagLabel}"
+									Classes="Purple"
+									Content="{Binding Status}"
+									IsVisible="{Binding Status, Converter={x:Static ObjectConverters.IsNotNull}}" />
+							</StackPanel>
+						</DataTemplate>
+					</u:NavMenu.HeaderTemplate>
+					<u:NavMenu.Header>
+						<DockPanel Margin="12,24,12,12" HorizontalAlignment="Center">
+							<Panel
+								VerticalAlignment="Center"
+								u:NavMenu.CanToggle="True"
+								Background="Transparent"
+								DockPanel.Dock="Left">
+								<PathIcon Width="28" Height="28"
+									Data="{StaticResource Icon_AvaloniaLogo}"
+									Foreground="{DynamicResource SemiColorPrimary}" />
+							</Panel>
+							<TextBlock
+								VerticalAlignment="Center"
+								Classes="H4"
+								Margin="12,0,0,0"
+								IsVisible="{Binding !#menu.IsHorizontalCollapsed}"
+								Text="Ursa"
+								FontWeight="SemiBold" />
+						</DockPanel>
+					</u:NavMenu.Header>
+					<u:NavMenu.Footer>
+						<StackPanel>
+							<u:IconButton
+								Classes="Tertiary"
+								Icon="{StaticResource SemiIconSetting}"
+								Content="{Binding SettingText}"
+								ToolTip.Tip="Settings"
+								Theme="{DynamicResource BorderlessIconButton}"
+								Command="{Binding ActivateCommand}"
+								CommandParameter="Settings" />
+							<u:IconButton
+								Classes="Tertiary"
+								Icon="{StaticResource SemiIconPuzzle}"
+								Content="{Binding PluginText}"
+								ToolTip.Tip="Plugin Management"
+								Theme="{DynamicResource BorderlessIconButton}"
+								Command="{Binding ActivateCommand}"
+								CommandParameter="PluginManagement" />
+						</StackPanel>
+					</u:NavMenu.Footer>
+				</u:NavMenu>
+			</Border>
+			<Grid Grid.Column="1" RowDefinitions="Auto, *">
+				<Border
+					Padding="16,8"
+					BorderBrush="{DynamicResource SemiColorBorder}"
+					BorderThickness="0,0,0,1"
+					Background="{DynamicResource SemiColorBackground0}">
+					<DockPanel>
+						<StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+							<u:IconButton
+								Theme="{StaticResource BorderlessIconButton}"
+								Classes="Tertiary"
+								Icon="{StaticResource Icon_About}"
+								Click="JumpToAbout" />
+							<u:IconButton
+								Theme="{StaticResource BorderlessIconButton}"
+								Classes="Tertiary"
+								Icon="{StaticResource SemiIconGithubLogo}"
+								Click="OpenRepository" />
+							<u:ThemeToggleButton
+								IsThreeState="True"
+								Mode="Controller" />
+						</StackPanel>
+						<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+							<u:IconButton
+								Theme="{StaticResource BorderlessIconButton}"
+								Classes="Tertiary"
+								Icon="{StaticResource SemiIconSidebar}"
+								ToolTip.Tip="Toggle Sidebar"
+								Command="{Binding ToggleSidebarCommand}" />
+							<u:Breadcrumb Name="Breadcrumb" VerticalAlignment="Center" Separator="/" FontSize="14" />
+						</StackPanel>
+					</DockPanel>
+				</Border>
+				<ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+					<ContentControl
+						Margin="24,20"
+						Content="{Binding Content}">
+						<ContentControl.ContentTemplate>
+							<plugin:ViewLocator />
+						</ContentControl.ContentTemplate>
+					</ContentControl>
+				</ScrollViewer>
+			</Grid>
+		</Grid>
+	</Panel>
 </UserControl>

@@ -1,5 +1,5 @@
 #nullable enable
-namespace Avalonia.Plugin.Shared.Resources;
+namespace Avalonia.UI.Resources;
 
 public static class Strings
 {
@@ -12,7 +12,7 @@ public static class Strings
             if (_resourceManager is null)
             {
                 _resourceManager = new global::System.Resources.ResourceManager(
-                    "Avalonia.Plugin.Shared.Resources.Strings",
+                    "Avalonia.UI.Resources.Strings",
                     typeof(Strings).Assembly);
             }
             return _resourceManager;

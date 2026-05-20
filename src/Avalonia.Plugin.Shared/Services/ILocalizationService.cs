@@ -13,7 +13,7 @@ public interface ILocalizationService
 
     void SetCulture(CultureInfo culture);
 
-    void RegisterResourceManager(ResourceManager manager, string? prefix = null);
+    void RegisterResourceManager(ResourceManager manager, string prefix = "");
 
     event EventHandler<CultureInfo>? CultureChanged;
 }

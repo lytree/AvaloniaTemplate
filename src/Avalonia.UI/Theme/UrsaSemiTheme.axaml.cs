@@ -20,11 +20,27 @@ public partial class UrsaSemiTheme : Styles
 
     private static readonly ResourceDictionary DefaultResource = new en_us();
 
+    private static UrsaSemiTheme? _instance;
+
+    public static UrsaSemiTheme? Instance => _instance;
+
     public UrsaSemiTheme(IServiceProvider? provider = null)
     {
         AvaloniaXamlLoader.Load(provider, this);
         Resources.MergedDictionaries.Add(new DefaultSizeAnimations());
         Resources.MergedDictionaries.Add(new NavMenuSizeAnimations());
+
+        var systemCulture = CultureInfo.CurrentUICulture;
+        if (TryGetLocaleResource(systemCulture, out var resource) && resource is not null)
+        {
+            SetResources(this.Resources, resource);
+        }
+        else
+        {
+            SetResources(this.Resources, DefaultResource);
+        }
+
+        _instance = this;
     }
 
     public CultureInfo? Locale
@@ -74,6 +90,24 @@ public partial class UrsaSemiTheme : Styles
             return true;
         }
 
+        if (locale.Parent != null && !Equals(locale.Parent, CultureInfo.InvariantCulture))
+        {
+            if (LocaleToResource.TryGetValue(locale.Parent, out resource))
+            {
+                resourceDictionary = resource;
+                return true;
+            }
+        }
+
+        foreach (var key in LocaleToResource.Keys)
+        {
+            if (key.TwoLetterISOLanguageName == locale.TwoLetterISOLanguageName)
+            {
+                resourceDictionary = LocaleToResource[key];
+                return true;
+            }
+        }
+
         resourceDictionary = DefaultResource;
         return false;
     }
@@ -95,16 +129,24 @@ public partial class UrsaSemiTheme : Styles
     public static void OverrideLocaleResources(Application application, CultureInfo? culture)
     {
         if (culture is null) return;
-        if (!LocaleToResource.TryGetValue(culture, out var resources)) return;
+        if (!TryGetLocaleResource(culture, out var resources) || resources is null) return;
         SetResources(application.Resources, resources);
+        if (_instance is not null)
+        {
+            SetResources(_instance.Resources, resources);
+        }
         SyncLocalizationService(culture);
     }
 
     public static void OverrideLocaleResources(StyledElement element, CultureInfo? culture)
     {
         if (culture is null) return;
-        if (!LocaleToResource.TryGetValue(culture, out var resources)) return;
+        if (!TryGetLocaleResource(culture, out var resources) || resources is null) return;
         SetResources(element.Resources, resources);
+        if (_instance is not null)
+        {
+            SetResources(_instance.Resources, resources);
+        }
         SyncLocalizationService(culture);
     }
 

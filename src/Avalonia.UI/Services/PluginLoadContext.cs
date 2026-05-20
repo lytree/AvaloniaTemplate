@@ -37,6 +37,11 @@ internal class PluginLoadContext : AssemblyLoadContext
     {
         var name = assemblyName.Name ?? string.Empty;
 
+        if (name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
+        {
+            return LoadSatelliteAssembly(assemblyName);
+        }
+
         if (IsExcluded(name))
         {
             return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
@@ -55,6 +60,34 @@ internal class PluginLoadContext : AssemblyLoadContext
         }
 
         return null;
+    }
+
+    private Assembly? LoadSatelliteAssembly(AssemblyName assemblyName)
+    {
+        var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+        if (assemblyPath != null)
+        {
+            return LoadFromAssemblyPath(assemblyPath);
+        }
+
+        var culture = assemblyName.CultureName;
+        if (!string.IsNullOrEmpty(culture))
+        {
+            var dllName = $"{assemblyName.Name}.dll";
+            var satellitePath = Path.Combine(_pluginDirectory, culture, dllName);
+            if (File.Exists(satellitePath))
+            {
+                return LoadFromAssemblyPath(satellitePath);
+            }
+        }
+
+        assemblyPath = ProbePluginDirectory(assemblyName);
+        if (assemblyPath != null)
+        {
+            return LoadFromAssemblyPath(assemblyPath);
+        }
+
+        return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
     }
 
     private static bool IsExcluded(string name)

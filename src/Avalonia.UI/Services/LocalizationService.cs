@@ -2,10 +2,9 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Resources;
-using Avalonia.Controls;
-using Avalonia.Plugin.Shared.Resources;
 using Avalonia.Plugin.Shared.Services;
-using Avalonia.Styling;
+using Avalonia.UI.Resources;
+using Avalonia.UI.Theme;
 
 namespace Avalonia.UI.Services;
 
@@ -74,9 +73,11 @@ public class LocalizationService : ILocalizationService
         var app = Application.Current;
         if (app is null) return;
 
+        var themeInstance = UrsaSemiTheme.Instance;
+
         foreach (var (_, (lookupPrefix, manager)) in _resourceManagers)
         {
-            using var resourceSet = manager.GetResourceSet(_currentCulture, true, true);
+            var resourceSet = manager.GetResourceSet(_currentCulture, true, true);
             if (resourceSet is null) continue;
 
             foreach (DictionaryEntry entry in resourceSet)
@@ -86,6 +87,10 @@ public class LocalizationService : ILocalizationService
                     ? $"STRING_{entry.Key}"
                     : $"STRING_{lookupPrefix}_{entry.Key}";
                 app.Resources[resourceKey] = s;
+                if (themeInstance is not null)
+                {
+                    themeInstance.Resources[resourceKey] = s;
+                }
             }
         }
     }

@@ -1,7 +1,7 @@
 using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.Plugin.Shared.Resources;
+using Avalonia.UI.Resources;
 
 namespace Avalonia.UI.Theme.Locale;
 
