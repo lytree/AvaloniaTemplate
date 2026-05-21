@@ -5,20 +5,15 @@ namespace Avalonia.Plugin.Shared;
 
 public class ViewLocator : IDataTemplate
 {
-    // 核心注册表：ViewModel Type -> View Factory (O(1) 查找)
     private static readonly Dictionary<Type, ViewFactory> _viewRegistry = new(100);
-    /// <summary>
-    /// 手动注册接口：支持外部或插件自定义视图映射
-    /// </summary>
+    private static readonly Dictionary<object, Control> _viewCache = new(100);
+
     public static void Register<TViewModel, TView>()
         where TView : Control, new()
     {
         _viewRegistry[typeof(TViewModel)] = () => new TView();
     }
 
-    /// <summary>
-    /// 批量注册接口：供插件初始化时使用
-    /// </summary>
     public static void RegisterRange(IEnumerable<KeyValuePair<Type, ViewFactory>> definitions)
     {
         foreach (var def in definitions)
@@ -26,9 +21,7 @@ public class ViewLocator : IDataTemplate
             _viewRegistry[def.Key] = def.Value;
         }
     }
-    /// <summary>
-    /// 插件加载器在启动时调用，注入插件定义的视图映射
-    /// </summary>
+
     public static void RegisterPlugin(IPlugin plugin)
     {
         var definitions = plugin.GetViewDefinitions();
@@ -36,29 +29,39 @@ public class ViewLocator : IDataTemplate
 
         foreach (var def in definitions)
         {
-            // 如果存在冲突，新插件映射会覆盖旧映射
             _viewRegistry[def.Key] = def.Value;
         }
     }
 
-    /// <summary>
-    /// Avalonia 框架调用的构建方法
-    /// </summary>
+    public static void InvalidateViewCache(object viewModel)
+    {
+        _viewCache.Remove(viewModel);
+    }
+
+    public static void InvalidateAllViewCache()
+    {
+        _viewCache.Clear();
+    }
+
     public Control? Build(object? data)
     {
         if (data is null) return null;
 
+        if (_viewCache.TryGetValue(data, out var cachedControl))
+        {
+            return cachedControl;
+        }
+
         var type = data.GetType();
 
-        // 极速路径：直接从字典检索工厂委托
         if (_viewRegistry.TryGetValue(type, out var factory))
         {
             var control = factory();
             control.DataContext = data;
+            _viewCache[data] = control;
             return control;
         }
 
-        // 备选方案：如果未注册，显示一个友好的提示框
         return new TextBlock
         {
             Text = $"View not found for: {type.FullName}. \nPlease ensure it is registered in IPlugin.GetViewDefinitions().",

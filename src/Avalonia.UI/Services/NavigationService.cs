@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Models;
 using Avalonia.Plugin.Shared.Services;
 using Avalonia.UI.Pages;
 using Avalonia.UI.ViewModels;
@@ -9,11 +10,21 @@ namespace Avalonia.UI.Services;
 public class NavigationService : INavigationService
 {
     private readonly Dictionary<string, ViewModelFactory> _viewModelFactories = [];
+    private readonly Dictionary<string, object> _viewModelCache = [];
 
     public NavigationService()
     {
-        // 注册默认导航项
         RegisterDefaultNavigations();
+    }
+
+    public void AttachPluginLoader(IPluginLoader pluginLoader)
+    {
+        pluginLoader.PluginUnloaded += OnPluginUnloaded;
+    }
+
+    private void OnPluginUnloaded(object? sender, PluginInfo pluginInfo)
+    {
+        InvalidateCache(pluginInfo.PluginId);
     }
 
     private void RegisterDefaultNavigations()
@@ -47,11 +58,37 @@ public class NavigationService : INavigationService
 
     public object CreateViewModel(string key)
     {
+        if (_viewModelCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
         if (_viewModelFactories.TryGetValue(key, out var factory))
         {
-            return factory();
+            var viewModel = factory();
+            _viewModelCache[key] = viewModel;
+            return viewModel;
         }
+
         throw new System.ArgumentOutOfRangeException(nameof(key), key, null);
+    }
+
+    public void InvalidateCache(string key)
+    {
+        if (_viewModelCache.TryGetValue(key, out var viewModel))
+        {
+            ViewLocator.InvalidateViewCache(viewModel);
+            _viewModelCache.Remove(key);
+        }
+    }
+
+    public void InvalidateAllCache()
+    {
+        foreach (var viewModel in _viewModelCache.Values)
+        {
+            ViewLocator.InvalidateViewCache(viewModel);
+        }
+        _viewModelCache.Clear();
     }
 
     public IEnumerable<string> GetNavigationKeys()
