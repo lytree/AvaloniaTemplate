@@ -126,7 +126,10 @@
     <PropertyGroup>
       <_PluginId Condition="'$(PluginId)' != ''">$(PluginId)</_PluginId>
       <_PluginId Condition="'$(PluginId)' == ''">$(AssemblyName)</_PluginId>
-      <_PluginManifestContent>{&#13;&#10;  "pluginId": "$(_PluginId)",&#13;&#10;  "name": "$(PluginName)",&#13;&#10;  "version": "$(Version)",&#13;&#10;  "author": "$(PluginAuthor)",&#13;&#10;  "description": "$(PluginDescription)",&#13;&#10;  "assembly": "$(AssemblyName).dll",&#13;&#10;  "dependencies": []&#13;&#10;}</_PluginManifestContent>
+      <_PluginVersion Condition="'$(PackageVersion)' != ''">$(PackageVersion)</_PluginVersion>
+      <_PluginVersion Condition="'$(PackageVersion)' == '' And '$(Version)' != ''">$(Version)</_PluginVersion>
+      <_PluginVersion Condition="'$(_PluginVersion)' == ''">1.0.0</_PluginVersion>
+      <_PluginManifestContent>{&#13;&#10;  "pluginId": "$(_PluginId)",&#13;&#10;  "name": "$(PluginName)",&#13;&#10;  "version": "$(_PluginVersion)",&#13;&#10;  "author": "$(PluginAuthor)",&#13;&#10;  "description": "$(PluginDescription)",&#13;&#10;  "assembly": "$(AssemblyName).dll",&#13;&#10;  "dependencies": []&#13;&#10;}</_PluginManifestContent>
     </PropertyGroup>
     <WriteLinesToFile
         File="$(OutDir)plugin.json"

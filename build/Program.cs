@@ -168,10 +168,10 @@ public sealed class BuildTask : FrostingTask<BuildContext>
             var pluginMsBuild = context.CreateMSBuildSettings()
                 .WithProperty("IsPluginProject", "true")
                 .WithProperty("PluginId", plugin.PluginId)
-                .WithProperty("PluginName", plugin.PluginName)
-                .WithProperty("Version", plugin.PluginVersion)
+                .WithProperty("PluginName", $"\"{plugin.PluginName}\"")
+                .WithProperty("PackageVersion", plugin.PluginVersion)
                 .WithProperty("PluginAuthor", plugin.PluginAuthor)
-                .WithProperty("PluginDescription", plugin.PluginDescription);
+                .WithProperty("PluginDescription", $"\"{plugin.PluginDescription}\"");
 
             context.DotNetBuild(plugin.ProjectPath(context.RootDir), new DotNetBuildSettings
             {
@@ -316,10 +316,10 @@ public sealed class PublishPluginsTask : FrostingTask<BuildContext>
             var pluginMsBuild = context.CreateMSBuildSettings()
                 .WithProperty("IsPluginProject", "true")
                 .WithProperty("PluginId", plugin.PluginId)
-                .WithProperty("PluginName", plugin.PluginName)
-                .WithProperty("Version", plugin.PluginVersion)
+                .WithProperty("PluginName", $"\"{plugin.PluginName}\"")
+                .WithProperty("PackageVersion", plugin.PluginVersion)
                 .WithProperty("PluginAuthor", plugin.PluginAuthor)
-                .WithProperty("PluginDescription", plugin.PluginDescription);
+                .WithProperty("PluginDescription", $"\"{plugin.PluginDescription}\"");
 
             context.DotNetPublish(plugin.ProjectPath(context.RootDir), new DotNetPublishSettings
             {
@@ -341,6 +341,69 @@ public sealed class PublishPluginsTask : FrostingTask<BuildContext>
 [IsDependentOn(typeof(PublishPluginsTask))]
 public sealed class PackPluginsTask : FrostingTask<BuildContext>
 {
+    private static readonly string[] ExcludedPrefixes =
+    [
+        "System.",
+        "Microsoft.",
+        "CommunityToolkit.",
+        "Irihi.",
+        "SQLitePCLRaw.",
+    ];
+
+    private static readonly HashSet<string> ExcludedExact = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Avalonia.dll",
+        "Avalonia.Base.dll",
+        "Avalonia.Controls.dll",
+        "Avalonia.DesignerSupport.dll",
+        "Avalonia.Dialogs.dll",
+        "Avalonia.Markup.dll",
+        "Avalonia.Markup.Xaml.dll",
+        "Avalonia.Metal.dll",
+        "Avalonia.MicroCom.dll",
+        "Avalonia.OpenGL.dll",
+        "Avalonia.Remote.Protocol.dll",
+        "Avalonia.Vulkan.dll",
+        "Avalonia.Plugin.Shared.dll",
+        "Ursa.dll",
+        "Semi.Avalonia.dll",
+        "Microsoft.Data.Sqlite.dll",
+        "MicroCom.Runtime.dll",
+        "System.Reactive.dll",
+        "System.Private.Uri.dll",
+        "Microsoft.Bcl.AsyncInterfaces.dll",
+        "SQLite.dll",
+        "Microsoft.Extensions.DependencyInjection.dll",
+        "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "Microsoft.Extensions.Localization.dll",
+        "Microsoft.Extensions.Localization.Abstractions.dll",
+        "Microsoft.Extensions.Logging.dll",
+        "Microsoft.Extensions.Logging.Abstractions.dll",
+        "Microsoft.Extensions.Options.dll",
+        "Microsoft.Extensions.Primitives.dll",
+        "Microsoft.Extensions.Caching.Memory.dll",
+        "Microsoft.Extensions.Caching.Abstractions.dll",
+        "Microsoft.Extensions.Configuration.dll",
+        "Microsoft.Extensions.Configuration.Abstractions.dll",
+        "Microsoft.Extensions.Configuration.Binder.dll",
+        "Microsoft.Extensions.Configuration.Json.dll",
+        "Microsoft.Extensions.Configuration.FileExtensions.dll",
+        "Microsoft.Extensions.FileProviders.Physical.dll",
+        "Microsoft.Extensions.FileProviders.Abstractions.dll",
+        "Microsoft.Extensions.Http.dll",
+        "Microsoft.Extensions.DependencyModel.dll",
+        "Microsoft.EntityFrameworkCore.dll",
+        "Microsoft.EntityFrameworkCore.Abstractions.dll",
+        "Microsoft.EntityFrameworkCore.Relational.dll",
+        "Microsoft.EntityFrameworkCore.Sqlite.dll",
+    };
+
+    private static readonly string[] ExcludedDirectoryPrefixes =
+    [
+        "runtimes" + Path.DirectorySeparatorChar,
+        "runtimes" + Path.AltDirectorySeparatorChar,
+    ];
+
     public override void Run(BuildContext context)
     {
         var zipOutputDir = Path.Combine(context.PluginPackagesDir, "zip");
@@ -358,55 +421,7 @@ public sealed class PackPluginsTask : FrostingTask<BuildContext>
 
             EnsurePluginManifest(publishDir, plugin);
 
-            var excludedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "Avalonia.Plugin.Shared.dll",
-                "Avalonia.Plugin.Shared.xml",
-                "Avalonia.Plugin.Shared.pdb",
-                "plugin.json"
-            };
-
-            var excludedPrefixes = new[]
-            {
-                "Avalonia.",
-                "System.",
-                "Microsoft.",
-                "CommunityToolkit.",
-                "Irihi.",
-                "SQLitePCLRaw.",
-                "Semi.Avalonia",
-            };
-
-            var excludedExact = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "Avalonia.dll",
-                "Ursa.dll",
-                "Semi.Avalonia.dll",
-                "Microsoft.Data.Sqlite.dll",
-                "MicroCom.Runtime.dll",
-                "System.Reactive.dll",
-                "System.Private.Uri.dll",
-                "Microsoft.Extensions.DependencyInjection.dll",
-                "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
-                "Microsoft.Extensions.Localization.dll",
-                "Microsoft.Extensions.Localization.Abstractions.dll",
-                "Microsoft.Extensions.Logging.dll",
-                "Microsoft.Extensions.Logging.Abstractions.dll",
-                "Microsoft.Extensions.Options.dll",
-                "Microsoft.Extensions.Primitives.dll",
-                "Microsoft.Bcl.AsyncInterfaces.dll",
-                "SQLite.dll",
-            };
-
-            static bool ShouldExclude(string fileName, HashSet<string> exact, string[] prefixes)
-            {
-                if (exact.Contains(fileName)) return true;
-                foreach (var prefix in prefixes)
-                {
-                    if (fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return true;
-                }
-                return false;
-            }
+            var pluginAssemblyName = plugin.ProjectName;
 
             var zipPath = Path.Combine(zipOutputDir, $"{plugin.ProjectName}-{plugin.PluginVersion}.zip");
 
@@ -423,6 +438,9 @@ public sealed class PackPluginsTask : FrostingTask<BuildContext>
                     var relativePath = Path.GetRelativePath(publishDir, file);
                     var fileName = Path.GetFileName(file);
 
+                    if (IsInExcludedDirectory(relativePath))
+                        continue;
+
                     if (fileName.EndsWith(".deps.json", StringComparison.OrdinalIgnoreCase) ||
                         fileName.EndsWith(".runtimeconfig.json", StringComparison.OrdinalIgnoreCase) ||
                         fileName.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase) ||
@@ -437,10 +455,14 @@ public sealed class PackPluginsTask : FrostingTask<BuildContext>
                         continue;
                     }
 
-                    if (ShouldExclude(fileName, excludedExact, excludedPrefixes))
+                    if (IsPluginOwnFile(fileName, pluginAssemblyName))
                     {
+                        archive.CreateEntryFromFile(file, relativePath, CompressionLevel.Optimal);
                         continue;
                     }
+
+                    if (ShouldExclude(fileName))
+                        continue;
 
                     archive.CreateEntryFromFile(file, relativePath, CompressionLevel.Optimal);
                 }
@@ -450,6 +472,54 @@ public sealed class PackPluginsTask : FrostingTask<BuildContext>
         }
 
         context.Log.Information("All plugin zip packages created in: {0}", zipOutputDir);
+    }
+
+    private static bool IsPluginOwnFile(string fileName, string pluginAssemblyName)
+    {
+        if (fileName.StartsWith(pluginAssemblyName + ".", StringComparison.OrdinalIgnoreCase) ||
+            fileName.Equals(pluginAssemblyName + ".dll", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (fileName.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase) &&
+            fileName.StartsWith(pluginAssemblyName + ".", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool ShouldExclude(string fileName)
+    {
+        if (ExcludedExact.Contains(fileName)) return true;
+
+        foreach (var prefix in ExcludedPrefixes)
+        {
+            if (fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        if (fileName.StartsWith("Avalonia.", StringComparison.OrdinalIgnoreCase))
+        {
+            if (fileName.StartsWith("Avalonia.Plugin.", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsInExcludedDirectory(string relativePath)
+    {
+        foreach (var dirPrefix in ExcludedDirectoryPrefixes)
+        {
+            if (relativePath.StartsWith(dirPrefix, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     private static void EnsurePluginManifest(string publishDir, PluginProjectInfo plugin)
