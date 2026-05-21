@@ -11,12 +11,17 @@ public class PluginLoader : IPluginLoader, IDisposable
 {
     public const string ExtraPluginEnvironmentVariableName = "AVALONIA_EXTRA_PLUGINS_PATH";
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly Dictionary<string, PluginInfo> _pluginRegistry = [];
     private readonly Dictionary<string, AssemblyLoadContext> _loadContexts = [];
     private readonly Dictionary<string, IPlugin> _loadedPlugins = [];
     private readonly Dictionary<string, IPluginMetadata> _loadedMetadata = [];
     private readonly string _pluginsDirectory;
-    private readonly string _registryFilePath;
     private readonly string? _extraPluginPath;
     private readonly object _lock = new();
 
@@ -27,11 +32,10 @@ public class PluginLoader : IPluginLoader, IDisposable
     public PluginLoader(string? pluginsDirectory = null)
     {
         _pluginsDirectory = pluginsDirectory ?? Path.Combine(AppContext.BaseDirectory, "plugins");
-        _registryFilePath = Path.Combine(_pluginsDirectory, "plugin_registry.json");
         _extraPluginPath = Environment.GetEnvironmentVariable(ExtraPluginEnvironmentVariableName);
         Directory.CreateDirectory(_pluginsDirectory);
-        LoadRegistry();
         ProcessPendingUninstalls();
+        LoadAllPluginManifests();
     }
 
     public IReadOnlyList<PluginInfo> GetInstalledPlugins()
@@ -77,7 +81,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             {
                 pluginInfo.State = PluginState.Error;
                 pluginInfo.ErrorMessage = $"Assembly not found: {pluginInfo.AssemblyPath}";
-                SaveRegistry();
+                SavePluginManifest(pluginInfo);
                 PluginStateChanged?.Invoke(this, pluginInfo);
                 return new PluginLoadResult { Success = false, ErrorMessage = pluginInfo.ErrorMessage };
             }
@@ -86,7 +90,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             {
                 pluginInfo.State = PluginState.Error;
                 pluginInfo.ErrorMessage = depError;
-                SaveRegistry();
+                SavePluginManifest(pluginInfo);
                 PluginStateChanged?.Invoke(this, pluginInfo);
                 return new PluginLoadResult { Success = false, ErrorMessage = depError };
             }
@@ -122,7 +126,7 @@ public class PluginLoader : IPluginLoader, IDisposable
                     loadContext.Unload();
                     pluginInfo.State = PluginState.Error;
                     pluginInfo.ErrorMessage = "No IPlugin implementation found in assembly";
-                    SaveRegistry();
+                    SavePluginManifest(pluginInfo);
                     PluginStateChanged?.Invoke(this, pluginInfo);
                     return new PluginLoadResult { Success = false, ErrorMessage = pluginInfo.ErrorMessage };
                 }
@@ -137,7 +141,7 @@ public class PluginLoader : IPluginLoader, IDisposable
 
                 pluginInfo.State = PluginState.Loaded;
                 pluginInfo.ErrorMessage = null;
-                SaveRegistry();
+                SavePluginManifest(pluginInfo);
 
                 PluginLoaded?.Invoke(this, pluginInfo);
                 PluginStateChanged?.Invoke(this, pluginInfo);
@@ -148,7 +152,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             {
                 pluginInfo.State = PluginState.Error;
                 pluginInfo.ErrorMessage = $"Failed to load plugin: {ex.Message}";
-                SaveRegistry();
+                SavePluginManifest(pluginInfo);
                 PluginStateChanged?.Invoke(this, pluginInfo);
                 return new PluginLoadResult { Success = false, ErrorMessage = pluginInfo.ErrorMessage };
             }
@@ -173,7 +177,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             if (_pluginRegistry.TryGetValue(pluginId, out var info))
             {
                 info.State = PluginState.Installed;
-                SaveRegistry();
+                SavePluginManifest(info);
                 PluginUnloaded?.Invoke(this, info);
                 PluginStateChanged?.Invoke(this, info);
             }
@@ -200,7 +204,7 @@ public class PluginLoader : IPluginLoader, IDisposable
 
             info.State = PluginState.Disabled;
             info.ErrorMessage = null;
-            SaveRegistry();
+            SavePluginManifest(info);
             PluginUnloaded?.Invoke(this, info);
             PluginStateChanged?.Invoke(this, info);
         }
@@ -214,7 +218,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             if (info.State != PluginState.Disabled) return;
 
             info.State = PluginState.Installed;
-            SaveRegistry();
+            SavePluginManifest(info);
             PluginStateChanged?.Invoke(this, info);
 
             LoadPlugin(info);
@@ -242,7 +246,7 @@ public class PluginLoader : IPluginLoader, IDisposable
 
             info.State = PluginState.PendingUninstall;
             info.ErrorMessage = null;
-            SaveRegistry();
+            SavePluginManifest(info);
             PluginUnloaded?.Invoke(this, info);
             PluginStateChanged?.Invoke(this, info);
         }
@@ -320,7 +324,7 @@ public class PluginLoader : IPluginLoader, IDisposable
         lock (_lock)
         {
             _pluginRegistry[pluginInfo.PluginId] = pluginInfo;
-            SaveRegistry();
+            SavePluginManifest(pluginInfo);
         }
     }
 
@@ -330,7 +334,7 @@ public class PluginLoader : IPluginLoader, IDisposable
         {
             UnloadPlugin(pluginId);
             _pluginRegistry.Remove(pluginId);
-            SaveRegistry();
+            DeletePluginManifest(pluginId);
         }
     }
 
@@ -373,73 +377,146 @@ public class PluginLoader : IPluginLoader, IDisposable
 
     private void ProcessPendingUninstalls()
     {
-        lock (_lock)
-        {
-            var pendingPlugins = _pluginRegistry.Values
-                .Where(p => p.State == PluginState.PendingUninstall)
-                .ToList();
+        if (!Directory.Exists(_pluginsDirectory)) return;
 
-            foreach (var plugin in pendingPlugins)
+        foreach (var pluginDir in Directory.GetDirectories(_pluginsDirectory))
+        {
+            var manifestPath = Path.Combine(pluginDir, "plugin.json");
+            if (!File.Exists(manifestPath)) continue;
+
+            try
             {
-                var installDir = plugin.InstallPath;
-                if (!string.IsNullOrEmpty(installDir) && Directory.Exists(installDir))
+                var json = File.ReadAllText(manifestPath);
+                var manifest = JsonSerializer.Deserialize<PluginManifest>(json, JsonOptions);
+                if (manifest == null) continue;
+
+                if (manifest.State == nameof(PluginState.PendingUninstall))
                 {
                     try
                     {
-                        Directory.Delete(installDir, true);
+                        Directory.Delete(pluginDir, true);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Failed to delete plugin directory '{installDir}': {ex.Message}");
+                        Console.WriteLine($"Failed to delete plugin directory '{pluginDir}': {ex.Message}");
                     }
                 }
-
-                _pluginRegistry.Remove(plugin.PluginId);
             }
-
-            if (pendingPlugins.Count > 0)
+            catch (Exception ex)
             {
-                SaveRegistry();
+                Console.WriteLine($"Failed to process plugin manifest '{manifestPath}': {ex.Message}");
             }
         }
     }
 
-    private void LoadRegistry()
+    private void LoadAllPluginManifests()
     {
-        if (!File.Exists(_registryFilePath)) return;
+        if (!Directory.Exists(_pluginsDirectory)) return;
 
-        try
+        foreach (var pluginDir in Directory.GetDirectories(_pluginsDirectory))
         {
-            var json = File.ReadAllText(_registryFilePath);
-            var plugins = JsonSerializer.Deserialize<List<PluginInfo>>(json);
-            if (plugins != null)
+            var manifestPath = Path.Combine(pluginDir, "plugin.json");
+            if (!File.Exists(manifestPath)) continue;
+
+            try
             {
-                foreach (var plugin in plugins)
+                var json = File.ReadAllText(manifestPath);
+                var manifest = JsonSerializer.Deserialize<PluginManifest>(json, JsonOptions);
+                if (manifest == null) continue;
+
+                var pluginInfo = ManifestToPluginInfo(manifest, pluginDir);
+
+                if (pluginInfo.State == PluginState.Loaded)
                 {
-                    if (plugin.State == PluginState.Loaded)
-                    {
-                        plugin.State = PluginState.Installed;
-                    }
-                    _pluginRegistry[plugin.PluginId] = plugin;
+                    pluginInfo.State = PluginState.Installed;
                 }
+
+                _pluginRegistry[pluginInfo.PluginId] = pluginInfo;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to load plugin manifest '{manifestPath}': {ex.Message}");
+            }
+        }
+    }
+
+    private PluginInfo ManifestToPluginInfo(PluginManifest manifest, string pluginDir)
+    {
+        var assemblyPath = !string.IsNullOrEmpty(manifest.Assembly)
+            ? Path.Combine(pluginDir, manifest.Assembly)
+            : string.Empty;
+
+        return new PluginInfo
+        {
+            PluginId = manifest.PluginId ?? string.Empty,
+            Name = manifest.Name ?? string.Empty,
+            Version = manifest.Version ?? "1.0.0",
+            Author = manifest.Author ?? string.Empty,
+            Description = manifest.Description ?? string.Empty,
+            Dependencies = manifest.Dependencies ?? [],
+            InstallPath = pluginDir,
+            AssemblyPath = assemblyPath,
+            State = Enum.TryParse<PluginState>(manifest.State, out var state) ? state : PluginState.Installed,
+            InstallTime = manifest.InstallTime,
+            IsBuiltIn = manifest.IsBuiltIn,
+            HasMetadata = !string.IsNullOrEmpty(manifest.PluginId)
+        };
+    }
+
+    private void SavePluginManifest(PluginInfo pluginInfo)
+    {
+        try
+        {
+            var pluginDir = pluginInfo.InstallPath;
+            if (string.IsNullOrEmpty(pluginDir))
+            {
+                pluginDir = Path.Combine(_pluginsDirectory, pluginInfo.PluginId);
+                pluginInfo.InstallPath = pluginDir;
+            }
+
+            Directory.CreateDirectory(pluginDir);
+
+            var manifest = new PluginManifest
+            {
+                PluginId = pluginInfo.PluginId,
+                Name = pluginInfo.Name,
+                Version = pluginInfo.Version,
+                Author = pluginInfo.Author,
+                Description = pluginInfo.Description,
+                Assembly = !string.IsNullOrEmpty(pluginInfo.AssemblyPath)
+                    ? Path.GetFileName(pluginInfo.AssemblyPath)
+                    : $"{pluginInfo.Name}.dll",
+                Dependencies = pluginInfo.Dependencies,
+                State = pluginInfo.State.ToString(),
+                InstallTime = pluginInfo.InstallTime,
+                IsBuiltIn = pluginInfo.IsBuiltIn
+            };
+
+            var manifestPath = Path.Combine(pluginDir, "plugin.json");
+            var json = JsonSerializer.Serialize(manifest, JsonOptions);
+            File.WriteAllText(manifestPath, json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to save plugin manifest for '{pluginInfo.PluginId}': {ex.Message}");
+        }
+    }
+
+    private void DeletePluginManifest(string pluginId)
+    {
+        if (!_pluginRegistry.TryGetValue(pluginId, out var info)) return;
+
+        try
+        {
+            var manifestPath = Path.Combine(info.InstallPath, "plugin.json");
+            if (File.Exists(manifestPath))
+            {
+                File.Delete(manifestPath);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to load plugin registry: {ex.Message}");
-        }
-    }
-
-    private void SaveRegistry()
-    {
-        try
-        {
-            var json = JsonSerializer.Serialize(_pluginRegistry.Values.ToList(), new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_registryFilePath, json);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to save plugin registry: {ex.Message}");
+            Console.WriteLine($"Failed to delete plugin manifest for '{pluginId}': {ex.Message}");
         }
     }
 
@@ -455,5 +532,19 @@ public class PluginLoader : IPluginLoader, IDisposable
             _loadedPlugins.Clear();
             _loadedMetadata.Clear();
         }
+    }
+
+    private class PluginManifest
+    {
+        public string? PluginId { get; set; }
+        public string? Name { get; set; }
+        public string? Version { get; set; }
+        public string? Author { get; set; }
+        public string? Description { get; set; }
+        public string? Assembly { get; set; }
+        public List<string>? Dependencies { get; set; }
+        public string? State { get; set; }
+        public DateTime? InstallTime { get; set; }
+        public bool IsBuiltIn { get; set; }
     }
 }

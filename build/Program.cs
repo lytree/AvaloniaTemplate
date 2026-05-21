@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Cake.Common;
@@ -42,7 +43,7 @@ public class BuildContext : FrostingContext
     public string GeneratorsProject { get; }
     public string SharedProject { get; }
     public string LauncherProject { get; }
-    public IReadOnlyList<string> PluginProjects { get; }
+    public IReadOnlyList<PluginProjectInfo> PluginProjects { get; }
 
     public DotNetMSBuildSettings CreateMSBuildSettings()
     {
@@ -72,16 +73,27 @@ public class BuildContext : FrostingContext
         SharedProject = Path.Combine(RootDir, "src", "Avalonia.Plugin.Shared", "Avalonia.Plugin.Shared.csproj");
         LauncherProject = Path.Combine(RootDir, "src", "launcher", "Avalonia.Launcher.Desktop", "Avalonia.Launcher.Desktop.csproj");
 
-        PluginProjects = new List<string>
+        PluginProjects = new List<PluginProjectInfo>
         {
-            Path.Combine(RootDir, "plugins", "Avalonia.Plugin.ButtonsInputs", "Avalonia.Plugin.ButtonsInputs.csproj"),
-            Path.Combine(RootDir, "plugins", "Avalonia.Plugin.DateTime", "Avalonia.Plugin.DateTime.csproj"),
-            Path.Combine(RootDir, "plugins", "Avalonia.Plugin.DialogFeedbacks", "Avalonia.Plugin.DialogFeedbacks.csproj"),
-            Path.Combine(RootDir, "plugins", "Avalonia.Plugin.LayoutDisplay", "Avalonia.Plugin.LayoutDisplay.csproj"),
-            Path.Combine(RootDir, "plugins", "Avalonia.Plugin.NavigationMenus", "Avalonia.Plugin.NavigationMenus.csproj"),
-            Path.Combine(RootDir, "plugins", "Avalonia.Plugin.TDLSharp", "Avalonia.Plugin.TDLSharp.csproj"),
+            new("Avalonia.Plugin.ButtonsInputs", "0F2F7DB6-0E9B-D872-442F-2CBC3DAC1F56", "Buttons & Inputs Plugin", "1.0.0", "AvaloniaPlugin", "UI component library for buttons and input controls"),
+            new("Avalonia.Plugin.DateTime", "D1E2F3A4-B5C6-7890-ABCD-DATETIME00001", "DateTime Plugin", "1.0.0", "AvaloniaPlugin", "Date and time picker components"),
+            new("Avalonia.Plugin.DialogFeedbacks", "E2F3A4B5-C6D7-8901-BCDE-DIALOG00001", "Dialog & Feedbacks Plugin", "1.0.0", "AvaloniaPlugin", "Dialog, notification and feedback components"),
+            new("Avalonia.Plugin.LayoutDisplay", "F3A4B5C6-D7E8-9012-CDEF-LAYOUT000001", "Layout & Display Plugin", "1.0.0", "AvaloniaPlugin", "Layout and display components"),
+            new("Avalonia.Plugin.NavigationMenus", "A4B5C6D7-E8F9-0123-DEFA-NAVIGA0000001", "Navigation Menus Plugin", "1.0.0", "AvaloniaPlugin", "Navigation and menu components"),
+            new("Avalonia.Plugin.TDLSharp", "A1B2C3D4-E5F6-7890-ABCD-TDLSHARP00001", "TDLSharp Plugin", "1.0.0", "TDLSharp", "Telegram TDLib integration plugin"),
         };
     }
+}
+
+public record PluginProjectInfo(
+    string ProjectName,
+    string PluginId,
+    string PluginName,
+    string PluginVersion,
+    string PluginAuthor,
+    string PluginDescription)
+{
+    public string ProjectPath(string rootDir) => Path.Combine(rootDir, "plugins", ProjectName, $"{ProjectName}.csproj");
 }
 
 [TaskName("Clean")]
@@ -114,7 +126,7 @@ public sealed class CleanTask : FrostingTask<BuildContext>
 
         foreach (var plugin in context.PluginProjects)
         {
-            var pluginDir = Path.GetDirectoryName(plugin)!;
+            var pluginDir = Path.GetDirectoryName(plugin.ProjectPath(context.RootDir))!;
             var binDir = Path.Combine(pluginDir, "bin");
             var objDir = Path.Combine(pluginDir, "obj");
             if (Directory.Exists(binDir)) context.CleanDirectory(binDir);
@@ -153,10 +165,18 @@ public sealed class BuildTask : FrostingTask<BuildContext>
 
         foreach (var plugin in context.PluginProjects)
         {
-            context.DotNetBuild(plugin, new DotNetBuildSettings
+            var pluginMsBuild = context.CreateMSBuildSettings()
+                .WithProperty("IsPluginProject", "true")
+                .WithProperty("PluginId", plugin.PluginId)
+                .WithProperty("PluginName", plugin.PluginName)
+                .WithProperty("Version", plugin.PluginVersion)
+                .WithProperty("PluginAuthor", plugin.PluginAuthor)
+                .WithProperty("PluginDescription", plugin.PluginDescription);
+
+            context.DotNetBuild(plugin.ProjectPath(context.RootDir), new DotNetBuildSettings
             {
                 Configuration = context.BuildConfiguration,
-                MSBuildSettings = msBuildSettings
+                MSBuildSettings = pluginMsBuild
             });
         }
 
@@ -289,30 +309,184 @@ public sealed class PublishPluginsTask : FrostingTask<BuildContext>
 
         foreach (var plugin in context.PluginProjects)
         {
-            var pluginName = Path.GetFileName(Path.GetDirectoryName(plugin))!;
-            var pluginOutputDir = Path.Combine(context.PluginPackagesDir, pluginName);
+            var pluginOutputDir = Path.Combine(context.PluginPackagesDir, plugin.ProjectName, "publish");
 
             context.EnsureDirectoryExists(pluginOutputDir);
 
-            context.DotNetPublish(plugin, new DotNetPublishSettings
+            var pluginMsBuild = context.CreateMSBuildSettings()
+                .WithProperty("IsPluginProject", "true")
+                .WithProperty("PluginId", plugin.PluginId)
+                .WithProperty("PluginName", plugin.PluginName)
+                .WithProperty("Version", plugin.PluginVersion)
+                .WithProperty("PluginAuthor", plugin.PluginAuthor)
+                .WithProperty("PluginDescription", plugin.PluginDescription);
+
+            context.DotNetPublish(plugin.ProjectPath(context.RootDir), new DotNetPublishSettings
             {
                 Configuration = context.BuildConfiguration,
                 OutputDirectory = pluginOutputDir,
                 NoRestore = true,
                 NoBuild = true,
+                MSBuildSettings = pluginMsBuild
             });
 
-            context.Log.Information("Plugin published: {0} -> {1}", pluginName, pluginOutputDir);
+            context.Log.Information("Plugin published: {0} -> {1}", plugin.ProjectName, pluginOutputDir);
         }
 
         context.Log.Information("All plugins published to: {0}", context.PluginPackagesDir);
     }
 }
 
+[TaskName("PackPlugins")]
+[IsDependentOn(typeof(PublishPluginsTask))]
+public sealed class PackPluginsTask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        var zipOutputDir = Path.Combine(context.PluginPackagesDir, "zip");
+        context.EnsureDirectoryExists(zipOutputDir);
+
+        foreach (var plugin in context.PluginProjects)
+        {
+            var publishDir = Path.Combine(context.PluginPackagesDir, plugin.ProjectName, "publish");
+
+            if (!Directory.Exists(publishDir))
+            {
+                context.Log.Warning("Publish directory not found for plugin: {0}, skipping zip packaging", plugin.ProjectName);
+                continue;
+            }
+
+            EnsurePluginManifest(publishDir, plugin);
+
+            var excludedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Avalonia.Plugin.Shared.dll",
+                "Avalonia.Plugin.Shared.xml",
+                "Avalonia.Plugin.Shared.pdb",
+                "plugin.json"
+            };
+
+            var excludedPrefixes = new[]
+            {
+                "Avalonia.",
+                "System.",
+                "Microsoft.",
+                "CommunityToolkit.",
+                "Irihi.",
+                "SQLitePCLRaw.",
+                "Semi.Avalonia",
+            };
+
+            var excludedExact = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Avalonia.dll",
+                "Ursa.dll",
+                "Semi.Avalonia.dll",
+                "Microsoft.Data.Sqlite.dll",
+                "MicroCom.Runtime.dll",
+                "System.Reactive.dll",
+                "System.Private.Uri.dll",
+                "Microsoft.Extensions.DependencyInjection.dll",
+                "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+                "Microsoft.Extensions.Localization.dll",
+                "Microsoft.Extensions.Localization.Abstractions.dll",
+                "Microsoft.Extensions.Logging.dll",
+                "Microsoft.Extensions.Logging.Abstractions.dll",
+                "Microsoft.Extensions.Options.dll",
+                "Microsoft.Extensions.Primitives.dll",
+                "Microsoft.Bcl.AsyncInterfaces.dll",
+                "SQLite.dll",
+            };
+
+            static bool ShouldExclude(string fileName, HashSet<string> exact, string[] prefixes)
+            {
+                if (exact.Contains(fileName)) return true;
+                foreach (var prefix in prefixes)
+                {
+                    if (fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return true;
+                }
+                return false;
+            }
+
+            var zipPath = Path.Combine(zipOutputDir, $"{plugin.ProjectName}-{plugin.PluginVersion}.zip");
+
+            if (File.Exists(zipPath))
+            {
+                File.Delete(zipPath);
+            }
+
+            using (var zipStream = new FileStream(zipPath, FileMode.Create))
+            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+            {
+                foreach (var file in Directory.GetFiles(publishDir, "*", SearchOption.AllDirectories))
+                {
+                    var relativePath = Path.GetRelativePath(publishDir, file);
+                    var fileName = Path.GetFileName(file);
+
+                    if (fileName.EndsWith(".deps.json", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.EndsWith(".runtimeconfig.json", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (fileName.Equals("plugin.json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        archive.CreateEntryFromFile(file, relativePath, CompressionLevel.Optimal);
+                        continue;
+                    }
+
+                    if (ShouldExclude(fileName, excludedExact, excludedPrefixes))
+                    {
+                        continue;
+                    }
+
+                    archive.CreateEntryFromFile(file, relativePath, CompressionLevel.Optimal);
+                }
+            }
+
+            context.Log.Information("Plugin packed: {0} -> {1}", plugin.ProjectName, zipPath);
+        }
+
+        context.Log.Information("All plugin zip packages created in: {0}", zipOutputDir);
+    }
+
+    private static void EnsurePluginManifest(string publishDir, PluginProjectInfo plugin)
+    {
+        var manifestPath = Path.Combine(publishDir, "plugin.json");
+        if (File.Exists(manifestPath)) return;
+
+        var mainDll = Path.Combine(publishDir, $"{plugin.ProjectName}.dll");
+        var assemblyName = plugin.ProjectName;
+
+        if (File.Exists(mainDll))
+        {
+            try
+            {
+                var asmName = System.Reflection.AssemblyName.GetAssemblyName(mainDll);
+                assemblyName = asmName.Name ?? plugin.ProjectName;
+            }
+            catch { }
+        }
+
+        var json = $@"{{
+  ""pluginId"": ""{plugin.PluginId}"",
+  ""name"": ""{plugin.PluginName}"",
+  ""version"": ""{plugin.PluginVersion}"",
+  ""author"": ""{plugin.PluginAuthor}"",
+  ""description"": ""{plugin.PluginDescription}"",
+  ""assembly"": ""{assemblyName}.dll"",
+  ""dependencies"": []
+}}";
+        File.WriteAllText(manifestPath, json);
+    }
+}
+
 [TaskName("Pack")]
 [IsDependentOn(typeof(PackNuGetTask))]
 [IsDependentOn(typeof(PublishLauncherTask))]
-[IsDependentOn(typeof(PublishPluginsTask))]
+[IsDependentOn(typeof(PackPluginsTask))]
 public class PackTask : FrostingTask
 {
 }

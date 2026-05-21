@@ -2,6 +2,7 @@
   <PropertyGroup>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <AvaloniaPluginSharedExclusionsEnabled Condition="'$(AvaloniaPluginSharedExclusionsEnabled)' == ''">true</AvaloniaPluginSharedExclusionsEnabled>
+    <GeneratePluginManifest Condition="'$(GeneratePluginManifest)' == ''">true</GeneratePluginManifest>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(AvaloniaPluginSharedExclusionsEnabled)' == 'true'">
@@ -16,5 +17,30 @@
     <PluginExclude Include="SQLitePCLRaw.*" />
     <PluginExclude Include="Microsoft.Data.Sqlite" />
     <PluginExclude Include="MicroCom.Runtime" />
+    <PluginExclude Include="System.Reactive" />
+    <PluginExclude Include="System.Private.Uri" />
+    <PluginExclude Include="Microsoft.Extensions.DependencyInjection" />
+    <PluginExclude Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PluginExclude Include="Microsoft.Extensions.Localization" />
+    <PluginExclude Include="Microsoft.Extensions.Localization.Abstractions" />
+    <PluginExclude Include="Microsoft.Extensions.Logging" />
+    <PluginExclude Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PluginExclude Include="Microsoft.Extensions.Options" />
+    <PluginExclude Include="Microsoft.Extensions.Primitives" />
+    <PluginExclude Include="Microsoft.Extensions.Caching.Memory" />
+    <PluginExclude Include="Microsoft.Extensions.Caching.Abstractions" />
+    <PluginExclude Include="Microsoft.Extensions.Configuration" />
+    <PluginExclude Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PluginExclude Include="Microsoft.Extensions.Configuration.Binder" />
+    <PluginExclude Include="Microsoft.Extensions.Configuration.Json" />
+    <PluginExclude Include="Microsoft.Extensions.Configuration.FileExtensions" />
+    <PluginExclude Include="Microsoft.Extensions.FileProviders.Physical" />
+    <PluginExclude Include="Microsoft.Extensions.FileProviders.Abstractions" />
+    <PluginExclude Include="Microsoft.Extensions.Http" />
+    <PluginExclude Include="Microsoft.EntityFrameworkCore" />
+    <PluginExclude Include="Microsoft.EntityFrameworkCore.*" />
+    <PluginExclude Include="Microsoft.Bcl.AsyncInterfaces" />
+    <PluginExclude Include="SQLite" />
+    <PluginExclude Include="Avalonia.Plugin.Shared" />
   </ItemGroup>
 </Project>

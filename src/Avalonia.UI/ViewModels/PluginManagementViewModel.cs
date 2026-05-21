@@ -20,6 +20,7 @@ public partial class PluginManagementViewModel : ViewModelBase
     [ObservableProperty] private string? _statusMessage;
     [ObservableProperty] private double _installProgress;
     [ObservableProperty] private bool _isInstalling;
+    [ObservableProperty] private bool _needsRestart;
 
     public PluginManagementViewModel(IPluginLoader pluginLoader, IPluginInstallationManager installationManager)
     {
@@ -39,10 +40,12 @@ public partial class PluginManagementViewModel : ViewModelBase
     {
         Plugins.Clear();
         var installedPlugins = _pluginLoader.GetInstalledPlugins();
-        foreach (var plugin in installedPlugins.Where(p => p.HasMetadata))
+        foreach (var plugin in installedPlugins)
         {
             Plugins.Add(new PluginItemViewModel(plugin, _localizationService));
         }
+
+        NeedsRestart = installedPlugins.Any(p => p.State == PluginState.PendingUninstall);
     }
 
     [RelayCommand]
@@ -63,7 +66,7 @@ public partial class PluginManagementViewModel : ViewModelBase
             [
                 new Avalonia.Platform.Storage.FilePickerFileType(_localizationService.GetString("PLUGIN_PACKAGE", "Plugin Package"))
                 {
-                    Patterns = ["*.nupkg", "*.zip"]
+                    Patterns = ["*.zip"]
                 }
             ]
         });
@@ -81,7 +84,8 @@ public partial class PluginManagementViewModel : ViewModelBase
 
         if (result.Success)
         {
-            StatusMessage = _localizationService.GetString("PLUGIN_INSTALLED_SUCCESS", "Plugin '{0}' installed successfully", result.PluginInfo?.Name ?? "");
+            StatusMessage = _localizationService.GetString("PLUGIN_INSTALLED_RESTART", "Plugin '{0}' installed, restart to activate", result.PluginInfo?.Name ?? "");
+            NeedsRestart = true;
         }
         else
         {
@@ -99,6 +103,7 @@ public partial class PluginManagementViewModel : ViewModelBase
         {
             pluginItem.UpdateFrom(_pluginLoader.GetPlugin(pluginItem.PluginId) ?? new PluginInfo { PluginId = pluginItem.PluginId, State = PluginState.PendingUninstall }, _localizationService);
             StatusMessage = _localizationService.GetString("PLUGIN_UNINSTALL_AFTER_RESTART", "Plugin '{0}' will be uninstalled after restart", pluginItem.Name);
+            NeedsRestart = true;
         }
     }
 
@@ -107,6 +112,8 @@ public partial class PluginManagementViewModel : ViewModelBase
     {
         if (pluginItem == null) return;
         _ = _installationManager.EnablePluginAsync(pluginItem.PluginId);
+        StatusMessage = _localizationService.GetString("PLUGIN_ENABLE_RESTART", "Plugin '{0}' will be enabled after restart", pluginItem.Name);
+        NeedsRestart = true;
     }
 
     [RelayCommand]
@@ -114,12 +121,12 @@ public partial class PluginManagementViewModel : ViewModelBase
     {
         if (pluginItem == null) return;
         _ = _installationManager.DisablePluginAsync(pluginItem.PluginId);
+        StatusMessage = _localizationService.GetString("PLUGIN_DISABLE_RESTART", "Plugin '{0}' will be disabled after restart", pluginItem.Name);
+        NeedsRestart = true;
     }
 
     private void OnPluginInstalled(object? sender, PluginInfo e)
     {
-        if (!e.HasMetadata) return;
-
         var existing = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
         if (existing != null)
         {
@@ -142,12 +149,11 @@ public partial class PluginManagementViewModel : ViewModelBase
                 item.UpdateFrom(updatedInfo, _localizationService);
             }
         }
+        NeedsRestart = true;
     }
 
     private void OnPluginStateChanged(object? sender, PluginInfo e)
     {
-        if (!e.HasMetadata) return;
-
         var item = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
         if (item != null)
         {
@@ -201,7 +207,7 @@ public partial class PluginItemViewModel : ViewModelBase
         (StateText, StateColor) = info.State switch
         {
             PluginState.Loaded => (_localizationService?.GetString("STATE_LOADED", "Loaded") ?? "Loaded", "#4CAF50"),
-            PluginState.Installed => (_localizationService?.GetString("STATE_INSTALLED", "Installed") ?? "Installed", "#2196F3"),
+            PluginState.Installed => (_localizationService?.GetString("STATE_INSTALLED", "Installed (restart to load)") ?? "Installed (restart to load)", "#2196F3"),
             PluginState.Disabled => (_localizationService?.GetString("STATE_DISABLED", "Disabled") ?? "Disabled", "#FF9800"),
             PluginState.PendingUninstall => (_localizationService?.GetString("STATE_PENDING_UNINSTALL", "Pending Uninstall") ?? "Pending Uninstall", "#9C27B0"),
             PluginState.Error => (_localizationService?.GetString("STATE_ERROR", "Error") ?? "Error", "#F44336"),

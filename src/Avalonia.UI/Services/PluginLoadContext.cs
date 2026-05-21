@@ -22,6 +22,11 @@ internal class PluginLoadContext : AssemblyLoadContext
         "Semi.Avalonia",
         "Microsoft.Data.Sqlite",
         "MicroCom.Runtime",
+        "System.Reactive",
+        "System.Private.Uri",
+        "Microsoft.Bcl.AsyncInterfaces",
+        "SQLite",
+        "Avalonia.Plugin.Shared",
     };
 
     private readonly AssemblyDependencyResolver _resolver;

@@ -25,6 +25,34 @@
           Condition="'%(Filename)' == 'Microsoft.Data.Sqlite'" />
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
           Condition="'%(Filename)' == 'MicroCom.Runtime'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'System.Reactive'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'System.Private.Uri'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.DependencyInjection'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.Localization'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.Logging'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'Microsoft.Extensions.Options'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'Microsoft.Extensions.Primitives'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.Caching'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.Configuration'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.FileProviders'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'Microsoft.Extensions.Http'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.EntityFrameworkCore'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'Microsoft.Bcl.AsyncInterfaces'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(Filename)' == 'SQLite'" />
     </ItemGroup>
   </Target>
 
@@ -56,11 +84,55 @@
           Condition="'%(Filename)' == 'Microsoft.Data.Sqlite'" />
       <_PluginDeps Remove="@(_PluginDeps)"
           Condition="'%(Filename)' == 'MicroCom.Runtime'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'System.Reactive'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'System.Private.Uri'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.DependencyInjection'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.Localization'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.Logging'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'Microsoft.Extensions.Options'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'Microsoft.Extensions.Primitives'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.Caching'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.Configuration'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Extensions.FileProviders'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'Microsoft.Extensions.Http'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.EntityFrameworkCore'))" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'Microsoft.Bcl.AsyncInterfaces'" />
+      <_PluginDeps Remove="@(_PluginDeps)"
+          Condition="'%(Filename)' == 'SQLite'" />
     </ItemGroup>
 
     <Copy
         SourceFiles="@(_PluginDeps)"
         DestinationFiles="@(_PluginDeps->'$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')"
         SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="GeneratePluginManifest"
+          AfterTargets="Build"
+          Condition="'$(GeneratePluginManifest)' == 'true' And '$(IsPluginProject)' == 'true'">
+    <PropertyGroup>
+      <_PluginId Condition="'$(PluginId)' != ''">$(PluginId)</_PluginId>
+      <_PluginId Condition="'$(PluginId)' == ''">$(AssemblyName)</_PluginId>
+      <_PluginManifestContent>{&#13;&#10;  "pluginId": "$(_PluginId)",&#13;&#10;  "name": "$(PluginName)",&#13;&#10;  "version": "$(Version)",&#13;&#10;  "author": "$(PluginAuthor)",&#13;&#10;  "description": "$(PluginDescription)",&#13;&#10;  "assembly": "$(AssemblyName).dll",&#13;&#10;  "dependencies": []&#13;&#10;}</_PluginManifestContent>
+    </PropertyGroup>
+    <WriteLinesToFile
+        File="$(OutDir)plugin.json"
+        Lines="$(_PluginManifestContent)"
+        Overwrite="true"
+        Encoding="UTF-8" />
+    <Message Text="Generated plugin.json manifest at: $(OutDir)plugin.json" Importance="high" />
   </Target>
 </Project>
