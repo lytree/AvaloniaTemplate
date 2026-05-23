@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Cake.Common;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNet;
@@ -86,15 +87,36 @@ public class BuildContext : FrostingContext
         SharedProject = Path.Combine(RootDir, "src", "Avalonia.Plugin.Shared", "Avalonia.Plugin.Shared.csproj");
         LauncherProject = Path.Combine(RootDir, "src", "launcher", "Avalonia.Launcher.Desktop", "Avalonia.Launcher.Desktop.csproj");
 
-        PluginProjects = new List<PluginProjectInfo>
+        PluginProjects = DiscoverPlugins(RootDir);
+    }
+
+    private static IReadOnlyList<PluginProjectInfo> DiscoverPlugins(string rootDir)
+    {
+        var pluginsDir = Path.Combine(rootDir, "plugins");
+        if (!Directory.Exists(pluginsDir))
+            return Array.Empty<PluginProjectInfo>();
+
+        var plugins = new List<PluginProjectInfo>();
+
+        foreach (var csprojFile in Directory.GetFiles(pluginsDir, "*.csproj", SearchOption.AllDirectories))
         {
-            new("Avalonia.Plugin.ButtonsInputs", "0F2F7DB6-0E9B-D872-442F-2CBC3DAC1F56", "Buttons & Inputs Plugin", "1.0.0", "AvaloniaPlugin", "UI component library for buttons and input controls"),
-            new("Avalonia.Plugin.DateTime", "D1E2F3A4-B5C6-7890-ABCD-DATETIME00001", "DateTime Plugin", "1.0.0", "AvaloniaPlugin", "Date and time picker components"),
-            new("Avalonia.Plugin.DialogFeedbacks", "E2F3A4B5-C6D7-8901-BCDE-DIALOG00001", "Dialog & Feedbacks Plugin", "1.0.0", "AvaloniaPlugin", "Dialog, notification and feedback components"),
-            new("Avalonia.Plugin.LayoutDisplay", "F3A4B5C6-D7E8-9012-CDEF-LAYOUT000001", "Layout & Display Plugin", "1.0.0", "AvaloniaPlugin", "Layout and display components"),
-            new("Avalonia.Plugin.NavigationMenus", "A4B5C6D7-E8F9-0123-DEFA-NAVIGA0000001", "Navigation Menus Plugin", "1.0.0", "AvaloniaPlugin", "Navigation and menu components"),
-            new("Avalonia.Plugin.TDLSharp", "A1B2C3D4-E5F6-7890-ABCD-TDLSHARP00001", "TDLSharp Plugin", "1.0.0", "TDLSharp", "Telegram TDLib integration plugin"),
-        };
+            var projectName = Path.GetFileNameWithoutExtension(csprojFile);
+
+            var doc = XDocument.Load(csprojFile);
+
+            var pluginId = doc.Descendants("PluginId").FirstOrDefault()?.Value ?? projectName;
+            var pluginName = doc.Descendants("PluginName").FirstOrDefault()?.Value ?? projectName;
+            var pluginAuthor = doc.Descendants("PluginAuthor").FirstOrDefault()?.Value ?? "AvaloniaPlugin";
+            var pluginDescription = doc.Descendants("PluginDescription").FirstOrDefault()?.Value ?? "";
+            var pluginVersion = doc.Descendants("PluginVersion").FirstOrDefault()?.Value
+                             ?? doc.Descendants("Version").FirstOrDefault()?.Value
+                             ?? "1.0.0";
+
+            plugins.Add(new PluginProjectInfo(
+                projectName, pluginId, pluginName, pluginVersion, pluginAuthor, pluginDescription));
+        }
+
+        return plugins;
     }
 
     private static BuildTarget ParseBuildTarget(string value)
