@@ -1,7 +1,6 @@
 using System.IO.Compression;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Avalonia.Plugin.Shared.Models;
 using Avalonia.Plugin.Shared.Services;
 
@@ -9,6 +8,11 @@ namespace Avalonia.UI.Services;
 
 public class PluginInstallationManager : IPluginInstallationManager
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly PluginLoader _pluginLoader;
     private readonly string _pluginsDirectory;
 
@@ -33,12 +37,22 @@ public class PluginInstallationManager : IPluginInstallationManager
             return new PluginInstallResult { Success = false, ErrorMessage = "Package file not found" };
         }
 
+        if (!packageFilePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        {
+            return new PluginInstallResult { Success = false, ErrorMessage = "Only .zip plugin packages are supported" };
+        }
+
         await using var stream = File.OpenRead(packageFilePath);
         return await InstallFromStreamAsync(stream, Path.GetFileName(packageFilePath), progress);
     }
 
     public async Task<PluginInstallResult> InstallFromStreamAsync(Stream stream, string fileName, IProgress<double>? progress = null)
     {
+        if (!fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        {
+            return new PluginInstallResult { Success = false, ErrorMessage = "Only .zip plugin packages are supported" };
+        }
+
         PluginInfo? pluginInfo = null;
         string? tempDir = null;
 
@@ -74,18 +88,18 @@ public class PluginInstallationManager : IPluginInstallationManager
                     entry.ExtractToFile(destinationPath, overwrite: true);
 
                     processed++;
-                    progress?.Report((double)processed / totalEntries);
+                    progress?.Report((double)processed / totalEntries * 0.5);
                 }
             }
 
-            pluginInfo = await ParsePluginMetadataAsync(tempDir);
+            pluginInfo = await ParsePluginManifestAsync(tempDir);
 
             if (pluginInfo == null)
             {
                 return new PluginInstallResult
                 {
                     Success = false,
-                    ErrorMessage = "Invalid plugin package: no valid metadata found"
+                    ErrorMessage = "Invalid plugin package: no valid plugin.json manifest found"
                 };
             }
 
@@ -101,6 +115,9 @@ public class PluginInstallationManager : IPluginInstallationManager
 
             var installDir = GetPluginDirectory(pluginInfo.PluginId);
             Directory.CreateDirectory(installDir);
+
+            var totalFiles = Directory.GetFiles(tempDir, "*", SearchOption.AllDirectories).Length;
+            var copiedFiles = 0;
 
             foreach (var file in Directory.GetFiles(tempDir, "*", SearchOption.AllDirectories))
             {
@@ -119,11 +136,14 @@ public class PluginInstallationManager : IPluginInstallationManager
                 var destDir = Path.GetDirectoryName(destPath);
                 if (destDir != null) Directory.CreateDirectory(destDir);
                 File.Copy(file, destPath, overwrite: true);
+
+                copiedFiles++;
+                progress?.Report(0.5 + (double)copiedFiles / totalFiles * 0.5);
             }
 
-            var mainAssembly = Directory.GetFiles(installDir, $"{pluginInfo.Name}.dll", SearchOption.AllDirectories)
-                .FirstOrDefault()
-                ?? Directory.GetFiles(installDir, "*.dll", SearchOption.AllDirectories)
+            var mainAssembly = !string.IsNullOrEmpty(pluginInfo.AssemblyPath)
+                ? Path.Combine(installDir, pluginInfo.AssemblyPath)
+                : Directory.GetFiles(installDir, "*.dll", SearchOption.AllDirectories)
                     .FirstOrDefault(f => !f.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase));
 
             pluginInfo.InstallPath = installDir;
@@ -175,19 +195,27 @@ public class PluginInstallationManager : IPluginInstallationManager
         return Task.FromResult(true);
     }
 
-    private async Task<PluginInfo?> ParsePluginMetadataAsync(string directory)
+    private async Task<PluginInfo?> ParsePluginManifestAsync(string directory)
     {
-        var nuspecFiles = Directory.GetFiles(directory, "*.nuspec", SearchOption.AllDirectories);
-        if (nuspecFiles.Length > 0)
-        {
-            return ParseNuspecMetadata(nuspecFiles[0]);
-        }
-
         var manifestFile = Path.Combine(directory, "plugin.json");
         if (File.Exists(manifestFile))
         {
             var json = await File.ReadAllTextAsync(manifestFile);
-            return JsonSerializer.Deserialize<PluginInfo>(json);
+            var manifest = JsonSerializer.Deserialize<PluginManifestJson>(json, JsonOptions);
+            if (manifest != null)
+            {
+                return new PluginInfo
+                {
+                    PluginId = manifest.PluginId ?? string.Empty,
+                    Name = manifest.Name ?? string.Empty,
+                    Version = manifest.Version ?? "1.0.0",
+                    Author = manifest.Author ?? string.Empty,
+                    Description = manifest.Description ?? string.Empty,
+                    Dependencies = manifest.Dependencies ?? [],
+                    AssemblyPath = manifest.Assembly ?? string.Empty,
+                    HasMetadata = !string.IsNullOrEmpty(manifest.PluginId)
+                };
+            }
         }
 
         var dllFiles = Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories);
@@ -198,11 +226,12 @@ public class PluginInstallationManager : IPluginInstallationManager
                 var assemblyName = System.Reflection.AssemblyName.GetAssemblyName(dll);
                 return new PluginInfo
                 {
-                    PluginId = Guid.NewGuid().ToString("N"),
+                    PluginId = assemblyName.Name ?? Guid.NewGuid().ToString("N"),
                     Name = assemblyName.Name ?? "Unknown",
                     Version = assemblyName.Version?.ToString() ?? "1.0.0",
                     Author = "Unknown",
-                    Description = string.Empty
+                    Description = string.Empty,
+                    AssemblyPath = Path.GetRelativePath(directory, dll)
                 };
             }
             catch
@@ -213,48 +242,14 @@ public class PluginInstallationManager : IPluginInstallationManager
         return null;
     }
 
-    private PluginInfo? ParseNuspecMetadata(string nuspecPath)
+    private class PluginManifestJson
     {
-        try
-        {
-            var doc = XDocument.Load(nuspecPath);
-            XNamespace ns = "http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd";
-            var metadata = doc.Descendants(ns + "metadata").FirstOrDefault()
-                ?? doc.Descendants("metadata").FirstOrDefault();
-
-            if (metadata == null) return null;
-
-            var id = metadata.Element(ns + "id")?.Value ?? metadata.Element("id")?.Value ?? Guid.NewGuid().ToString("N");
-            var version = metadata.Element(ns + "version")?.Value ?? metadata.Element("version")?.Value ?? "1.0.0";
-            var title = metadata.Element(ns + "title")?.Value ?? metadata.Element("title")?.Value ?? id;
-            var authors = metadata.Element(ns + "authors")?.Value ?? metadata.Element("authors")?.Value ?? "Unknown";
-            var description = metadata.Element(ns + "description")?.Value ?? metadata.Element("description")?.Value ?? string.Empty;
-
-            var dependencies = new List<string>();
-            var depsGroup = metadata.Element(ns + "dependencies") ?? metadata.Element("dependencies");
-            if (depsGroup != null)
-            {
-                foreach (var dep in depsGroup.Elements(ns + "dependency").Concat(depsGroup.Elements("dependency")))
-                {
-                    var depId = dep.Attribute("id")?.Value;
-                    if (depId != null) dependencies.Add(depId);
-                }
-            }
-
-            return new PluginInfo
-            {
-                PluginId = id,
-                Name = title,
-                Version = version,
-                Author = authors,
-                Description = description,
-                Dependencies = dependencies
-            };
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to parse nuspec: {ex.Message}");
-            return null;
-        }
+        public string? PluginId { get; set; }
+        public string? Name { get; set; }
+        public string? Version { get; set; }
+        public string? Author { get; set; }
+        public string? Description { get; set; }
+        public string? Assembly { get; set; }
+        public List<string>? Dependencies { get; set; }
     }
 }

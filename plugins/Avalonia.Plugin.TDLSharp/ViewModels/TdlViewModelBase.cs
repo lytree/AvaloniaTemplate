@@ -1,18 +1,16 @@
 using System.Collections.ObjectModel;
+using Avalonia.Input.Platform;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.TDLSharp.Models;
 using Avalonia.Plugin.TDLSharp.Services;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
-using LogEntry = Avalonia.Plugin.TDLSharp.Models.LogEntry;
 
 namespace Avalonia.Plugin.TDLSharp.ViewModels;
 
 public abstract partial class TdlViewModelBase : ViewModelBase
 {
-    private readonly UiLoggerProvider _loggerProvider;
-
     public abstract ScriptDescriptor Script { get; }
 
     [ObservableProperty] private ObservableCollection<ScriptParameter> _parameters = [];
@@ -24,13 +22,6 @@ public abstract partial class TdlViewModelBase : ViewModelBase
 
     protected TdlViewModelBase()
     {
-        _loggerProvider = new UiLoggerProvider(AddLogEntry);
-
-        if (ServiceLocator.TryGetService<ILoggerFactory>(out var loggerFactory))
-        {
-            loggerFactory.AddProvider(_loggerProvider);
-        }
-
         foreach (var param in Script.Parameters)
         {
             Parameters.Add(param);
@@ -41,6 +32,19 @@ public abstract partial class TdlViewModelBase : ViewModelBase
     private void ClearLog()
     {
         LogEntries.Clear();
+    }
+
+    [RelayCommand]
+    private async Task CopyLogEntry(LogEntry entry)
+    {
+        var topLevel = Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        var clipboard = topLevel?.Clipboard;
+        if (clipboard is not null)
+        {
+            await clipboard.SetTextAsync(entry.FormattedLine);
+        }
     }
 
     [RelayCommand]
@@ -66,7 +70,7 @@ public abstract partial class TdlViewModelBase : ViewModelBase
         }
         catch (Exception ex)
         {
-            AddLogEntry(new LogEntry { Message = $"执行失败: {ex.Message}", Level = Models.LogLevel.Error });
+            AddLogEntry(new LogEntry { Message = $"执行失败: {ex.Message}" });
             StatusText = "执行失败";
         }
         finally
@@ -74,6 +78,7 @@ public abstract partial class TdlViewModelBase : ViewModelBase
             IsRunning = false;
             _cts?.Dispose();
             _cts = null;
+            OnExecutionFinished();
         }
     }
 
@@ -86,10 +91,17 @@ public abstract partial class TdlViewModelBase : ViewModelBase
 
     protected abstract Task ExecuteCoreAsync(TdlService tdlService, Dictionary<string, string> paramValues, CancellationToken ct);
 
+    protected virtual void OnExecutionFinished() { }
+
+    protected DirectUiLogger CreateUiLogger()
+    {
+        return new DirectUiLogger(message => AddLogEntry(new LogEntry { Message = message }));
+    }
+
     protected TdlService CreateTdlService()
     {
         var clientManager = ServiceLocator.GetService<TdlClientManager>();
-        var logger = ServiceLocator.GetService<ILoggerFactory>().CreateLogger<TdlService>();
+        var logger = CreateUiLogger();
         return new TdlService(clientManager, logger);
     }
 
@@ -105,10 +117,10 @@ public abstract partial class TdlViewModelBase : ViewModelBase
 
     protected void AddLogEntry(LogEntry entry)
     {
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        Dispatcher.UIThread.Post(() =>
         {
             LogEntries.Add(entry);
-            if (LogEntries.Count > 2000)
+            if (LogEntries.Count > 1000)
             {
                 LogEntries.RemoveAt(0);
             }

@@ -1,3 +1,4 @@
+using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.Attributes;
 using Avalonia.Plugin.TDLSharp.Models;
 using Avalonia.Plugin.TDLSharp.Services;
@@ -5,7 +6,7 @@ using Avalonia.Plugin.TDLSharp.Services;
 namespace Avalonia.Plugin.TDLSharp.ViewModels;
 
 [NavigationItem("TDL_GroupMediaDownload")]
-[Menu("群组媒体下载", "TDL_GroupMediaDownload", ParentKey = "TDL", Order = 4)]
+[Menu("NAV_TDL_GroupMediaDownload", "TDL_GroupMediaDownload", ParentKey = "NAV_TDL", Order = 4)]
 [ViewMap(typeof(Pages.TdlScriptPage))]
 public partial class GroupMediaDownloadViewModel : TdlViewModelBase
 {
@@ -24,10 +25,20 @@ public partial class GroupMediaDownloadViewModel : TdlViewModelBase
 
     protected override async Task ExecuteCoreAsync(TdlService tdlService, Dictionary<string, string> paramValues, CancellationToken ct)
     {
-        await tdlService.GroupMediaDownloadAsync(
-            paramValues.GetValueOrDefault("link", ""),
-            paramValues.GetValueOrDefault("output"),
-            bool.TryParse(paramValues.GetValueOrDefault("includeComments", "true"), out var inc) && inc,
-            ct);
+        var clientManager = ServiceLocator.GetService<TdlClientManager>();
+        clientManager.FileUpdateLogger = CreateUiLogger();
+
+        try
+        {
+            await tdlService.GroupMediaDownloadAsync(
+                paramValues.GetValueOrDefault("link", ""),
+                paramValues.GetValueOrDefault("output"),
+                bool.TryParse(paramValues.GetValueOrDefault("includeComments", "true"), out var inc) && inc,
+                ct);
+        }
+        finally
+        {
+            clientManager.FileUpdateLogger = null;
+        }
     }
 }

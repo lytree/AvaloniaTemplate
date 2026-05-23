@@ -32,11 +32,26 @@ public partial class App : Application
 
         ServiceLocator.Initialize(ServiceProvider);
 
-        InitializeDatabase();
+        
 
+        InitializeDatabase();
+        InitializeLocalization();
         LoadPlugins();
 
         DataContext = new ApplicationViewModel();
+    }
+
+    private void InitializeLocalization()
+    {
+        if (ServiceLocator.TryGetService<ILocalizationService>(out var loc) && loc is not null)
+        {
+            var settingsService = ServiceProvider?.GetRequiredService<ISettingsService>();
+            var savedLocale = settingsService?.GetValue("App.Locale");
+            var culture = !string.IsNullOrEmpty(savedLocale)
+                ? new System.Globalization.CultureInfo(savedLocale)
+                : System.Globalization.CultureInfo.CurrentUICulture;
+            loc.SetCulture(culture);
+        }
     }
 
     private void InitializeDatabase()

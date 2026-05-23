@@ -1,4 +1,4 @@
-﻿// MetadataGenerator.cs
+// MetadataGenerator.cs
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -88,7 +88,7 @@ namespace {ns}
 
 
 // 2. 建立索引字典，用于快速查找父节点
-var itemLookup = allItems.ToDictionary(x => x.Item.MenuHeader, x => x.Item);
+var itemLookup = allItems.ToDictionary(x => x.Item.RawHeader ?? x.Item.MenuHeader, x => x.Item);
 
 // 3. 递归补全：如果子项引用了不存在的 ParentHeader，则自动创建虚拟根节点
 var missingParents = allItems

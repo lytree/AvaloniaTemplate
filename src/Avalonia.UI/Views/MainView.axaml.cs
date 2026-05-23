@@ -4,12 +4,15 @@ using CommunityToolkit.Mvvm.Messaging;
 using System;
 using Ursa.Controls;
 using Avalonia.UI.ViewModels;
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Services;
 
 namespace Avalonia.UI.Views;
 
 public partial class MainView : UserControl
 {
     private MainViewViewModel? _viewModel;
+    private ILocalizationService? _localizationService;
 
     public MainView()
     {
@@ -22,6 +25,8 @@ public partial class MainView : UserControl
     {
         base.OnAttachedToVisualTree(e);
         _viewModel = DataContext as MainViewViewModel;
+        _localizationService = ServiceLocator.GetService<ILocalizationService>();
+        _localizationService.CultureChanged += OnCultureChanged;
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel is null || _viewModel is null)
             return;
@@ -30,18 +35,55 @@ public partial class MainView : UserControl
             : new WindowNotificationManager(topLevel);
     }
 
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        if (_localizationService is not null)
+            _localizationService.CultureChanged -= OnCultureChanged;
+    }
+
+    private void OnCultureChanged(object? sender, System.Globalization.CultureInfo culture)
+    {
+        if (_viewModel is not null)
+            UpdateBreadcrumbFromCurrentContent();
+    }
+
     private void OnNavigationChanged(object recipient, string message)
     {
         UpdateBreadcrumb(message);
     }
 
-    private void UpdateBreadcrumb(string pageName)
+    private void UpdateBreadcrumb(string pageKey)
     {
         var breadcrumb = this.FindControl<Breadcrumb>("Breadcrumb");
         if (breadcrumb is null) return;
         breadcrumb.Items.Clear();
-        breadcrumb.Items.Add(new BreadcrumbItem { Content = "Home", IsReadOnly = true });
-        breadcrumb.Items.Add(new BreadcrumbItem { Content = pageName, IsReadOnly = true });
+        breadcrumb.Items.Add(new BreadcrumbItem { Content = GetLocalizedString("BREADCRUMB_HOME", "Home"), IsReadOnly = true });
+        breadcrumb.Items.Add(new BreadcrumbItem { Content = GetPageDisplayName(pageKey), IsReadOnly = true });
+    }
+
+    private void UpdateBreadcrumbFromCurrentContent()
+    {
+        var breadcrumb = this.FindControl<Breadcrumb>("Breadcrumb");
+        if (breadcrumb is null || breadcrumb.Items.Count < 2) return;
+        breadcrumb.Items.Clear();
+        breadcrumb.Items.Add(new BreadcrumbItem { Content = GetLocalizedString("BREADCRUMB_HOME", "Home"), IsReadOnly = true });
+        var lastKey = _viewModel?.Content?.GetType().Name.Replace("ViewModel", "");
+        if (lastKey is not null)
+            breadcrumb.Items.Add(new BreadcrumbItem { Content = GetPageDisplayName(lastKey), IsReadOnly = true });
+    }
+
+    private string GetLocalizedString(string key, string fallback)
+    {
+        return _localizationService?.GetString(key, fallback) ?? fallback;
+    }
+
+    private string GetPageDisplayName(string pageKey)
+    {
+        var resourceKey = $"NAV_{pageKey}";
+        var result = _localizationService?.GetString(resourceKey, pageKey) ?? pageKey;
+        if (result == resourceKey) return pageKey;
+        return result;
     }
 
     private async void JumpToAbout(object? sender, RoutedEventArgs e)

@@ -13,7 +13,13 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IMenuConfigurationService, MenuConfigurationService>();
 
         services.AddSingleton<PluginLoader>();
-        services.AddSingleton<IPluginLoader>(sp => sp.GetRequiredService<PluginLoader>());
+        services.AddSingleton<IPluginLoader>(sp =>
+        {
+            var loader = sp.GetRequiredService<PluginLoader>();
+            var navigationService = sp.GetRequiredService<INavigationService>() as NavigationService;
+            navigationService?.AttachPluginLoader(loader);
+            return loader;
+        });
         services.AddSingleton<IPluginInstallationManager, PluginInstallationManager>();
 
         services.AddDbContextFactory<AppDbContext>(options =>
@@ -23,6 +29,9 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<ISettingsService, SettingsService>();
+
+        services.AddLocalization();
+        services.AddSingleton<ILocalizationService, LocalizationService>();
 
         return services;
     }

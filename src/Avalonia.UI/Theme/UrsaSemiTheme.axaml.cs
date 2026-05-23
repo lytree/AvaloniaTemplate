@@ -1,31 +1,33 @@
+using System.Collections;
 using System.Globalization;
+using System.Resources;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Services;
+using Avalonia.UI.Resources;
 using Avalonia.Styling;
 using Avalonia.UI.Theme.Animations;
-using Avalonia.UI.Theme.Locale;
 
 namespace Avalonia.UI.Theme;
 
-/// <summary>
-///     Notice: Don't set Locale if your app is in InvariantGlobalization mode.
-/// </summary>
 public partial class UrsaSemiTheme : Styles
 {
-    private static readonly Dictionary<CultureInfo, ResourceDictionary> LocaleToResource = new()
-    {
-        { new CultureInfo("zh-CN"), new zh_cn() },
-        { new CultureInfo("en-US"), new en_us() },
-    };
+    private static UrsaSemiTheme? _instance;
 
-    private static readonly ResourceDictionary DefaultResource = new zh_cn();
+    public static UrsaSemiTheme? Instance => _instance;
 
     public UrsaSemiTheme(IServiceProvider? provider = null)
     {
         AvaloniaXamlLoader.Load(provider, this);
         Resources.MergedDictionaries.Add(new DefaultSizeAnimations());
         Resources.MergedDictionaries.Add(new NavMenuSizeAnimations());
+
+        var systemCulture = CultureInfo.CurrentUICulture;
+        LoadLocaleFromResx(systemCulture);
+
+        _instance = this;
     }
 
     public CultureInfo? Locale
@@ -35,16 +37,9 @@ public partial class UrsaSemiTheme : Styles
         {
             try
             {
-                if (TryGetLocaleResource(value, out var resource) && resource is not null)
-                {
-                    field = value;
-                    SetResources(this.Resources, resource);
-                }
-                else
-                {
-                    field = new CultureInfo("zh-CN");
-                    SetResources(Resources, DefaultResource);
-                }
+                field = value ?? new CultureInfo("en-US");
+                LoadLocaleFromResx(field);
+                SyncLocalizationService(field);
             }
             catch
             {
@@ -53,53 +48,110 @@ public partial class UrsaSemiTheme : Styles
         }
     }
 
-    private static bool TryGetLocaleResource(CultureInfo? locale, out ResourceDictionary? resourceDictionary)
+    private static void LoadLocaleFromResx(CultureInfo culture)
     {
-        if (Equals(locale, CultureInfo.InvariantCulture))
+        if (_instance is null) return;
+
+        var resolvedCulture = ResolveCulture(culture);
+        var resourceSet = Strings.ResourceManager.GetResourceSet(resolvedCulture, true, true);
+        if (resourceSet is null)
         {
-            resourceDictionary = DefaultResource;
-            return true;
+            resourceSet = Strings.ResourceManager.GetResourceSet(CultureInfo.InvariantCulture, true, true);
         }
 
-        if (locale is null)
+        if (resourceSet is not null)
         {
-            resourceDictionary = DefaultResource;
-            return false;
+            foreach (DictionaryEntry entry in resourceSet)
+            {
+                if (entry.Value is not string s) continue;
+                var resourceKey = $"STRING_{entry.Key}";
+                _instance.Resources[resourceKey] = s;
+            }
+        }
+    }
+
+    private static CultureInfo ResolveCulture(CultureInfo? culture)
+    {
+        if (culture is null || Equals(culture, CultureInfo.InvariantCulture))
+            return new CultureInfo("en-US");
+
+        try
+        {
+            var resourceSet = Strings.ResourceManager.GetResourceSet(culture, true, false);
+            if (resourceSet is not null)
+                return culture;
+        }
+        catch { }
+
+        if (culture.Parent != null && !Equals(culture.Parent, CultureInfo.InvariantCulture))
+        {
+            try
+            {
+                var resourceSet = Strings.ResourceManager.GetResourceSet(culture.Parent, true, false);
+                if (resourceSet is not null)
+                    return culture.Parent;
+            }
+            catch { }
         }
 
-        if (LocaleToResource.TryGetValue(locale, out var resource))
-        {
-            resourceDictionary = resource;
-            return true;
-        }
+        return new CultureInfo("en-US");
+    }
 
-        resourceDictionary = DefaultResource;
-        return false;
+    private static void SyncLocalizationService(CultureInfo culture)
+    {
+        try
+        {
+            if (ServiceLocator.TryGetService<ILocalizationService>(out var service) && service is not null)
+            {
+                service.SetCulture(culture);
+            }
+        }
+        catch
+        {
+        }
     }
 
     public static void OverrideLocaleResources(Application application, CultureInfo? culture)
     {
         if (culture is null) return;
-        if (!LocaleToResource.TryGetValue(culture, out var resources)) return;
-        SetResources(application.Resources, resources);
+
+        var resolvedCulture = ResolveCulture(culture);
+        var resourceSet = Strings.ResourceManager.GetResourceSet(resolvedCulture, true, true);
+        if (resourceSet is null) return;
+
+        foreach (DictionaryEntry entry in resourceSet)
+        {
+            if (entry.Value is not string s) continue;
+            var resourceKey = $"STRING_{entry.Key}";
+            application.Resources[resourceKey] = s;
+            if (_instance is not null)
+            {
+                _instance.Resources[resourceKey] = s;
+            }
+        }
+
+        SyncLocalizationService(culture);
     }
 
     public static void OverrideLocaleResources(StyledElement element, CultureInfo? culture)
     {
         if (culture is null) return;
-        if (!LocaleToResource.TryGetValue(culture, out var resources)) return;
-        SetResources(element.Resources, resources);
-    }
 
-    private static void SetResources(IResourceDictionary source, IResourceDictionary content)
-    {
-        if (source is ResourceDictionary resourceDictionary)
+        var resolvedCulture = ResolveCulture(culture);
+        var resourceSet = Strings.ResourceManager.GetResourceSet(resolvedCulture, true, true);
+        if (resourceSet is null) return;
+
+        foreach (DictionaryEntry entry in resourceSet)
         {
-             resourceDictionary.SetItems(content);
+            if (entry.Value is not string s) continue;
+            var resourceKey = $"STRING_{entry.Key}";
+            element.Resources[resourceKey] = s;
+            if (_instance is not null)
+            {
+                _instance.Resources[resourceKey] = s;
+            }
         }
-        else
-        {
-            foreach (var kv in content) source[kv.Key] = kv.Value;
-        }
+
+        SyncLocalizationService(culture);
     }
 }

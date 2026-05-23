@@ -10,9 +10,15 @@ public class MenuViewModel : ViewModelBase
     {
         MenuItems =
         [
-            new() { MenuHeader = "Introduction", Key = "Introduction", IsSeparator = false },
+            new() { MenuHeader = "NAV_Introduction", Key = "Introduction", IsSeparator = false },
         ];
     }
 
     public ObservableCollection<MenuItemViewModel> MenuItems { get; set; }
+
+    public void RefreshHeaders()
+    {
+        foreach (var item in MenuItems)
+            item.RefreshHeader();
+    }
 }

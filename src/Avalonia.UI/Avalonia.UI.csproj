@@ -19,10 +19,19 @@
 		<PackageReference Include="Irihi.Ursa" Version="$(IrihiUrsaVersion)" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EfCoreVersion)" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(EfCoreVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Localization" Version="$(MicrosoftExtensionsLocalization)" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="../Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Resources\Strings.Designer.cs">
+	    <DependentUpon>Strings.resx</DependentUpon>
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	  </Compile>
 	</ItemGroup>
 
 </Project>
