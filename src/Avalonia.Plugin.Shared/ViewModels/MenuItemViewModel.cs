@@ -61,14 +61,17 @@ public class MenuItemViewModel : ViewModelBase
             child.RefreshHeader();
     }
 
+    private static ILocalizationService? _cachedLocalizationService;
+
     private static string? ResolveHeader(string? header)
     {
         if (string.IsNullOrEmpty(header)) return header;
         try
         {
-            if (ServiceLocator.TryGetService<ILocalizationService>(out var loc) && loc is not null)
+            _cachedLocalizationService ??= ServiceLocator.GetService<ILocalizationService>();
+            if (_cachedLocalizationService is not null)
             {
-                var resolved = loc.GetString(header);
+                var resolved = _cachedLocalizationService.GetString(header);
                 return resolved == header ? header : resolved;
             }
         }

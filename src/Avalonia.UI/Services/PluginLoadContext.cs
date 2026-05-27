@@ -31,11 +31,14 @@ internal class PluginLoadContext : AssemblyLoadContext
 
     private readonly AssemblyDependencyResolver _resolver;
     private readonly string _pluginDirectory;
+    private readonly Dictionary<string, string> _assemblyPathCache;
+    private bool _assemblyCacheBuilt;
 
     public PluginLoadContext(string pluginPath) : base(isCollectible: true)
     {
         _pluginDirectory = Path.GetDirectoryName(pluginPath) ?? pluginPath;
         _resolver = new AssemblyDependencyResolver(pluginPath);
+        _assemblyPathCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     }
 
     protected override Assembly? Load(AssemblyName assemblyName)
@@ -111,24 +114,43 @@ internal class PluginLoadContext : AssemblyLoadContext
 
     private string? ProbePluginDirectory(AssemblyName assemblyName)
     {
-        var dllName = $"{assemblyName.Name}.dll";
+        var name = assemblyName.Name;
+        if (string.IsNullOrEmpty(name)) return null;
 
-        foreach (var dllPath in Directory.GetFiles(_pluginDirectory, dllName, SearchOption.AllDirectories))
+        if (_assemblyPathCache.TryGetValue(name, out var cachedPath))
+        {
+            if (File.Exists(cachedPath))
+                return cachedPath;
+            _assemblyPathCache.Remove(name);
+        }
+
+        if (!_assemblyCacheBuilt)
+        {
+            BuildAssemblyCache();
+        }
+
+        return _assemblyPathCache.TryGetValue(name, out var path) ? path : null;
+    }
+
+    private void BuildAssemblyCache()
+    {
+        if (!Directory.Exists(_pluginDirectory)) return;
+
+        foreach (var dllPath in Directory.GetFiles(_pluginDirectory, "*.dll", SearchOption.AllDirectories))
         {
             try
             {
                 var foundName = AssemblyName.GetAssemblyName(dllPath);
-                if (string.Equals(foundName.Name, assemblyName.Name, StringComparison.OrdinalIgnoreCase))
+                if (foundName.Name is not null && !_assemblyPathCache.ContainsKey(foundName.Name))
                 {
-                    return dllPath;
+                    _assemblyPathCache[foundName.Name] = dllPath;
                 }
             }
             catch
             {
             }
         }
-
-        return null;
+        _assemblyCacheBuilt = true;
     }
 
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)

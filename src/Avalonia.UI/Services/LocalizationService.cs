@@ -13,6 +13,7 @@ public class LocalizationService : ILocalizationService
     private readonly ConcurrentDictionary<string, (string? LookupPrefix, ResourceManager Manager)> _resourceManagers = new();
     private CultureInfo _currentCulture = new("en-US");
     private bool _initialSync = true;
+    private ConcurrentDictionary<string, string>? _stringCache;
 
     public CultureInfo CurrentCulture => _currentCulture;
 
@@ -25,6 +26,10 @@ public class LocalizationService : ILocalizationService
 
     public string GetString(string key)
     {
+        var cache = _stringCache;
+        if (cache is not null && cache.TryGetValue(key, out var cached))
+            return cached;
+
         foreach (var (_, (lookupPrefix, manager)) in _resourceManagers)
         {
             var lookupKey = string.IsNullOrEmpty(lookupPrefix) ? key : $"{lookupPrefix}_{key}";
@@ -38,6 +43,10 @@ public class LocalizationService : ILocalizationService
 
     public string GetString(string key, string fallback)
     {
+        var cache = _stringCache;
+        if (cache is not null && cache.TryGetValue(key, out var cached))
+            return cached;
+
         foreach (var (_, (lookupPrefix, manager)) in _resourceManagers)
         {
             var lookupKey = string.IsNullOrEmpty(lookupPrefix) ? key : $"{lookupPrefix}_{key}";
@@ -72,7 +81,9 @@ public class LocalizationService : ILocalizationService
         CultureInfo.DefaultThreadCurrentCulture = culture;
         CultureInfo.DefaultThreadCurrentUICulture = culture;
 
+        _stringCache = null;
         SyncToResourceDictionary();
+        RebuildStringCache();
 
         _initialSync = false;
 
@@ -84,6 +95,27 @@ public class LocalizationService : ILocalizationService
     {
         var dictKey = manager.BaseName;
         _resourceManagers[dictKey] = (prefix, manager);
+        _stringCache = null;
+    }
+
+    private void RebuildStringCache()
+    {
+        var cache = new ConcurrentDictionary<string, string>();
+        foreach (var (_, (lookupPrefix, manager)) in _resourceManagers)
+        {
+            var resourceSet = manager.GetResourceSet(_currentCulture, true, true);
+            if (resourceSet is null) continue;
+
+            foreach (DictionaryEntry entry in resourceSet)
+            {
+                if (entry.Value is not string s) continue;
+                var resourceKey = string.IsNullOrEmpty(lookupPrefix)
+                    ? $"STRING_{entry.Key}"
+                    : $"STRING_{lookupPrefix}_{entry.Key}";
+                cache.TryAdd(entry.Key?.ToString() ?? string.Empty, s);
+            }
+        }
+        _stringCache = cache;
     }
 
     private void SyncToResourceDictionary()
@@ -95,7 +127,7 @@ public class LocalizationService : ILocalizationService
 
         foreach (var (_, (lookupPrefix, manager)) in _resourceManagers)
         {
-            var resourceSet = manager.GetResourceSet(_currentCulture, true, true);
+            using var resourceSet = manager.GetResourceSet(_currentCulture, true, true);
             if (resourceSet is null) continue;
 
             foreach (DictionaryEntry entry in resourceSet)

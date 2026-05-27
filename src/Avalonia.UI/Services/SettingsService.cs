@@ -59,10 +59,44 @@ public class SettingsService : ISettingsService
 
     public void RegisterSettings(IEnumerable<SettingDefinition> definitions)
     {
+        using var db = _dbFactory.CreateDbContext();
         foreach (var def in definitions)
         {
-            RegisterSetting(def);
+            var existing = db.Settings.FirstOrDefault(s => s.Key == def.Key);
+            if (existing != null)
+            {
+                existing.DisplayName = def.DisplayName;
+                existing.Description = def.Description;
+                existing.GroupName = def.GroupName;
+                existing.GroupOrder = def.GroupOrder;
+                existing.ItemOrder = def.ItemOrder;
+                existing.SettingType = def.SettingType;
+                existing.DefaultValue = def.DefaultValue;
+                existing.PluginId = def.PluginId;
+                if (def.Options != null)
+                    existing.SetOptions(def.Options);
+            }
+            else
+            {
+                var item = new SettingItem
+                {
+                    Key = def.Key,
+                    DisplayName = def.DisplayName,
+                    Description = def.Description,
+                    GroupName = def.GroupName,
+                    GroupOrder = def.GroupOrder,
+                    ItemOrder = def.ItemOrder,
+                    SettingType = def.SettingType,
+                    DefaultValue = def.DefaultValue,
+                    PluginId = def.PluginId,
+                    RawValue = def.DefaultValue ?? string.Empty
+                };
+                if (def.Options != null)
+                    item.SetOptions(def.Options);
+                db.Settings.Add(item);
+            }
         }
+        db.SaveChanges();
     }
 
     public T? GetValue<T>(string key)

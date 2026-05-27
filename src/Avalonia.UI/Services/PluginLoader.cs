@@ -42,7 +42,7 @@ public class PluginLoader : IPluginLoader, IDisposable
     {
         lock (_lock)
         {
-            return _pluginRegistry.Values.ToList().AsReadOnly();
+            return _pluginRegistry.Values.ToList();
         }
     }
 
@@ -76,16 +76,22 @@ public class PluginLoader : IPluginLoader, IDisposable
                     ErrorMessage = $"Plugin is {pluginInfo.State}, cannot load"
                 };
             }
+        }
 
-            if (!File.Exists(pluginInfo.AssemblyPath))
+        if (!File.Exists(pluginInfo.AssemblyPath))
+        {
+            lock (_lock)
             {
                 pluginInfo.State = PluginState.Error;
                 pluginInfo.ErrorMessage = $"Assembly not found: {pluginInfo.AssemblyPath}";
                 SavePluginManifest(pluginInfo);
                 PluginStateChanged?.Invoke(this, pluginInfo);
-                return new PluginLoadResult { Success = false, ErrorMessage = pluginInfo.ErrorMessage };
             }
+            return new PluginLoadResult { Success = false, ErrorMessage = pluginInfo.ErrorMessage };
+        }
 
+        lock (_lock)
+        {
             if (!ValidateDependencies(pluginInfo, out var depError))
             {
                 pluginInfo.State = PluginState.Error;
@@ -94,68 +100,78 @@ public class PluginLoader : IPluginLoader, IDisposable
                 PluginStateChanged?.Invoke(this, pluginInfo);
                 return new PluginLoadResult { Success = false, ErrorMessage = depError };
             }
+        }
 
-            try
+        AssemblyLoadContext loadContext;
+        IPlugin? plugin = null;
+        IPluginMetadata? metadata = null;
+
+        try
+        {
+            loadContext = new PluginLoadContext(pluginInfo.AssemblyPath);
+            var assembly = loadContext.LoadFromAssemblyPath(pluginInfo.AssemblyPath);
+
+            foreach (var type in assembly.GetExportedTypes())
             {
-                var loadContext = new PluginLoadContext(pluginInfo.AssemblyPath);
-                var assembly = loadContext.LoadFromAssemblyPath(pluginInfo.AssemblyPath);
+                if (type.IsAbstract || type.IsInterface) continue;
 
-                IPlugin? plugin = null;
-                IPluginMetadata? metadata = null;
-
-                foreach (var type in assembly.GetExportedTypes())
+                if (typeof(IPlugin).IsAssignableFrom(type) && plugin == null)
                 {
-                    if (type.IsAbstract || type.IsInterface) continue;
-
-                    if (typeof(IPlugin).IsAssignableFrom(type) && plugin == null)
-                    {
-                        plugin = (IPlugin)Activator.CreateInstance(type)!;
-                    }
-
-                    if (typeof(IPluginMetadata).IsAssignableFrom(type) && metadata == null)
-                    {
-                        metadata = (IPluginMetadata)Activator.CreateInstance(type)!;
-                        metadata.Initialize();
-                    }
-
-                    if (plugin != null && metadata != null) break;
+                    plugin = (IPlugin)Activator.CreateInstance(type)!;
                 }
 
-                if (plugin == null)
+                if (typeof(IPluginMetadata).IsAssignableFrom(type) && metadata == null)
                 {
-                    loadContext.Unload();
-                    pluginInfo.State = PluginState.Error;
-                    pluginInfo.ErrorMessage = "No IPlugin implementation found in assembly";
-                    SavePluginManifest(pluginInfo);
-                    PluginStateChanged?.Invoke(this, pluginInfo);
-                    return new PluginLoadResult { Success = false, ErrorMessage = pluginInfo.ErrorMessage };
+                    metadata = (IPluginMetadata)Activator.CreateInstance(type)!;
+                    metadata.Initialize();
                 }
 
-                _loadContexts[pluginInfo.PluginId] = loadContext;
-                _loadedPlugins[pluginInfo.PluginId] = plugin;
-                if (metadata != null)
-                {
-                    _loadedMetadata[pluginInfo.PluginId] = metadata;
-                    pluginInfo.HasMetadata = true;
-                }
-
-                pluginInfo.State = PluginState.Loaded;
-                pluginInfo.ErrorMessage = null;
-                SavePluginManifest(pluginInfo);
-
-                PluginLoaded?.Invoke(this, pluginInfo);
-                PluginStateChanged?.Invoke(this, pluginInfo);
-
-                return new PluginLoadResult { Success = true, Plugin = plugin, Metadata = metadata };
+                if (plugin != null && metadata != null) break;
             }
-            catch (Exception ex)
+        }
+        catch (Exception ex)
+        {
+            lock (_lock)
             {
                 pluginInfo.State = PluginState.Error;
                 pluginInfo.ErrorMessage = $"Failed to load plugin: {ex.Message}";
                 SavePluginManifest(pluginInfo);
                 PluginStateChanged?.Invoke(this, pluginInfo);
-                return new PluginLoadResult { Success = false, ErrorMessage = pluginInfo.ErrorMessage };
             }
+            return new PluginLoadResult { Success = false, ErrorMessage = pluginInfo.ErrorMessage };
+        }
+
+        if (plugin == null)
+        {
+            loadContext.Unload();
+            lock (_lock)
+            {
+                pluginInfo.State = PluginState.Error;
+                pluginInfo.ErrorMessage = "No IPlugin implementation found in assembly";
+                SavePluginManifest(pluginInfo);
+                PluginStateChanged?.Invoke(this, pluginInfo);
+            }
+            return new PluginLoadResult { Success = false, ErrorMessage = pluginInfo.ErrorMessage };
+        }
+
+        lock (_lock)
+        {
+            _loadContexts[pluginInfo.PluginId] = loadContext;
+            _loadedPlugins[pluginInfo.PluginId] = plugin;
+            if (metadata != null)
+            {
+                _loadedMetadata[pluginInfo.PluginId] = metadata;
+                pluginInfo.HasMetadata = true;
+            }
+
+            pluginInfo.State = PluginState.Loaded;
+            pluginInfo.ErrorMessage = null;
+            SavePluginManifest(pluginInfo);
+
+            PluginLoaded?.Invoke(this, pluginInfo);
+            PluginStateChanged?.Invoke(this, pluginInfo);
+
+            return new PluginLoadResult { Success = true, Plugin = plugin, Metadata = metadata };
         }
     }
 

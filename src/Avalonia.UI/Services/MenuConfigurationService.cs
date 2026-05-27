@@ -9,11 +9,30 @@ public class MenuConfigurationService : IMenuConfigurationService
 {
     private readonly MenuViewModel _menuViewModel;
     private readonly Dictionary<string, MenuItemViewModel> _menuItemsMap = new();
+    private bool _mapBuilt;
 
     public MenuConfigurationService()
     {
         _menuViewModel = new MenuViewModel();
+    }
 
+    private static MenuItemViewModel DeepClone(MenuItemViewModel source)
+    {
+        var clone = new MenuItemViewModel
+        {
+            MenuHeader = source.RawHeader ?? source.MenuHeader,
+            Key = source.Key,
+            Status = source.Status,
+            IsSeparator = source.IsSeparator,
+        };
+        if (source.Children is { Count: > 0 })
+        {
+            foreach (var child in source.Children)
+            {
+                clone.Children.Add(DeepClone(child));
+            }
+        }
+        return clone;
     }
 
     private void BuildMenuItemsMap(IEnumerable<MenuItemViewModel> menuItems)
@@ -22,32 +41,7 @@ public class MenuConfigurationService : IMenuConfigurationService
         {
             if (!string.IsNullOrEmpty(menuItem.Key))
             {
-                _menuItemsMap[menuItem.Key] = new MenuItemViewModel
-                {
-                    MenuHeader = menuItem.RawHeader ?? menuItem.MenuHeader,
-                    Key = menuItem.Key,
-                    Status = menuItem.Status,
-                    IsSeparator = menuItem.IsSeparator,
-                    Children = menuItem.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
-                        menuItem.Children.Select(child => new MenuItemViewModel
-                        {
-                            MenuHeader = child.RawHeader ?? child.MenuHeader,
-                            Key = child.Key,
-                            Status = child.Status,
-                            IsSeparator = child.IsSeparator,
-                            Children = child.Children != null ? new System.Collections.ObjectModel.ObservableCollection<MenuItemViewModel>(
-                                child.Children.Select(c => new MenuItemViewModel
-                                {
-                                    MenuHeader = c.RawHeader ?? c.MenuHeader,
-                                    Key = c.Key,
-                                    Status = c.Status,
-                                    IsSeparator = c.IsSeparator,
-                                    Children = null
-                                })
-                            ) : null
-                        })
-                    ) : null
-                };
+                _menuItemsMap[menuItem.Key] = DeepClone(menuItem);
             }
 
             if (menuItem.Children != null && menuItem.Children.Any())
@@ -59,64 +53,56 @@ public class MenuConfigurationService : IMenuConfigurationService
 
     public MenuViewModel GetMenuStructure()
     {
-        BuildMenuItemsMap(_menuViewModel.MenuItems);
+        if (!_mapBuilt)
+        {
+            BuildMenuItemsMap(_menuViewModel.MenuItems);
+            _mapBuilt = true;
+        }
         return _menuViewModel;
     }
 
     public void RegisterMenuItem(MenuItemViewModel menuItem, string? parentKey = null)
     {
-
         if (parentKey == null)
         {
-            // 添加到根菜单
             _menuViewModel.MenuItems.Add(menuItem);
         }
-        else if (_menuItemsMap.TryGetValue(parentKey, out var parentMenuItem))
+        else
         {
-            // 查找对应的 Avalonia 菜单项
-            var avaloniaParentMenuItem = FindAvaloniaMenuItem(_menuViewModel.MenuItems, parentKey);
+            var avaloniaParentMenuItem = FindAvaloniaMenuItem(parentKey);
             if (avaloniaParentMenuItem != null)
             {
-                // 添加到指定父菜单
                 if (avaloniaParentMenuItem.Children == null)
                 {
                     avaloniaParentMenuItem.Children = new();
                 }
                 avaloniaParentMenuItem.Children.Add(menuItem);
             }
-            // 更新菜单映射
             _menuItemsMap[menuItem.Key] = menuItem;
-            //if (menuItem.Children != null && menuItem.Children.Any())
-            //{
-            //    foreach (var childItem in menuItem.Children)
-            //    {
-            //        _menuItemsMap[childItem.Key] = childItem;
-            //    }
-            //}
         }
-
-
     }
 
-    private MenuItemViewModel FindAvaloniaMenuItem(IEnumerable<MenuItemViewModel> menuItems, string key)
+    private MenuItemViewModel? FindAvaloniaMenuItem(string key)
+    {
+        if (_menuItemsMap.TryGetValue(key, out var mappedItem))
+            return mappedItem;
+        return FindAvaloniaMenuItemRecursive(_menuViewModel.MenuItems, key);
+    }
+
+    private static MenuItemViewModel? FindAvaloniaMenuItemRecursive(IEnumerable<MenuItemViewModel> menuItems, string key)
     {
         foreach (var menuItem in menuItems)
         {
             if (menuItem.Key == key)
-            {
                 return menuItem;
-            }
 
             if (menuItem.Children != null)
             {
-                var foundItem = FindAvaloniaMenuItem(menuItem.Children, key);
+                var foundItem = FindAvaloniaMenuItemRecursive(menuItem.Children, key);
                 if (foundItem != null)
-                {
                     return foundItem;
-                }
             }
         }
-
         return null;
     }
 
@@ -132,7 +118,6 @@ public class MenuConfigurationService : IMenuConfigurationService
     {
         if (_menuItemsMap.TryGetValue(key, out var menuItem))
         {
-            // 查找并移除菜单项
             RemoveMenuItemFromParent(key);
             _menuItemsMap.Remove(key);
         }
@@ -140,40 +125,31 @@ public class MenuConfigurationService : IMenuConfigurationService
 
     private void RemoveMenuItemFromParent(string key)
     {
-        // 从根菜单查找
-        var menuItemToRemove = FindAvaloniaMenuItem(_menuViewModel.MenuItems, key);
+        var menuItemToRemove = FindAvaloniaMenuItem(key);
         if (menuItemToRemove != null && _menuViewModel.MenuItems.Remove(menuItemToRemove))
         {
             return;
         }
 
-        // 从子菜单查找
         foreach (var parentItem in _menuViewModel.MenuItems)
         {
             if (RemoveFromChildren(parentItem, key))
-            {
                 return;
-            }
         }
     }
 
-    private bool RemoveFromChildren(MenuItemViewModel parentItem, string key)
+    private static bool RemoveFromChildren(MenuItemViewModel parentItem, string key)
     {
-        var menuItemToRemove = FindAvaloniaMenuItem(parentItem.Children, key);
-        if (parentItem.Children != null && menuItemToRemove != null && parentItem.Children.Remove(menuItemToRemove))
-        {
-            return true;
-        }
+        if (parentItem.Children == null) return false;
 
-        if (parentItem.Children != null)
+        var menuItemToRemove = FindAvaloniaMenuItemRecursive(parentItem.Children, key);
+        if (menuItemToRemove != null && parentItem.Children.Remove(menuItemToRemove))
+            return true;
+
+        foreach (var childItem in parentItem.Children)
         {
-            foreach (var childItem in parentItem.Children)
-            {
-                if (RemoveFromChildren(childItem, key))
-                {
-                    return true;
-                }
-            }
+            if (RemoveFromChildren(childItem, key))
+                return true;
         }
 
         return false;

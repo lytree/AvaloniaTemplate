@@ -34,7 +34,8 @@ public class NavigationService : INavigationService
         RegisterNavigation("Introduction", () => new IntroductionDemoViewModel());
         RegisterNavigation("AboutUs", () => new AboutUsDemoViewModel());
         RegisterNavigation("Settings", () => new SettingsPageViewModel(
-            ServiceLocator.GetService<ISettingsService>()));
+            ServiceLocator.GetService<ISettingsService>(),
+            ServiceLocator.GetService<ILocalizationService>()));
         RegisterNavigation("PluginManagement", () => new PluginManagementViewModel(
             ServiceLocator.GetService<IPluginLoader>(),
             ServiceLocator.GetService<IPluginInstallationManager>()));
@@ -60,10 +61,13 @@ public class NavigationService : INavigationService
 
     public object CreateViewModel(string key)
     {
-        // 优先从弱引用缓存中取：若 ViewModel 仍存活则复用（保留导航状态）
-        if (_viewModelCache.TryGetValue(key, out var weakRef) && weakRef.TryGetTarget(out var cached) && cached is not null)
+        if (_viewModelCache.TryGetValue(key, out var weakRef))
         {
-            return cached;
+            if (weakRef.TryGetTarget(out var cached) && cached is not null)
+            {
+                return cached;
+            }
+            _viewModelCache.Remove(key);
         }
 
         if (_viewModelFactories.TryGetValue(key, out var factory))

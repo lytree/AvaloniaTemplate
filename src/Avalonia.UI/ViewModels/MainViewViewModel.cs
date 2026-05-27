@@ -62,8 +62,23 @@ public partial class MainViewViewModel : ViewModelBase
         PluginText = _localizationService?.GetString("NAV_Plugins", "Plugins");
     }
 
+    partial void OnContentChanged(object? value)
+    {
+        if (value is IDisposable disposable && !ReferenceEquals(disposable, this))
+        {
+            _disposableContent = disposable;
+        }
+    }
+
+    private IDisposable? _disposableContent;
+
     private void OnNavigation(MainViewViewModel vm, string s)
     {
+        if (_disposableContent is not null && !ReferenceEquals(_disposableContent, this))
+        {
+            _disposableContent.Dispose();
+            _disposableContent = null;
+        }
         Content = _navigationService.CreateViewModel(s);
     }
 
@@ -75,7 +90,7 @@ public partial class MainViewViewModel : ViewModelBase
 
     public override void Dispose()
     {
-        WeakReferenceMessenger.Default.Unregister<MainViewViewModel, string, string>(this, "JumpTo");
+        WeakReferenceMessenger.Default.Unregister<string, string>(this, "JumpTo");
         if (_localizationService is not null)
             _localizationService.CultureChanged -= OnCultureChanged;
         base.Dispose();

@@ -24,10 +24,10 @@ public partial class SettingsPageViewModel : ViewModelBase
     {
     }
 
-    public SettingsPageViewModel(ISettingsService settingsService)
+    public SettingsPageViewModel(ISettingsService settingsService, ILocalizationService? localizationService = null)
     {
         _settingsService = settingsService;
-        _localizationService = ServiceLocator.GetService<ILocalizationService>();
+        _localizationService = localizationService;
         LoadSettings();
     }
 
@@ -168,14 +168,14 @@ public partial class SettingsPageViewModel : ViewModelBase
         return setting;
     }
 
-    private static SettingEntryViewModel CreateEntry(SettingItem setting, ISettingsService settingsService, SettingsPageViewModel parent)
+    private SettingEntryViewModel CreateEntry(SettingItem setting, ISettingsService settingsService, SettingsPageViewModel parent)
     {
         return setting.SettingType switch
         {
             SettingType.Text => new TextSettingEntryViewModel(setting, settingsService, parent),
             SettingType.Switch => new SwitchSettingEntryViewModel(setting, settingsService, parent),
             SettingType.Dropdown => new DropdownSettingEntryViewModel(setting, settingsService, parent),
-            SettingType.Path => new PathSettingEntryViewModel(setting, settingsService, parent),
+            SettingType.Path => new PathSettingEntryViewModel(setting, settingsService, parent, _localizationService),
             _ => new TextSettingEntryViewModel(setting, settingsService, parent)
         };
     }
@@ -324,10 +324,10 @@ public partial class PathSettingEntryViewModel : SettingEntryViewModel
     [ObservableProperty] private string _pathValue;
     private string _savedValue;
 
-    public PathSettingEntryViewModel(SettingItem setting, ISettingsService settingsService, SettingsPageViewModel parent)
+    public PathSettingEntryViewModel(SettingItem setting, ISettingsService settingsService, SettingsPageViewModel parent, ILocalizationService? localizationService = null)
         : base(setting, settingsService, parent)
     {
-        _localizationService = ServiceLocator.GetService<ILocalizationService>();
+        _localizationService = localizationService;
         _pathValue = setting.RawValue;
         _savedValue = setting.RawValue;
     }
