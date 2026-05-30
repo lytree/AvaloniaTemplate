@@ -127,8 +127,6 @@ public class LocalizationService : ILocalizationService
                     }
                 }
             }
-
-            resourceSet.Dispose();
         }
 
         _stringCache = cache;

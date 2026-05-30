@@ -18,7 +18,6 @@ public partial class MainView : UserControl
     {
         InitializeComponent();
         UpdateBreadcrumb("Introduction");
-        WeakReferenceMessenger.Default.Register<string, string>(this, "JumpTo", OnNavigationChanged);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
