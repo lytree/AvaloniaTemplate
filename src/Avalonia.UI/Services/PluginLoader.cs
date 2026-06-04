@@ -197,7 +197,6 @@ public class PluginLoader : IPluginLoader, IDisposable
                 if (typeof(IPluginMetadata).IsAssignableFrom(type) && metadata == null)
                 {
                     metadata = (IPluginMetadata)Activator.CreateInstance(type)!;
-                    metadata.Initialize();
                 }
 
                 if (plugin != null && metadata != null) break;

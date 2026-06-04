@@ -32,12 +32,6 @@ public interface IPluginMetadata
     /// </summary>
     string PluginId { get; }
 
-    /// <summary>
-    /// 初始化插件
-    /// </summary>
-    void Initialize();
-
-
 }
 
 
