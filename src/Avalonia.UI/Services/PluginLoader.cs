@@ -4,6 +4,7 @@ using System.Text.Json;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.Models;
 using Avalonia.Plugin.Shared.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Avalonia.UI.Services;
 
@@ -22,6 +23,7 @@ public class PluginLoader : IPluginLoader, IDisposable
     private readonly string? _extraPluginPath;
     private readonly object _sync = new();
     private List<PluginInfo>? _cachedPluginList;
+    private bool _servicesConfigured;
 
     public event EventHandler<PluginInfo>? PluginLoaded;
     public event EventHandler<PluginInfo>? PluginUnloaded;
@@ -52,7 +54,72 @@ public class PluginLoader : IPluginLoader, IDisposable
         }
     }
 
-    public async Task<PluginLoadResult> LoadPluginAsync(PluginInfo pluginInfo)
+    /// <summary>
+    /// 第一阶段：发现所有插件，创建实例并调用 ConfigureServices 注册服务到 IServiceCollection。
+    /// 在 BuildServiceProvider 之前调用。
+    /// </summary>
+    public async Task DiscoverAndConfigureServicesAsync(IServiceCollection services)
+    {
+        if (_servicesConfigured) return;
+
+        List<PluginInfo> toLoad;
+
+        lock (_sync)
+        {
+            toLoad = _entries.Values
+                .Where(e => e.Info.State == PluginState.Installed)
+                .Select(e => e.Info)
+                .ToList();
+        }
+
+        foreach (var info in toLoad)
+        {
+            var result = await LoadPluginAssemblyAsync(info);
+            if (result.Success && result.Plugin != null)
+            {
+                result.Plugin.ConfigureServices(services);
+            }
+        }
+
+        lock (_sync)
+        {
+            LoadExtraPlugins(services);
+        }
+
+        _servicesConfigured = true;
+    }
+
+    /// <summary>
+    /// 第二阶段：DI 容器构建完成后，调用所有已加载插件的 InitializeAsync。
+    /// </summary>
+    public async Task InitializePluginsAsync(IServiceProvider serviceProvider)
+    {
+        List<PluginEntry> loadedEntries;
+
+        lock (_sync)
+        {
+            loadedEntries = _entries.Values
+                .Where(e => e.Plugin is not null && e.Info.State == PluginState.Loaded)
+                .ToList();
+        }
+
+        foreach (var entry in loadedEntries)
+        {
+            try
+            {
+                await entry.Plugin!.InitializeAsync(serviceProvider);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Plugin initialization failed for '{entry.Info.Name}': {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 加载插件程序集，创建 IPlugin 和 IPluginMetadata 实例，但不调用初始化。
+    /// </summary>
+    private async Task<PluginLoadResult> LoadPluginAssemblyAsync(PluginInfo pluginInfo)
     {
         List<PluginInfo> eventsToFire = [];
 
@@ -172,26 +239,6 @@ public class PluginLoader : IPluginLoader, IDisposable
             return new PluginLoadResult { Success = false, ErrorMessage = errInfo.ErrorMessage };
         }
 
-        try
-        {
-            await plugin.InitializeAsync();
-        }
-        catch (Exception ex)
-        {
-            loadContext.Unload();
-            PluginInfo errInfo;
-            lock (_sync)
-            {
-                errInfo = pluginInfo.WithState(PluginState.Error, $"Plugin initialization failed: {ex.Message}");
-                UpdateEntry(errInfo);
-                SavePluginManifest(errInfo);
-                InvalidateSnapshot();
-                eventsToFire.Add(errInfo);
-            }
-            FireEventsOutsideLock(eventsToFire);
-            return new PluginLoadResult { Success = false, ErrorMessage = errInfo.ErrorMessage };
-        }
-
         lock (_sync)
         {
             var entry = GetOrCreateEntry(pluginInfo.PluginId);
@@ -210,6 +257,19 @@ public class PluginLoader : IPluginLoader, IDisposable
 
             return new PluginLoadResult { Success = true, Plugin = plugin, Metadata = metadata };
         }
+    }
+
+    public async Task<PluginLoadResult> LoadPluginAsync(PluginInfo pluginInfo)
+    {
+        var result = await LoadPluginAssemblyAsync(pluginInfo);
+
+        if (result.Success)
+        {
+            PluginLoaded?.Invoke(this, pluginInfo);
+            PluginStateChanged?.Invoke(this, pluginInfo);
+        }
+
+        return result;
     }
 
     public void DisablePlugin(string pluginId)
@@ -276,40 +336,23 @@ public class PluginLoader : IPluginLoader, IDisposable
 
     public async Task LoadAllPluginsAsync()
     {
-        List<PluginInfo> toLoad;
-
-        lock (_sync)
+        // 向后兼容：如果没有使用两阶段加载，则使用旧流程
+        if (!_servicesConfigured)
         {
-            toLoad = _entries.Values
-                .Where(e => e.Info.State == PluginState.Installed)
-                .Select(e => e.Info)
-                .ToList();
+            await DiscoverAndConfigureServicesAsync(new ServiceCollection());
         }
 
-        foreach (var info in toLoad)
-        {
-            var result = await LoadPluginAsync(info);
-            if (result.Success)
-            {
-                PluginLoaded?.Invoke(this, info);
-                PluginStateChanged?.Invoke(this, info);
-            }
-        }
-
-        lock (_sync)
-        {
-            LoadExtraPlugins();
-        }
+        // LoadExtraPlugins 在 DiscoverAndConfigureServicesAsync 中已处理
     }
 
-    private void LoadExtraPlugins()
+    private void LoadExtraPlugins(IServiceCollection? services = null)
     {
         if (string.IsNullOrWhiteSpace(_extraPluginPath) || !Directory.Exists(_extraPluginPath))
             return;
 
         foreach (var dllPath in Directory.GetFiles(_extraPluginPath, "*.dll", SearchOption.TopDirectoryOnly))
         {
-            TryLoadExtraPluginDll(dllPath);
+            TryLoadExtraPluginDll(dllPath, services);
         }
 
         foreach (var subDir in Directory.GetDirectories(_extraPluginPath))
@@ -318,12 +361,12 @@ public class PluginLoader : IPluginLoader, IDisposable
             var candidateDll = Path.Combine(subDir, $"{dirName}.dll");
             if (File.Exists(candidateDll))
             {
-                TryLoadExtraPluginDll(candidateDll);
+                TryLoadExtraPluginDll(candidateDll, services);
             }
         }
     }
 
-    private void TryLoadExtraPluginDll(string dllPath)
+    private void TryLoadExtraPluginDll(string dllPath, IServiceCollection? services = null)
     {
         try
         {
@@ -347,7 +390,11 @@ public class PluginLoader : IPluginLoader, IDisposable
             IsBuiltIn = false
         };
 
-        LoadPluginAsync(pluginInfo).GetAwaiter().GetResult();
+        var result = LoadPluginAssemblyAsync(pluginInfo).GetAwaiter().GetResult();
+        if (result.Success && result.Plugin != null && services != null)
+        {
+            result.Plugin.ConfigureServices(services);
+        }
         }
         catch (Exception ex)
         {

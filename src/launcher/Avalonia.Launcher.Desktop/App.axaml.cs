@@ -28,15 +28,26 @@ public partial class App : Application
 #endif
         var services = new ServiceCollection();
         services.AddAvaloniaServices();
+
+        // 第一阶段：发现插件并注册服务
+        var pluginLoader = new PluginLoader();
+        pluginLoader.DiscoverAndConfigureServicesAsync(services).GetAwaiter().GetResult();
+        services.AddSingleton<IPluginLoader>(sp =>
+        {
+            var navigationService = sp.GetRequiredService<INavigationService>() as NavigationService;
+            navigationService?.AttachPluginLoader(pluginLoader);
+            return pluginLoader;
+        });
+
         ServiceProvider = services.BuildServiceProvider();
-
         ServiceLocator.Initialize(ServiceProvider);
-
-        
 
         InitializeDatabase();
         InitializeLocalization();
-        LoadPluginsAsync().GetAwaiter().GetResult();
+
+        // 第二阶段：DI 容器构建完成后，初始化插件（注册语言资源等）
+        pluginLoader.InitializePluginsAsync(ServiceProvider).GetAwaiter().GetResult();
+        RegisterPluginNavigationAndMenus(pluginLoader);
 
         DataContext = new ApplicationViewModel();
     }
@@ -66,16 +77,13 @@ public partial class App : Application
         settingsService?.InitializeDefaults();
     }
 
-    private async Task LoadPluginsAsync()
+    private void RegisterPluginNavigationAndMenus(IPluginLoader pluginLoader)
     {
         var navigationService = ServiceProvider?.GetRequiredService<INavigationService>();
         var menuConfigurationService = ServiceProvider?.GetRequiredService<IMenuConfigurationService>();
-        var pluginLoader = ServiceProvider?.GetRequiredService<IPluginLoader>();
 
-        if (navigationService == null || menuConfigurationService == null || pluginLoader == null)
+        if (navigationService == null || menuConfigurationService == null)
             return;
-
-        await pluginLoader.LoadAllPluginsAsync();
 
         foreach (var pluginInfo in pluginLoader.GetInstalledPlugins())
         {

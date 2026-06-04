@@ -1,6 +1,7 @@
 
 using Avalonia.Controls;
 using Avalonia.Plugin.Shared.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 
 namespace Avalonia.Plugin.Shared;
@@ -8,7 +9,16 @@ namespace Avalonia.Plugin.Shared;
 
 public interface IPlugin
 {
-    Task InitializeAsync() => Task.CompletedTask;
+    /// <summary>
+    /// 注册服务到 IServiceCollection，在 DI 容器构建前调用
+    /// </summary>
+    void ConfigureServices(IServiceCollection services) { }
+
+    /// <summary>
+    /// DI 容器构建完成后调用，用于注册语言资源、设置等需要 IServiceProvider 的操作
+    /// </summary>
+    Task InitializeAsync(IServiceProvider serviceProvider) => Task.CompletedTask;
+
     Task ShutdownAsync() => Task.CompletedTask;
     IEnumerable<KeyValuePair<Type, ViewFactory>> GetViewDefinitions();
     Dictionary<string, ViewModelFactory> GetNavigationItems();

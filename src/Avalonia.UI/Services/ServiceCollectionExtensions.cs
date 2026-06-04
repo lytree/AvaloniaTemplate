@@ -12,14 +12,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IMenuConfigurationService, MenuConfigurationService>();
 
-        services.AddSingleton<PluginLoader>();
-        services.AddSingleton<IPluginLoader>(sp =>
-        {
-            var loader = sp.GetRequiredService<PluginLoader>();
-            var navigationService = sp.GetRequiredService<INavigationService>() as NavigationService;
-            navigationService?.AttachPluginLoader(loader);
-            return loader;
-        });
+        // PluginLoader 由 App.axaml.cs 手动创建并注册，此处不再注册
+
         services.AddSingleton<IPluginInstallationManager, PluginInstallationManager>();
 
         services.AddDbContextFactory<AppDbContext>(options =>

@@ -11,7 +11,7 @@
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
           Condition="'%(Filename)' == 'Avalonia'" />
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
-          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Avalonia.')) And '%(Filename)' != '$(AssemblyName)'" />
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Avalonia.')) And '%(Filename)' != '$(AssemblyName)' And !$([System.String]::Copy('%(Filename)').EndsWith('.resources'))" />
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
           Condition="$([System.String]::Copy('%(Filename)').StartsWith('CommunityToolkit.'))" />
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
@@ -83,7 +83,7 @@
       <_ExcludedPublished Include="@(_PublishedFiles)"
           Condition="'%(Filename)' == 'Avalonia'" />
       <_ExcludedPublished Include="@(_PublishedFiles)"
-          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Avalonia.')) And '%(Filename)' != '$(AssemblyName)'" />
+          Condition="$([System.String]::Copy('%(Filename)').StartsWith('Avalonia.')) And '%(Filename)' != '$(AssemblyName)' And !$([System.String]::Copy('%(Filename)').EndsWith('.resources'))" />
       <_ExcludedPublished Include="@(_PublishedFiles)"
           Condition="$([System.String]::Copy('%(Filename)').StartsWith('CommunityToolkit.'))" />
       <_ExcludedPublished Include="@(_PublishedFiles)"

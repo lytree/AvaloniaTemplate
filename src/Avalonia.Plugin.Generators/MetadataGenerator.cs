@@ -73,6 +73,7 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace {data.Namespace}
 {{
