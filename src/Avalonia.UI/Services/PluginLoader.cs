@@ -53,10 +53,11 @@ public class PluginLoader : IPluginLoader, IDisposable
         }
     }
 
-    #region Three-phase loading
+    #region Two-phase loading
 
     /// <summary>
-    /// 阶段1：发现所有插件程序集，创建 IPlugin 实例，状态变为 Discovered。
+    /// 阶段1：发现并加载所有插件程序集，创建 IPlugin 实例，但不调用 InitializeAsync。
+    /// 插件状态变为 Discovered。
     /// </summary>
     public async Task DiscoverAllPluginAssembliesAsync()
     {
@@ -139,8 +140,8 @@ public class PluginLoader : IPluginLoader, IDisposable
     }
 
     /// <summary>
-    /// 阶段3：调用每个已加载插件的 RegisterAsync(IServiceProvider)，
-    /// 插件在注册时执行多语言注册、设置初始化等操作，状态从 Loaded 变为 Registered。
+    /// 阶段3：调用每个已加载插件的 RegisterAsync()，
+    /// 插件在注册时执行多语言注册、SQL 初始化等操作，状态从 Loaded 变为 Registered。
     /// 必须在 ServiceProvider 构建完成之后调用。
     /// </summary>
     public async Task RegisterAllPluginsAsync(IServiceProvider serviceProvider)
@@ -234,20 +235,6 @@ public class PluginLoader : IPluginLoader, IDisposable
                 }
                 FireEventsOutsideLock(eventsToFire);
                 return new PluginLoadResult { Success = false, ErrorMessage = errInfo.ErrorMessage };
-            }
-
-            if (!ValidateDependencies(pluginInfo, out var depError))
-            {
-                var errInfo = pluginInfo.WithState(PluginState.Error, depError);
-                if (entryExisted)
-                {
-                    UpdateEntry(errInfo);
-                    SavePluginManifest(errInfo);
-                    InvalidateSnapshot();
-                    eventsToFire.Add(errInfo);
-                }
-                FireEventsOutsideLock(eventsToFire);
-                return new PluginLoadResult { Success = false, ErrorMessage = depError };
             }
         }
 
@@ -376,7 +363,7 @@ public class PluginLoader : IPluginLoader, IDisposable
     }
 
     /// <summary>
-    /// 完整加载单个插件：发现 + 初始化。
+    /// 完整加载单个插件：发现 + 初始化 + 注册。
     /// </summary>
     public async Task<PluginLoadResult> LoadPluginAsync(PluginInfo pluginInfo, IServiceCollection? services = null)
     {
@@ -540,27 +527,6 @@ public class PluginLoader : IPluginLoader, IDisposable
         _cachedPluginList = null;
     }
 
-    private bool ValidateDependencies(PluginInfo pluginInfo, out string? error)
-    {
-        foreach (var depId in pluginInfo.Dependencies)
-        {
-            if (!_entries.TryGetValue(depId, out var depEntry))
-            {
-                error = $"Missing dependency: {depId}";
-                return false;
-            }
-
-            if (depEntry.Info.State != PluginState.Loaded && depEntry.Info.State != PluginState.Registered && depEntry.Info.State != PluginState.Discovered)
-            {
-                error = $"Dependency not loaded: {depId} ({depEntry.Info.Name})";
-                return false;
-            }
-        }
-
-        error = null;
-        return true;
-    }
-
     private void FireEventsOutsideLock(List<PluginInfo> events)
     {
         foreach (var info in events)
@@ -673,8 +639,7 @@ public class PluginLoader : IPluginLoader, IDisposable
 
                 var pluginInfo = ManifestToPluginInfo(manifest, pluginDir);
 
-                // 将之前运行中的状态重置为 Installed，以便重新发现
-                if (pluginInfo.State == PluginState.Discovered || pluginInfo.State == PluginState.Loaded || pluginInfo.State == PluginState.Registered)
+                if (pluginInfo.State == PluginState.Loaded || pluginInfo.State == PluginState.Discovered || pluginInfo.State == PluginState.Registered)
                 {
                     pluginInfo = pluginInfo.WithState(PluginState.Installed);
                 }

@@ -4,7 +4,7 @@ namespace Avalonia.Plugin.Shared;
 
 public static class MenuItemTreeBuilder
 {
-    public static List<KeyValuePair<string, MenuItemViewModel>> BuildTree(
+    public static List<KeyValuePair<string?, MenuItemViewModel>> BuildTree(
         List<(string? Parent, MenuItemViewModel Item, int Order)> allItems)
     {
         var itemLookup = allItems.ToDictionary(x => x.Item.RawHeader ?? x.Item.MenuHeader, x => x.Item);
@@ -36,7 +36,7 @@ public static class MenuItemTreeBuilder
         return allItems
             .Where(x => string.IsNullOrEmpty(x.Parent))
             .OrderBy(x => x.Item.Order)
-            .Select(x => new KeyValuePair<string, MenuItemViewModel>(null, x.Item))
+            .Select(x => new KeyValuePair<string?, MenuItemViewModel>(null, x.Item))
             .ToList();
     }
 }

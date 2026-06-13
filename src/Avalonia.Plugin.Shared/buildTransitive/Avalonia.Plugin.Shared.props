@@ -10,6 +10,8 @@
     <PluginExcludeAssembly Include="Microsoft.*" />
     <PluginExcludeAssembly Include="Avalonia" />
     <PluginExcludeAssembly Include="Avalonia.*" />
+    <PluginExcludeAssembly Include="SkiaSharp.*" />
+    <PluginExcludeAssembly Include="SkiaSharp" />
     <PluginExcludeAssembly Include="CommunityToolkit.*" />
     <PluginExcludeAssembly Include="Irihi.*" />
     <PluginExcludeAssembly Include="Ursa" />
@@ -25,6 +27,11 @@
     <PluginExcludeAssembly Include="Microsoft.Extensions.Localization.Abstractions" />
     <PluginExcludeAssembly Include="Microsoft.Extensions.Logging" />
     <PluginExcludeAssembly Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PluginExcludeAssembly Include="Serilog" />
+    <PluginExcludeAssembly Include="Serilog.Extensions.Logging" />
+    <PluginExcludeAssembly Include="Serilog.Sinks.File" />
+    <PluginExcludeAssembly Include="Serilog.Sinks.Console" />
+    <PluginExcludeAssembly Include="Serilog.Formatting.Compact" />
     <PluginExcludeAssembly Include="Microsoft.Extensions.Options" />
     <PluginExcludeAssembly Include="Microsoft.Extensions.Primitives" />
     <PluginExcludeAssembly Include="Microsoft.Extensions.Caching.Memory" />

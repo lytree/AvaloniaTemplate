@@ -194,8 +194,6 @@ public class SettingsService : ISettingsService
     {
         var themeDisplayName = _localizationService?.GetString("SETTING_THEME", "Theme") ?? "Theme";
         var themeDesc = _localizationService?.GetString("SETTING_THEME_DESC", "Select a theme for the application") ?? "Select a theme for the application";
-        var langDisplayName = _localizationService?.GetString("SETTING_LANGUAGE", "Language") ?? "Language";
-        var langDesc = _localizationService?.GetString("SETTING_LANGUAGE_DESC", "Select display language (restart required for full effect)") ?? "Select display language (restart required for full effect)";
         var sidebarDisplayName = _localizationService?.GetString("SETTING_COLLAPSE_SIDEBAR", "Collapse Sidebar") ?? "Collapse Sidebar";
         var sidebarDesc = _localizationService?.GetString("SETTING_COLLAPSE_SIDEBAR_DESC", "Collapse the sidebar navigation") ?? "Collapse the sidebar navigation";
 
@@ -204,10 +202,7 @@ public class SettingsService : ISettingsService
         RegisterSetting(SettingDefinition.Dropdown("App.Theme", themeDisplayName, ["Default", "Light", "Dark"],
             themeDesc, appearanceGroup, 0, 0, "Default"));
 
-        RegisterSetting(SettingDefinition.Dropdown("App.Locale", langDisplayName, ["en-US", "zh-CN"],
-            langDesc, appearanceGroup, 0, 1, "en-US"));
-
         RegisterSetting(SettingDefinition.Switch("App.SidebarCollapsed", sidebarDisplayName,
-            sidebarDesc, appearanceGroup, 0, 2, false));
+            sidebarDesc, appearanceGroup, 0, 1, false));
     }
 }

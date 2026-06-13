@@ -11,7 +11,7 @@ namespace Avalonia.UI.Services;
 public class LocalizationService : ILocalizationService
 {
     private readonly ConcurrentDictionary<string, (string? LookupPrefix, ResourceManager Manager)> _resourceManagers = new();
-    private CultureInfo _currentCulture = new("en-US");
+    private CultureInfo _currentCulture = new("zh-CN");
     private bool _initialSync = true;
     private ConcurrentDictionary<string, string>? _stringCache;
 
@@ -78,8 +78,8 @@ public class LocalizationService : ILocalizationService
             return;
 
         _currentCulture = culture;
-        CultureInfo.DefaultThreadCurrentCulture = culture;
-        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
 
         _stringCache = null;
         RebuildCacheAndSyncResources();
@@ -95,6 +95,9 @@ public class LocalizationService : ILocalizationService
         var dictKey = manager.BaseName;
         _resourceManagers[dictKey] = (prefix, manager);
         _stringCache = null;
+
+        if (!_initialSync)
+            RebuildCacheAndSyncResources();
     }
 
     private void RebuildCacheAndSyncResources()

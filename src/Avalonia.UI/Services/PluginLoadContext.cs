@@ -13,6 +13,8 @@ internal class PluginLoadContext : AssemblyLoadContext
         "CommunityToolkit.",
         "Irihi.",
         "SQLitePCLRaw.",
+        "SkiaSharp.",
+        "HarfBuzzSharp.",
     ];
 
     private static readonly HashSet<string> ExcludedExactNames = new(StringComparer.OrdinalIgnoreCase)
@@ -27,6 +29,8 @@ internal class PluginLoadContext : AssemblyLoadContext
         "Microsoft.Bcl.AsyncInterfaces",
         "SQLite",
         "Avalonia.Plugin.Shared",
+        "SkiaSharp",
+        "HarfBuzzSharp",
     };
 
     private readonly AssemblyDependencyResolver _resolver;
@@ -52,7 +56,13 @@ internal class PluginLoadContext : AssemblyLoadContext
 
         if (IsExcluded(name))
         {
-            return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
+            try
+            {
+                return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
+            }
+            catch (FileNotFoundException)
+            {
+            }
         }
 
         var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);

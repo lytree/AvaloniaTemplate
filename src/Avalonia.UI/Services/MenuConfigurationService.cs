@@ -139,11 +139,3 @@ public class MenuConfigurationService : IMenuConfigurationService
         return _menuItemsMap.Keys;
     }
 }
-
-public static class EnumerableExtensions
-{
-    public static System.Collections.ObjectModel.ObservableCollection<T> ToObservableCollection<T>(this IEnumerable<T> source)
-    {
-        return new System.Collections.ObjectModel.ObservableCollection<T>(source);
-    }
-}
