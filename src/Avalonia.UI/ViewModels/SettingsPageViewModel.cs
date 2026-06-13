@@ -105,7 +105,9 @@ public partial class SettingsPageViewModel : ViewModelBase
         {
             try
             {
-                var culture = new CultureInfo(locale);
+                var culture = locale == "Default"
+                    ? CultureInfo.CurrentUICulture
+                    : new CultureInfo(locale);
                 if (_localizationService is not null)
                 {
                     _localizationService.SetCulture(culture);

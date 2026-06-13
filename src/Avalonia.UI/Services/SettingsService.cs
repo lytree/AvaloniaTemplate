@@ -202,7 +202,12 @@ public class SettingsService : ISettingsService
         RegisterSetting(SettingDefinition.Dropdown("App.Theme", themeDisplayName, ["Default", "Light", "Dark"],
             themeDesc, appearanceGroup, 0, 0, "Default"));
 
+        var langDisplayName = _localizationService?.GetString("SETTING_LANGUAGE", "Language") ?? "Language";
+        var langDesc = _localizationService?.GetString("SETTING_LANGUAGE_DESC", "Select display language (restart required)") ?? "Select display language (restart required)";
+        RegisterSetting(SettingDefinition.Dropdown("App.Locale", langDisplayName, ["Default", "zh-CN", "en-US"],
+            langDesc, appearanceGroup, 0, 1, "Default"));
+
         RegisterSetting(SettingDefinition.Switch("App.SidebarCollapsed", sidebarDisplayName,
-            sidebarDesc, appearanceGroup, 0, 1, false));
+            sidebarDesc, appearanceGroup, 0, 2, false));
     }
 }

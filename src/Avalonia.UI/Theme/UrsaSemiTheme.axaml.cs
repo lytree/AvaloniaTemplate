@@ -34,9 +34,8 @@ public partial class UrsaSemiTheme : Styles
         Resources.MergedDictionaries.Add(new NavMenuSizeAnimations());
 
         var systemCulture = CultureInfo.CurrentUICulture;
-        LoadLocaleFromResx(systemCulture);
-
         _instance = this;
+        LoadLocaleFromResx(systemCulture);
     }
 
     public CultureInfo? Locale

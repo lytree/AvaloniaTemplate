@@ -165,6 +165,9 @@ public partial class App : Application
             {
                 DataContext = new SplashViewModel()
             };
+
+            // 退出时检测是否有正在运行的任务
+            desktop.ShutdownRequested += OnShutdownRequested;
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
         {
@@ -177,5 +180,16 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
+    {
+        if (ServiceLocator.TryGetService<ITaskRegistry>(out var registry) && registry.HasRunningTasks)
+        {
+            var tasks = registry.GetRunningTasks();
+            var taskNames = string.Join(", ", tasks.Select(t => t.TaskName));
+            var logger = ServiceProvider?.GetRequiredService<ILogger<App>>();
+            logger?.LogWarning("应用退出时仍有正在运行的任务: {Tasks}", taskNames);
+        }
     }
 }

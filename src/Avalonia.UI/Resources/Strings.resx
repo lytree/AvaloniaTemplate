@@ -422,9 +422,6 @@
   <data name="SW_Off" xml:space="preserve">
     <value>No</value>
   </data>
-  <data name="MENU_Copy" xml:space="preserve">
-    <value>Copy</value>
-  </data>
   <data name="STATUS_Ready" xml:space="preserve">
     <value>Ready</value>
   </data>

@@ -172,7 +172,6 @@
   <data name="BTN_Undo" xml:space="preserve"><value>撤销</value></data>
   <data name="SW_On" xml:space="preserve"><value>是</value></data>
   <data name="SW_Off" xml:space="preserve"><value>否</value></data>
-  <data name="MENU_Copy" xml:space="preserve"><value>复制</value></data>
   <data name="STATUS_Ready" xml:space="preserve"><value>就绪</value></data>
   <data name="STATUS_Running" xml:space="preserve"><value>正在执行: {0}...</value></data>
   <data name="STATUS_Completed" xml:space="preserve"><value>执行完成</value></data>

@@ -3,9 +3,8 @@ using Avalonia.UI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Serilog;
-using Serilog.Events;
-using Serilog.Formatting.Compact;
+using ZLogger;
+using ZLogger.Providers;
 
 namespace Avalonia.UI.Services;
 
@@ -13,36 +12,23 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddAvaloniaServices(this IServiceCollection services)
     {
-        // Serilog 配置
-        const string consoleTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}\t{Message:lj}{NewLine}{Exception}";
-        const string fileTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext} | {Message:lj}{NewLine}{Exception}";
-
-        var logPath = Path.Combine(AppContext.BaseDirectory, "logs", "app-.log");
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Information()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-            .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
-            .Enrich.FromLogContext()
-            .Enrich.WithProperty("Application", "AvaloniaApp")
-            .WriteTo.Console(outputTemplate: consoleTemplate)
-            .WriteTo.File(
-                new CompactJsonFormatter(),
-                logPath,
-                rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 30,
-                shared: true)
-            .WriteTo.File(
-                Path.Combine(AppContext.BaseDirectory, "logs", "app-text-.log"),
-                outputTemplate: fileTemplate,
-                rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 30,
-                shared: true)
-            .CreateLogger();
+        var logPath = Path.Combine(AppContext.BaseDirectory, "logs");
 
         services.AddLogging(builder =>
         {
             builder.ClearProviders();
-            builder.AddSerilog(Log.Logger, dispose: false);
+            builder.SetMinimumLevel(LogLevel.Information);
+            builder.AddFilter("Microsoft", LogLevel.Warning);
+            builder.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
+
+            builder.AddZLoggerConsole();
+            builder.AddZLoggerRollingFile(options =>
+            {
+                options.FilePathSelector = (dt, seq) =>
+                    Path.Combine(logPath, $"app-{dt:yyyy-MM-dd}_{seq:000}.log");
+                options.RollingInterval = RollingInterval.Day;
+                options.RollingSizeKB = 10240; // 10MB
+            });
         });
 
         services.AddSingleton<INavigationService, NavigationService>();
