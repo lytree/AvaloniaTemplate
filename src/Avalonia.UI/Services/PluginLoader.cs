@@ -231,7 +231,7 @@ public class PluginLoader : IPluginLoader, IDisposable
 
         try
         {
-            loadContext = new PluginLoadContext(pluginInfo.AssemblyPath);
+            loadContext = new PluginLoadContext(pluginInfo.AssemblyPath, pluginInfo.SharedAssemblies);
             var assembly = loadContext.LoadFromAssemblyPath(pluginInfo.AssemblyPath);
 
             foreach (var type in assembly.GetExportedTypes())
@@ -653,6 +653,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             Author = manifest.Author ?? string.Empty,
             Description = manifest.Description ?? string.Empty,
             Dependencies = manifest.Dependencies ?? [],
+            SharedAssemblies = manifest.SharedAssemblies ?? [],
             InstallPath = pluginDir,
             AssemblyPath = assemblyPath,
             State = Enum.TryParse<PluginState>(manifest.State, out var state) ? state : PluginState.Installed,

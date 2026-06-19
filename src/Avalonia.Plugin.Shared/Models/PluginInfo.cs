@@ -8,6 +8,14 @@ public record PluginInfo
     public string Author { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public List<string> Dependencies { get; init; } = [];
+
+    /// <summary>
+    /// Additional assembly name patterns declared in the plugin manifest that should be
+    /// forwarded to the host's default AssemblyLoadContext. Merged with shared-assemblies.txt
+    /// at runtime by PluginLoadContext.
+    /// </summary>
+    public List<string> SharedAssemblies { get; init; } = [];
+
     public string InstallPath { get; init; } = string.Empty;
     public string AssemblyPath { get; init; } = string.Empty;
     public PluginState State { get; init; }
