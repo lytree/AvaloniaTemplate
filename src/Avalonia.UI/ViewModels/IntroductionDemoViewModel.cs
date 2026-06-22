@@ -110,6 +110,7 @@ public partial class IntroductionDemoViewModel : ObservableObject
         FilteredGroups.Clear();
         if (string.IsNullOrWhiteSpace(search))
         {
+            // 无搜索词：直接复用原始分组引用，避免不必要的对象分配
             foreach (var g in _allGroups)
                 FilteredGroups.Add(g);
             HasNoResults = FilteredGroups.Count == 0;
@@ -123,24 +124,25 @@ public partial class IntroductionDemoViewModel : ObservableObject
             var groupMatched = group.GroupName.Contains(keyword, StringComparison.OrdinalIgnoreCase)
                                 || group.GroupKey.Contains(keyword, StringComparison.OrdinalIgnoreCase);
 
-            var matched = group.Items
-                .Where(item => item.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                               || item.Key.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            // 分组名命中时展示整组；否则仅展示匹配的工具项
             if (groupMatched)
             {
-                var fullGroup = new ToolGroup
-                {
-                    GroupName = group.GroupName,
-                    GroupKey = group.GroupKey
-                };
-                foreach (var m in group.Items)
-                    fullGroup.Items.Add(m);
-                FilteredGroups.Add(fullGroup);
+                // 整组命中：直接复用原分组引用，避免克隆整个 Items 集合
+                FilteredGroups.Add(group);
+                continue;
             }
-            else if (matched.Count > 0)
+
+            // 仅匹配工具项：使用 ArrayPool/复用减少分配，仅在确有匹配时创建新分组
+            List<ToolItem>? matched = null;
+            foreach (var item in group.Items)
+            {
+                if (item.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+                    || item.Key.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                {
+                    (matched ??= new List<ToolItem>()).Add(item);
+                }
+            }
+
+            if (matched is { Count: > 0 })
             {
                 var filteredGroup = new ToolGroup
                 {
