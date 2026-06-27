@@ -8,10 +8,10 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IsPluginSdkProject>true</IsPluginSdkProject>
 		<PackageId>Avalonia.Plugin.Shared</PackageId>
-		<!-- SDK 版本绑定：覆盖 src/Directory.Build.props 的 HostVersion，改用 PluginSdkVersion -->
-		<Version>$(PluginSdkVersion)</Version>
-		<AssemblyVersion>$(PluginSdkVersion)</AssemblyVersion>
-		<FileVersion>$(PluginSdkVersion)</FileVersion>
+		<!-- SDK 与宿主共用 HostVersion：PluginSdkVersion 在根 Directory.Build.props 中已是 HostVersion 的别名 -->
+		<Version>$(HostVersion)</Version>
+		<AssemblyVersion>$(HostVersion)</AssemblyVersion>
+		<FileVersion>$(HostVersion)</FileVersion>
 		<Description>Shared library for Avalonia plugin development, including controls, converters, and services.</Description>
 		<Authors>AvaloniaPlugin</Authors>
 		<PackageTags>avalonia;plugin;shared;controls;mvvm</PackageTags>
@@ -38,8 +38,9 @@
 	</ItemGroup>
 
 	<!--
-		生成 PluginSdkContract.g.cs：编译时把 PluginSdkVersion 嵌入程序集。
-		主体程序通过 PackageReference 引用本程序集，运行时读 PluginSdkContract.CurrentVersion
+		生成 PluginSdkContract.g.cs：编译时把 SDK 契约版本（即 HostVersion）嵌入程序集。
+		宿主与 SDK 共用 HostVersion，因此 PluginSdkVersion 在根 Directory.Build.props 中已是 $(HostVersion) 的别名。
+		主体程序通过 ProjectReference 引用本程序集，运行时读 PluginSdkContract.CurrentVersion
 		获得当前 SDK 契约版本，用于校验插件 MinPluginSdkVersion。
 		文件输出到 obj/ 避免污染源码树。
 	-->
@@ -48,12 +49,12 @@
 			<_PluginSdkContractLines Include="// &lt;auto-generated /&gt;" />
 			<_PluginSdkContractLines Include="namespace Avalonia.Plugin.Shared%3B" />
 			<_PluginSdkContractLines Include="/// &lt;summary&gt;" />
-			<_PluginSdkContractLines Include="/// 当前宿主链接的 Plugin SDK 契约版本。编译时由 $(PluginSdkVersion) 注入。" />
+			<_PluginSdkContractLines Include="/// 当前宿主链接的 Plugin SDK 契约版本。编译时由 $(HostVersion) 注入（宿主与 SDK 同步发版）。" />
 			<_PluginSdkContractLines Include="/// 插件通过 plugin.json 的 minPluginSdkVersion 声明所需最低版本，主体程序加载时与此常量比对。" />
 			<_PluginSdkContractLines Include="/// &lt;/summary&gt;" />
 			<_PluginSdkContractLines Include="public static class PluginSdkContract" />
 			<_PluginSdkContractLines Include="{" />
-			<_PluginSdkContractLines Include='    public const string CurrentVersion = "$(PluginSdkVersion)"%3B' />
+			<_PluginSdkContractLines Include='    public const string CurrentVersion = "$(HostVersion)"%3B' />
 			<_PluginSdkContractLines Include="}" />
 		</ItemGroup>
 		<WriteLinesToFile File="$(IntermediateOutputPath)PluginSdkContract.g.cs" Lines="@(_PluginSdkContractLines)" Overwrite="true" Encoding="UTF-8" />

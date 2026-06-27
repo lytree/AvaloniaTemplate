@@ -16,9 +16,9 @@
     </PropertyGroup>
 
     <!--
-        主机程序集版本绑定（Launcher / UI / Platforms.Abstractions / Platforms.*）
+        宿主与 SDK 共用 HostVersion（统一发版）。
         SDK 项目（Generators / Shared）通过 csproj 内 <IsPluginSdkProject>true</IsPluginSdkProject>
-        覆盖为 $(PluginSdkVersion)，不在此处统一。
+        单独声明 Version（仍是 HostVersion），不在此处统一，便于 NuGet 包元数据走 SDK 自己的 PackageId。
         Version / AssemblyVersion / FileVersion 三件套同步，确保运行时 Assembly.GetName().Version 可用。
     -->
     <PropertyGroup Condition="'$(IsPluginSdkProject)' != 'true'">

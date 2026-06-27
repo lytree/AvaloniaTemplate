@@ -30,10 +30,10 @@ return new CakeHost()
 public enum BuildTarget
 {
     None = 0,
+    // Bin 同时构建宿主 launcher 与 SDK NuGet 包（统一发版）
     Bin = 1,
-    NuGet = 2,
     Plugin = 4,
-    All = Bin | NuGet | Plugin
+    All = Bin | Plugin
 }
 
 public class BuildContext : FrostingContext
@@ -41,9 +41,9 @@ public class BuildContext : FrostingContext
     public BuildTarget Target { get; }
     public string BuildConfiguration { get; }
 
-    // 三层独立版本覆盖：留空时由 csproj 真相源（HostVersion / PluginSdkVersion / PluginVersion）决定
+    // 两层独立版本覆盖：留空时由 csproj 真相源（HostVersion / PluginVersion）决定
+    // 注：宿主与 SDK 已合并为同一版本号，--host-version 同时覆盖两层
     public string? HostVersionOverride { get; }
-    public string? PluginSdkVersionOverride { get; }
     public string? PluginVersionOverride { get; }
 
     // 兼容回退：显式传 --package-version 时覆盖所有层（紧急发版用）
@@ -68,23 +68,13 @@ public class BuildContext : FrostingContext
     public string LauncherProject { get; }
     public IReadOnlyList<PluginProjectInfo> PluginProjects { get; }
 
-    // 主机程序集版本覆盖（优先级：--host-version > --package-version > csproj 真相源）
+    // 宿主+SDK 版本覆盖（优先级：--host-version > --package-version > csproj 真相源 HostVersion）
+    // 宿主与 SDK 共用 HostVersion，一份 settings 即可
     public DotNetMSBuildSettings CreateHostMSBuildSettings()
     {
         var settings = BaseSettings();
         if (!string.IsNullOrEmpty(HostVersionOverride))
             settings.SetVersion(HostVersionOverride);
-        else if (!string.IsNullOrEmpty(PackageVersion))
-            settings.SetVersion(PackageVersion);
-        return settings;
-    }
-
-    // 插件 SDK 版本覆盖（优先级：--sdk-version > --package-version > csproj 真相源）
-    public DotNetMSBuildSettings CreateSdkMSBuildSettings()
-    {
-        var settings = BaseSettings();
-        if (!string.IsNullOrEmpty(PluginSdkVersionOverride))
-            settings.SetVersion(PluginSdkVersionOverride);
         else if (!string.IsNullOrEmpty(PackageVersion))
             settings.SetVersion(PackageVersion);
         return settings;
@@ -133,7 +123,6 @@ public class BuildContext : FrostingContext
         Target = ParseBuildTarget(context.Argument("build", "all"));
         BuildConfiguration = context.Argument("configuration", "Release");
         HostVersionOverride = context.Argument("host-version", "");
-        PluginSdkVersionOverride = context.Argument("sdk-version", "");
         PluginVersionOverride = context.Argument("plugin-version", "");
         // 默认空：不覆盖，让 csproj 真相源生效；传值则全覆盖（兼容旧用法）
         PackageVersion = context.Argument("package-version", "");
@@ -215,9 +204,10 @@ public class BuildContext : FrostingContext
             {
                 "all" => BuildTarget.All,
                 "bin" => BuildTarget.Bin,
-                "nuget" => BuildTarget.NuGet,
+                // 兼容：nuget 已与 bin 合并，等价映射
+                "nuget" => BuildTarget.Bin,
                 "plugin" => BuildTarget.Plugin,
-                _ => throw new ArgumentException($"Unknown build target: '{part}'. Valid values: all, bin, nuget, plugin")
+                _ => throw new ArgumentException($"Unknown build target: '{part}'. Valid values: all, bin, plugin")
             };
         }
         return result == BuildTarget.None ? BuildTarget.All : result;
@@ -243,19 +233,16 @@ public sealed class CleanTask : FrostingTask<BuildContext>
     {
         var target = context.Target;
 
-        if (target.HasFlag(BuildTarget.NuGet))
+        // Bin 同时清理 SDK 与宿主产物
+        if (target.HasFlag(BuildTarget.Bin))
         {
             CleanDirectoryIfExists(context, context.NuGetPackagesDir);
+            CleanDirectoryIfExists(context, context.BinPackagesDir);
 
             CleanDirectoryIfExists(context, Path.Combine(context.RootDir, "src", "Avalonia.Plugin.Generators", "bin"));
             CleanDirectoryIfExists(context, Path.Combine(context.RootDir, "src", "Avalonia.Plugin.Generators", "obj"));
             CleanDirectoryIfExists(context, Path.Combine(context.RootDir, "src", "Avalonia.Plugin.Shared", "bin"));
             CleanDirectoryIfExists(context, Path.Combine(context.RootDir, "src", "Avalonia.Plugin.Shared", "obj"));
-        }
-
-        if (target.HasFlag(BuildTarget.Bin))
-        {
-            CleanDirectoryIfExists(context, context.BinPackagesDir);
 
             CleanDirectoryIfExists(context, Path.Combine(context.RootDir, "src", "launcher", "Avalonia.Launcher.Desktop", "bin"));
             CleanDirectoryIfExists(context, Path.Combine(context.RootDir, "src", "launcher", "Avalonia.Launcher.Desktop", "obj"));
@@ -296,48 +283,46 @@ public sealed class BuildTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        // SDK 层：Generators + Shared 用 PluginSdkVersion
-        var sdkSettings = context.CreateSdkMSBuildSettings();
+        var hostSettings = context.CreateHostMSBuildSettings();
 
-        context.DotNetBuild(context.GeneratorsProject, new DotNetBuildSettings
+        // Bin = SDK 编译 + NuGet 打包 + 宿主编译（统一发版）
+        // 关键：NuGet pack 必须在插件 build 之前完成，因为插件 restore 依赖 bin/nuget/ 本地 feed
+        if (context.Target.HasFlag(BuildTarget.Bin))
         {
-            Configuration = context.BuildConfiguration,
-            MSBuildSettings = sdkSettings
-        });
+            // SDK 层：Generators + Shared
+            context.DotNetBuild(context.GeneratorsProject, new DotNetBuildSettings
+            {
+                Configuration = context.BuildConfiguration,
+                MSBuildSettings = hostSettings
+            });
 
-        context.DotNetBuild(context.SharedProject, new DotNetBuildSettings
-        {
-            Configuration = context.BuildConfiguration,
-            MSBuildSettings = sdkSettings
-        });
+            context.DotNetBuild(context.SharedProject, new DotNetBuildSettings
+            {
+                Configuration = context.BuildConfiguration,
+                MSBuildSettings = hostSettings
+            });
 
-        if (context.Target.HasFlag(BuildTarget.NuGet))
-        {
+            // SDK NuGet 打包（NoBuild=true 复用上一步构建结果，输出到 bin/nuget/）
             context.EnsureDirectoryExists(context.NuGetPackagesDir);
-
             context.DotNetPack(context.GeneratorsProject, new DotNetPackSettings
             {
                 Configuration = context.BuildConfiguration,
                 OutputDirectory = context.NuGetPackagesDir,
+                NoRestore = true,
                 NoBuild = true,
-                MSBuildSettings = sdkSettings
+                MSBuildSettings = hostSettings
             });
-
             context.DotNetPack(context.SharedProject, new DotNetPackSettings
             {
                 Configuration = context.BuildConfiguration,
                 OutputDirectory = context.NuGetPackagesDir,
+                NoRestore = true,
                 NoBuild = true,
-                MSBuildSettings = sdkSettings
+                MSBuildSettings = hostSettings
             });
+            context.Log.Information("SDK NuGet packages created in: {0}", context.NuGetPackagesDir);
 
-            context.Log.Information("Plugin NuGet packages created in: {0}", context.NuGetPackagesDir);
-        }
-
-        // 主机层：Launcher 用 HostVersion
-        if (context.Target.HasFlag(BuildTarget.Bin))
-        {
-            var hostSettings = context.CreateHostMSBuildSettings();
+            // 宿主层：Launcher
             context.DotNetBuild(context.LauncherProject, new DotNetBuildSettings
             {
                 Configuration = context.BuildConfiguration,
@@ -346,6 +331,7 @@ public sealed class BuildTask : FrostingTask<BuildContext>
         }
 
         // 插件层：各插件用自己的 PluginVersion（不再被 PackageVersion 覆盖）
+        // 注：插件 restore 依赖 bin/nuget/ 本地 feed，必须等上面的 SDK pack 完成
         if (context.Target.HasFlag(BuildTarget.Plugin))
         {
             foreach (var plugin in context.PluginProjects)
@@ -375,6 +361,14 @@ public sealed class PackBinTask : FrostingTask<BuildContext>
 
     public override void Run(BuildContext context)
     {
+        // SDK NuGet 包已在 BuildTask 阶段产出（必须在插件 restore 之前完成）。
+        // 这里只列出已生成产物，便于发版确认。
+        foreach (var pkg in context.GetFiles(Path.Combine(context.NuGetPackagesDir, "*.nupkg")))
+        {
+            context.Log.Information("  NuGet: {0}", pkg.GetFilename());
+        }
+
+        // 发布宿主 launcher
         context.EnsureDirectoryExists(context.BinPackagesDir);
 
         var settings = new DotNetPublishSettings
@@ -401,49 +395,8 @@ public sealed class PackBinTask : FrostingTask<BuildContext>
     }
 }
 
-[TaskName("PackNuGet")]
-[IsDependentOn(typeof(BuildTask))]
-public sealed class PackNuGetTask : FrostingTask<BuildContext>
-{
-    public override bool ShouldRun(BuildContext context)
-    {
-        return context.Target.HasFlag(BuildTarget.NuGet);
-    }
-
-    public override void Run(BuildContext context)
-    {
-        context.EnsureDirectoryExists(context.NuGetPackagesDir);
-
-        var msBuildSettings = context.CreateSdkMSBuildSettings();
-
-        context.DotNetPack(context.GeneratorsProject, new DotNetPackSettings
-        {
-            Configuration = context.BuildConfiguration,
-            OutputDirectory = context.NuGetPackagesDir,
-            NoRestore = true,
-            NoBuild = true,
-            MSBuildSettings = msBuildSettings
-        });
-
-        context.DotNetPack(context.SharedProject, new DotNetPackSettings
-        {
-            Configuration = context.BuildConfiguration,
-            OutputDirectory = context.NuGetPackagesDir,
-            NoRestore = true,
-            NoBuild = true,
-            MSBuildSettings = msBuildSettings
-        });
-
-        context.Log.Information("NuGet packages created in: {0}", context.NuGetPackagesDir);
-        foreach (var pkg in context.GetFiles(Path.Combine(context.NuGetPackagesDir, "*.nupkg")))
-        {
-            context.Log.Information("  {0}", pkg.GetFilename());
-        }
-    }
-}
-
 [TaskName("LocalInstall")]
-[IsDependentOn(typeof(PackNuGetTask))]
+[IsDependentOn(typeof(PackBinTask))]
 public sealed class LocalInstallTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
@@ -463,7 +416,7 @@ public sealed class LocalInstallTask : FrostingTask<BuildContext>
 }
 
 [TaskName("PushNuGet")]
-[IsDependentOn(typeof(PackNuGetTask))]
+[IsDependentOn(typeof(PackBinTask))]
 public sealed class PushNuGetTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
@@ -619,7 +572,6 @@ public sealed class PackPluginsTask : FrostingTask<BuildContext>
 
 [TaskName("Default")]
 [IsDependentOn(typeof(PackBinTask))]
-[IsDependentOn(typeof(PackNuGetTask))]
 [IsDependentOn(typeof(PackPluginsTask))]
 public class DefaultTask : FrostingTask<BuildContext>
 {
