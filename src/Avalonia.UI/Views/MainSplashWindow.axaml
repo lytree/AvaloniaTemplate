@@ -103,10 +103,10 @@
                     Height="150"
                     CornerRadius="8"
                     ClipToBounds="True"
-                    Background="{DynamicResource FluentHoverBackgroundBrush}">
+                    Background="{DynamicResource FluentSubtleBrush}">
                     <Grid>
                         <Image Source="/Assets/jk-girl.jpg" Stretch="UniformToFill" Opacity="0.82" />
-                        <Border Background="#55000000" />
+                        <Border Background="{DynamicResource SmokeFillColorDefaultBrush}" />
                         <TextBlock
                             Margin="16"
                             VerticalAlignment="Bottom"

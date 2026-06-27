@@ -115,11 +115,67 @@
     <SolidColorBrush x:Key="FluentAccentBrush" Color="#0078D4" />
     <SolidColorBrush x:Key="FluentAccentPointeroverBrush" Color="#106EBE" />
     <SolidColorBrush x:Key="FluentAccentPressedBrush" Color="#005A9E" />
+    <SolidColorBrush x:Key="FluentAccentDisabledBrush" Opacity="0.35" Color="#0078D4" />
     <SolidColorBrush x:Key="FluentCardBackgroundBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="FluentCardStrokeBrush" Color="#E5E5E5" />
     <!-- Layer background (nav pane + title bar, same layer for visual consistency) -->
     <SolidColorBrush x:Key="FluentSubtleBrush" Color="#F3F3F3" />
     <SolidColorBrush x:Key="FluentSubtleHoverBrush" Color="#EDEDED" />
     <SolidColorBrush x:Key="FluentSubtlePressedBrush" Color="#E0E0E0" />
+
+    <!-- ===== Avalonia-Fluent-UI semantic color tokens (WinUI 3 token mapping) ===== -->
+    <!-- Text fill -->
+    <SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="#E4000000" />
+    <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="#9E000000" />
+    <SolidColorBrush x:Key="TextFillColorTertiaryBrush" Color="#72000000" />
+    <SolidColorBrush x:Key="TextFillColorDisabledBrush" Color="#5C000000" />
+    <!-- Text on accent (foreground on top of accent fills) -->
+    <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="TextOnAccentFillColorSecondaryBrush" Opacity="0.9" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="TextOnAccentFillColorDisabledBrush" Opacity="0.6" Color="#FFFFFF" />
+    <!-- Control fill (semi-transparent layering) -->
+    <SolidColorBrush x:Key="ControlFillColorDefaultBrush" Opacity="0.7" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ControlFillColorSecondaryBrush" Opacity="0.5" Color="#F9F9F9" />
+    <SolidColorBrush x:Key="ControlFillColorTertiaryBrush" Opacity="0.3" Color="#F9F9F9" />
+    <SolidColorBrush x:Key="ControlFillColorDisabledBrush" Opacity="0.3" Color="#F9F9F9" />
+    <SolidColorBrush x:Key="ControlFillColorTransparentBrush" Color="Transparent" />
+    <!-- Accent fill (button backgrounds) -->
+    <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#0078D4" />
+    <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#106EBE" />
+    <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#005A9E" />
+    <SolidColorBrush x:Key="AccentFillColorDisabledBrush" Opacity="0.35" Color="#0078D4" />
+    <!-- Subtle fill (hover/press backgrounds) -->
+    <SolidColorBrush x:Key="SubtleFillColorSecondaryBrush" Opacity="0.5" Color="#F9F9F9" />
+    <SolidColorBrush x:Key="SubtleFillColorTertiaryBrush" Opacity="0.3" Color="#F9F9F9" />
+    <SolidColorBrush x:Key="SubtleFillColorDisabledBrush" Opacity="0.3" Color="#F9F9F9" />
+    <!-- Strokes -->
+    <SolidColorBrush x:Key="ControlStrokeColorDefaultBrush" Opacity="0.06" Color="#000000" />
+    <SolidColorBrush x:Key="ControlStrokeColorSecondaryBrush" Opacity="0.18" Color="#000000" />
+    <SolidColorBrush x:Key="CardStrokeColorDefaultBrush" Opacity="0.06" Color="#000000" />
+    <SolidColorBrush x:Key="DividerStrokeColorDefaultBrush" Opacity="0.08" Color="#000000" />
+    <SolidColorBrush x:Key="ControlStrongStrokeColorDefaultBrush" Opacity="0.36" Color="#000000" />
+    <!-- Smoke / overlay (modal dimming) -->
+    <SolidColorBrush x:Key="SmokeFillColorDefaultBrush" Color="#55000000" />
+
+    <!-- Control elevation border (gradient) — top darker, bottom lighter.
+         GradientStop.Color requires a Color literal (cannot use brush resource). -->
+    <LinearGradientBrush x:Key="ControlElevationBorderBrush" TransformOrigin="50%,50%" StartPoint="0,0" EndPoint="0,2">
+        <LinearGradientBrush.Transform>
+            <ScaleTransform ScaleY="-1" />
+        </LinearGradientBrush.Transform>
+        <LinearGradientBrush.GradientStops>
+            <GradientStop Offset="0.5" Color="#5C000000" />
+            <GradientStop Offset="1.0" Color="#0F000000" />
+        </LinearGradientBrush.GradientStops>
+    </LinearGradientBrush>
+
+    <!-- Sizing tokens -->
+    <x:Double x:Key="ControlCornerRadius">4</x:Double>
+    <x:Double x:Key="CardCornerRadius">8</x:Double>
+    <x:Double x:Key="OverlayCornerRadius">8</x:Double>
+    <Thickness x:Key="ButtonBorderThemeThickness">1</Thickness>
+    <Thickness x:Key="CardBorderThickness">1</Thickness>
+    <Thickness x:Key="CardPadding">16</Thickness>
+    <Thickness x:Key="ButtonPadding">16,8</Thickness>
 
 </ResourceDictionary>

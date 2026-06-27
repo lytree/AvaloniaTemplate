@@ -86,6 +86,132 @@ Program.cs → App.Initialize()
 | **Localization** | `ILocalizationService` stacks `.resx` `ResourceManager` instances. Plugins register theirs in `Initialize()`. |
 | **Plugin lifecycle** | `NotInstalled → Installed → Loaded → Disabled → PendingUninstall`. State changes fire events for UI. |
 
+## UI 组件与样式规范（强制）
+
+所有 Host UI 与插件 UI 必须遵守以下选型与风格规则。违反规则的 UI 代码视为需重构。
+
+### 1. 组件选型优先级（从高到低）
+
+| 优先级 | 来源 | 用法示例 | 适用场景 |
+|--------|------|---------|---------|
+| 1 | **Irihi.Ursa**（`u:` 命名空间） | `<u:Button />`、`<u:Banner />`、`<u:NavMenu />`、`<u:Form />`、`<u:NumericUpDown />`、`<u:TagInput />`、`<u:IPv4Box />`、`<u:TimeBox />`、`<u:Avatar />`、`<u:Card />`、`<u:Badge />`、`<u:Loading />`、`<u:Breadcrumb />`、`<u:Dialog />`、`<u:Drawer />` | 默认首选。所有通用控件优先用 Ursa。 |
+| 2 | **Avalonia 内置控件**（无 `u:` 前缀） | `<Button />`、`<TextBox />`、`<CheckBox />`、`<ComboBox />`、`<ListBox />`、`<TreeView />`、`<TabControl />`、`<ProgressBar />`、`<Slider />`、`<DatePicker />`、`<DataGrid />` | Ursa 未覆盖或场景不适合 Ursa 时使用。DataGrid 已应用 `<datagrid:DataGridFluentTheme />`。 |
+| 3 | **项目自定义 Fluent 补充样式**（`src/Avalonia.UI/Theme/FluentDesign/FluentDesignStyles.axaml`） | `Button.FluentSettingsCard`、`Border.FluentInfoBadge`、`ProgressBar.circular.FluentProgressRing`、`Button.FluentBreadcrumbItem`、`Border.FluentContentDialogSurface` | Ursa 未提供的 WinUI 风格控件。详见下表。 |
+| 4 | **CommunityToolkit.Mvvm** | `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]` | ViewModel 基础设施（与组件选型并列，但所有 VM 必须用此库）。 |
+
+**禁止**：直接引入 `Avalonia-Fluent-UI`（`AvaloniaFluentUI` NuGet/项目引用）整库。该库与 Irihi.Ursa 大量功能重叠且未发布到 NuGet，仅在风格上作为参考。需要 WinUI 风格控件时，使用上述第 3 级的项目内补充样式。
+
+### 2. 自定义 Fluent 补充样式速查表
+
+所有补充样式位于 `src/Avalonia.UI/Theme/FluentDesign/FluentDesignStyles.axaml`，通过 `UrsaSemiTheme` 自动加载，无需手动 `<StyleInclude>`。
+
+| 类名 | 控件类型 | 替代的 WinUI 控件 | 用途 |
+|------|---------|------------------|------|
+| `FluentSettingsCard` | `Border` 或 `Button` | `SettingsExpander` / `SettingCard` | 设置页条目：左图标 + 标题 + 描述 + 右内容 |
+| `FluentSettingsCardTitle` / `FluentSettingsCardDescription` / `FluentSettingsCardIconHost` | `TextBlock` / `Border` | — | SettingsCard 内部子元素样式 |
+| `FluentInfoBadge` (+ `.FluentInfoBadgeCritical/Warning/Informational/Success`) | `Border` | `InfoBadge` | 数值或状态徽章 |
+| `FluentInfoBadgeText` | `TextBlock` | — | InfoBadge 内数字 |
+| `FluentInfoBadgeDot` | `Ellipse` | `InfoBadge` (dot) | 点状徽章 |
+| `FluentProgressRing` (+ `.Small` / `.Large`) | `ProgressBar` (Classes=`circular`) | `ProgressRing` | 圆环进度（确定性或 `IsIndeterminate="True"`） |
+| `FluentBreadcrumbItem` | `Button` | `BreadcrumbBar` 项 | 面包屑导航可点击项 |
+| `FluentBreadcrumbCurrent` / `FluentBreadcrumbSeparator` | `TextBlock` | — | 当前节点 / 分隔符 |
+| `FluentContentDialogSurface` / `FluentContentDialogTitle` / `FluentContentDialogBody` / `FluentContentDialogButtonRow` | `Border` / `TextBlock` / `StackPanel` | `ContentDialog` | 模态对话框外观（控件仍走 Ursa `Dialog` API） |
+| `FluentNumeric` | `u:NumericUpDown` | `NumberBox` | Ursa NumericUpDown 的 Fluent 边框微调 |
+| `FluentTagInput` | `u:TagInput` | — | Ursa TagInput 的 Fluent 边框微调 |
+
+**示例**：
+```xml
+<!-- SettingsCard -->
+<Border Classes="FluentSettingsCard">
+    <Grid ColumnDefinitions="Auto,*,Auto">
+        <Border Classes="FluentSettingsCardIconHost" Grid.Column="0">
+            <Image Source="{DynamicResource FluentIconSettings}" Width="16" Height="16" />
+        </Border>
+        <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
+            <TextBlock Classes="FluentSettingsCardTitle" Text="主题" />
+            <TextBlock Classes="FluentSettingsCardDescription" Text="选择浅色或深色外观" />
+        </StackPanel>
+        <u:ToggleSwitch Grid.Column="2" IsChecked="{Binding EnableDarkMode}" />
+    </Grid>
+</Border>
+
+<!-- InfoBadge -->
+<Border Classes="FluentInfoBadge FluentInfoBadgeCritical" VerticalAlignment="Top">
+    <TextBlock Classes="FluentInfoBadgeText" Text="3" />
+</Border>
+
+<!-- ProgressRing -->
+<ProgressBar Classes="circular FluentProgressRing" IsIndeterminate="True" />
+
+<!-- Breadcrumb -->
+<ItemsControl ItemsSource="{Binding BreadcrumbSegments}">
+    <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+    </ItemsControl.ItemsPanel>
+    <ItemsControl.ItemTemplate>
+        <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+                <Button Classes="FluentBreadcrumbItem" Content="{Binding Title}" Command="{Binding NavigateCommand}" />
+                <TextBlock Classes="FluentBreadcrumbSeparator" Text="/" />
+            </StackPanel>
+        </DataTemplate>
+    </ItemsControl.ItemTemplate>
+</ItemsControl>
+```
+
+### 3. 样式风格约束（限定 Fluent-UI 风格）
+
+- **唯一允许的视觉风格**：Fluent Design System（WinUI 3 风格）。
+- **禁止**直接使用 Semi 风格的硬编码色值。Semi 资源键（如 `SemiColorText0`、`SemiColorText1`、`SemiColorText2`、`SemiColorDanger`、`SemiColorWarning`、`SemiColorSuccess`、`SemiColorPrimary`）**仅作为动态资源引用**，由 `UrsaSemiTheme` 的 ThemeDictionary 自动映射到 Fluent 配色，不允许在 XAML 中写死颜色字面量（如 `#FF0078D4`）。
+- **颜色资源层级**：
+  1. Fluent 语义资源（首选）：`FluentAccentBrush`、`FluentAccentPointeroverBrush`、`FluentAccentPressedBrush`、`FluentCardBackgroundBrush`、`FluentCardStrokeBrush`、`FluentSubtleBrush`、`FluentSubtleHoverBrush`、`FluentSubtlePressedBrush`
+  2. Semi 语义资源（次选，由 UrsaSemiTheme 自动适配到 Fluent 配色）：`SemiColorText0/1/2`、`SemiColorPrimary`、`SemiColorDanger`、`SemiColorWarning`、`SemiColorSuccess`、`SemiColorInfo`
+  3. 字面量颜色（仅用于阴影 `BoxShadow`、`Opacity` mask 等无法用语义资源表达的场景）：使用 `#XXRRGGBB` 格式，且必须注释说明原因
+- **圆角规范**：卡片 8px、徽章/小按钮 4px、点状元素圆形（`CornerRadius="0"` + `CornerRadius` 全值 = 宽/2）。
+- **间距规范**：内边距遵循 12/16/24 三档；元素间用 `Spacing` 而非 `Margin`。
+- **动画规范**：颜色/画刷过渡统一用 `BrushTransition`，时长 `0:0:0.15`；阴影过渡用 `BoxShadowsTransition`。复杂动画引用 `Theme/Animations/` 下的 `DefaultSizeAnimations`、`NavMenuSizeAnimations`、`SemiPopupAnimations`。
+- **主题入口**：所有样式通过 `src/Avalonia.UI/Theme/UrsaSemiTheme.axaml` 注册，应用入口 `App.axaml` 仅引用 `<fluent:FluentTheme />` + `<theme:UrsaSemiTheme />` + `<sizeanimations:SemiPopupAnimations />` + `<datagrid:DataGridFluentTheme />`，**不要**在 `App.axaml` 中追加额外 `<StyleInclude>`。
+
+### 4. 图标使用规则（优先 Fluent-UI icon）
+
+- **首选图标集**：Fluent Icons（Microsoft Fluent UI System Icons）。资源位于 `src/Avalonia.UI/Theme/Icons/Fluent/`，按 `Regular/Filled` × `16/20/24/28/32/48` 切分。
+- **图标资源键命名规范**：`FluentIcon{Size}{Variant}{Name}`，例如：
+  - `FluentIcon24RegularSettings`
+  - `FluentIcon20FilledWarning`
+  - `FluentIcon16RegularChevronDown`
+- **图标引用方式**（按控件类型选择）：
+  1. **`PathIcon` / `Image`**（首选，矢量）：
+     ```xml
+     <PathIcon Data="{DynamicResource FluentIcon24RegularSettings}" Width="20" Height="20" />
+     <!-- 或 -->
+     <Image Source="{DynamicResource FluentIcon24RegularSettings}" Width="20" Height="20" />
+     ```
+  2. **`Button.Content`**（按钮内图标）：
+     ```xml
+     <Button Classes="FluentSettingsCard">
+         <PathIcon Data="{DynamicResource FluentIcon24RegularSettings}" />
+     </Button>
+     ```
+  3. **Ursa `IconButton`**（推荐用于纯图标按钮）：
+     ```xml
+     <u:IconButton Icon="{DynamicResource FluentIcon24RegularSettings}" />
+     ```
+- **次选图标集**：项目自定义 `Semi` 风格图标（`src/Avalonia.UI/Theme/Icons/_index.axaml` 中以 `SemiIcon` 开头的资源键，如 `SemiIconChevronDown`）。仅当 Fluent Icons 中找不到对应图标时使用，且需在代码注释中说明原因。
+- **禁止**：硬编码 `Geometry.Parse("...")` 字面量路径。所有路径必须以 `StreamGeometry` 资源形式定义在 `Theme/Icons/` 下。
+- **新增 Fluent 图标流程**：
+  1. 从 [Fluent UI System Icons](https://github.com/microsoft/fluentui-system-icons) 获取 SVG path
+  2. 转换为 `<StreamGeometry x:Key="FluentIcon{Size}{Variant}{Name}">path data</StreamGeometry>`
+  3. 追加到对应尺寸的 `Theme/Icons/Fluent/{Variant}{Size}.axaml`
+  4. 在 XAML 中以 `{DynamicResource FluentIcon...}` 引用
+
+### 5. ViewModel 与数据绑定
+
+- **ViewModel 基类**：所有 VM 继承 `CommunityToolkit.Mvvm.ComponentModel.ObservableObject` 或项目 `ViewModelBase`。
+- **属性**：用 `[ObservableProperty]` 自动生成 INPC。**禁止**手写 `private T _field; public T Foo { get => _field; set => SetProperty(ref _field, value); }`。
+- **命令**：用 `[RelayCommand]` 自动生成 `ICommand`。**禁止**手写 `RelayCommand`/`DelegateCommand` 实例。
+- **CompiledBindings**：`AvaloniaUseCompiledBindingsByDefault=true`（已全局开启）。所有 `Binding` 必须有正确的 `x:DataType`，避免运行时反射开销。
+- **MVVM Toolkit 源生成器**：partial VM 类必须标注 `[INotifyPropertyChanged]` 或继承 `ObservableObject`，否则 `[ObservableProperty]` 不会生成。
+
 ## Package & Framework Versions
 
 All versions centralized as MSBuild properties in `src/Directory.Packages.props`:

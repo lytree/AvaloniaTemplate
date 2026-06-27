@@ -39,7 +39,7 @@
 						Command="{Binding ToggleCollapseCommand}"
 						VerticalAlignment="Center">
 						<PathIcon Width="20" Height="20"
-							Data="{StaticResource SemiIconMenu}"
+							Data="{DynamicResource FluentLineHorizontal320Regular}"
 							Foreground="{DynamicResource SemiColorText0}" />
 					</Button>
 
@@ -52,8 +52,13 @@
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
 						PlaceholderText="{DynamicResource SEARCH_PLACEHOLDER}"
-						Text="{Binding SearchText, Mode=TwoWay}"
-						InnerLeftContent="{StaticResource SemiIconSearch}" />
+						Text="{Binding SearchText, Mode=TwoWay}">
+						<TextBox.InnerLeftContent>
+							<Path Width="14" Height="14"
+								Data="{DynamicResource FluentSearch20Regular}"
+								Fill="{DynamicResource SemiColorText2}" />
+						</TextBox.InnerLeftContent>
+					</TextBox>
 
 					<!-- Col 2: Action Buttons -->
 					<StackPanel
@@ -65,7 +70,7 @@
 						<u:IconButton
 							Theme="{StaticResource BorderlessIconButton}"
 							Classes="Tertiary"
-							Icon="{StaticResource Icon_About}"
+							Icon="{DynamicResource FluentInfo20Regular}"
 							Click="JumpToAbout" />
 						<u:IconButton
 							Theme="{StaticResource BorderlessIconButton}"
@@ -132,7 +137,7 @@
 						</u:NavMenu.HeaderTemplate>
 						<u:NavMenu.Footer>
 							<StackPanel HorizontalAlignment="Stretch" Margin="0,0,0,8">
-								<Border Classes="WinUIDivider" Margin="8,0,8,8" />
+								<Border Classes="FluentDivider" Margin="8,0,8,8" />
 								<StackPanel.Styles>
 									<Style Selector="Button.NavFooterItem">
 										<Setter Property="Foreground" Value="{DynamicResource SemiColorText1}" />
@@ -158,10 +163,10 @@
 									CommandParameter="Settings">
 									<Grid ColumnDefinitions="Auto, *">
 										<PathIcon
-											Width="20" Height="20"
-											Margin="14,8,8,8"
-											Data="{StaticResource SemiIconSetting}"
-											Foreground="{DynamicResource SemiColorText1}" />
+										Width="20" Height="20"
+										Margin="14,8,8,8"
+										Data="{DynamicResource FluentSettings20Regular}"
+										Foreground="{DynamicResource SemiColorText1}" />
 										<TextBlock
 											Grid.Column="1"
 											Margin="0,8,8,8"
@@ -183,10 +188,10 @@
 									CommandParameter="PluginManagement">
 									<Grid ColumnDefinitions="Auto, *">
 										<PathIcon
-											Width="20" Height="20"
-											Margin="14,8,8,8"
-											Data="{StaticResource SemiIconPuzzle}"
-											Foreground="{DynamicResource SemiColorText1}" />
+										Width="20" Height="20"
+										Margin="14,8,8,8"
+										Data="{DynamicResource FluentPuzzlePiece20Regular}"
+										Foreground="{DynamicResource SemiColorText1}" />
 										<TextBlock
 											Grid.Column="1"
 											Margin="0,8,8,8"
