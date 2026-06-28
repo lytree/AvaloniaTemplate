@@ -80,10 +80,10 @@ public class PluginLoader : IPluginLoader, IDisposable
             }
         }
 
-        lock (_sync)
-        {
-            LoadExtraPlugins();
-        }
+        // 修复：原在 lock(_sync) 内调用同步的 LoadExtraPlugins()，其内部又通过
+        // DiscoverPluginAssemblyAsync(...).GetAwaiter().GetResult() 实现 sync-over-async，
+        // 在 UI 线程上易导致死锁。改为在锁外异步等待。
+        await LoadExtraPluginsAsync();
     }
 
     /// <summary>
@@ -543,15 +543,13 @@ public class PluginLoader : IPluginLoader, IDisposable
         }
     }
 
-    private void LoadExtraPlugins()
+    private async Task LoadExtraPluginsAsync()
     {
         if (string.IsNullOrWhiteSpace(_extraPluginPath) || !Directory.Exists(_extraPluginPath))
             return;
 
-        foreach (var dllPath in Directory.GetFiles(_extraPluginPath, "*.dll", SearchOption.TopDirectoryOnly))
-        {
-            TryLoadExtraPluginDll(dllPath);
-        }
+        var dllPaths = new List<string>(
+            Directory.GetFiles(_extraPluginPath, "*.dll", SearchOption.TopDirectoryOnly));
 
         foreach (var subDir in Directory.GetDirectories(_extraPluginPath))
         {
@@ -559,12 +557,17 @@ public class PluginLoader : IPluginLoader, IDisposable
             var candidateDll = Path.Combine(subDir, $"{dirName}.dll");
             if (File.Exists(candidateDll))
             {
-                TryLoadExtraPluginDll(candidateDll);
+                dllPaths.Add(candidateDll);
             }
+        }
+
+        foreach (var dllPath in dllPaths)
+        {
+            await TryLoadExtraPluginDllAsync(dllPath);
         }
     }
 
-    private void TryLoadExtraPluginDll(string dllPath)
+    private async Task TryLoadExtraPluginDllAsync(string dllPath)
     {
         try
         {
@@ -588,7 +591,7 @@ public class PluginLoader : IPluginLoader, IDisposable
                 IsBuiltIn = false
             };
 
-            DiscoverPluginAssemblyAsync(pluginInfo).GetAwaiter().GetResult();
+            await DiscoverPluginAssemblyAsync(pluginInfo);
         }
         catch (Exception ex)
         {
@@ -748,8 +751,72 @@ public class PluginLoader : IPluginLoader, IDisposable
         }
     }
 
+    /// <summary>
+    /// 优雅关闭所有已加载插件：调用 IPlugin.ShutdownAsync()。
+    /// 应在应用退出流程中、ServiceProvider Dispose 之前调用。
+    /// 单个插件 ShutdownAsync 抛异常不会中断其他插件的关闭。
+    /// </summary>
+    public async Task ShutdownAllPluginsAsync()
+    {
+        List<IPlugin> pluginsToShutdown;
+        lock (_sync)
+        {
+            pluginsToShutdown = _entries.Values
+                .Where(e => e.Plugin is not null && e.Info.State == PluginState.Loaded)
+                .Select(e => e.Plugin!)
+                .ToList();
+        }
+
+        foreach (var plugin in pluginsToShutdown)
+        {
+            try
+            {
+                await plugin.ShutdownAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Plugin ShutdownAsync failed: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 标记插件为错误状态并持久化 manifest。
+    /// 用于插件初始化/注册之外（如导航注册）发现插件不可恢复故障时调用。
+    /// </summary>
+    public void MarkPluginError(string pluginId, string errorMessage)
+    {
+        PluginInfo? info = null;
+        lock (_sync)
+        {
+            if (!_entries.TryGetValue(pluginId, out var entry)) return;
+            info = entry.Info.WithState(PluginState.Error, errorMessage);
+            entry.Info = info;
+            SavePluginManifest(info);
+            InvalidateSnapshot();
+        }
+
+        if (info is not null)
+        {
+            PluginStateChanged?.Invoke(this, info);
+        }
+    }
+
     public void Dispose()
     {
+        // 修复：原 Dispose 仅 ALC.Unload，未调用 IPlugin.ShutdownAsync，
+        // 插件持有的原生资源（如 TdLib 客户端、文件句柄）无法被显式释放。
+        // 改为同步等待 ShutdownAllPluginsAsync 完成后再卸载 ALC。
+        // Dispose 是同步方法，使用 Task.Run 避免在 UI 线程上 sync-over-async 死锁。
+        try
+        {
+            Task.Run(() => ShutdownAllPluginsAsync()).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ShutdownAllPluginsAsync failed during Dispose: {ex.Message}");
+        }
+
         lock (_sync)
         {
             foreach (var entry in _entries.Values)
@@ -766,18 +833,19 @@ public class PluginLoader : IPluginLoader, IDisposable
 
     /// <summary>
     /// 校验插件声明的 MinPluginSdkVersion 是否被当前宿主链接的 Plugin SDK 满足。
-    /// 规则：required &lt;= current 即兼容。null/空/解析失败均视为无约束（通过）。
+    /// 规则：required &lt;= current 即兼容。null/空视为无约束（通过）。
     /// 仅比较 Major.Minor.Build 三段；预发布标签忽略。
+    /// 解析失败：拒绝加载（fail-closed）。版本不明不应放行，避免不兼容插件运行时崩溃。
     /// </summary>
-    private static bool IsPluginSdkCompatible(string? required)
+    public static bool IsPluginSdkCompatible(string? required)
     {
         if (string.IsNullOrWhiteSpace(required)) return true;
 
         if (!TryParseSemVer(required, out var reqMajor, out var reqMinor, out var reqBuild))
-            return true; // 无法解析则放行（避免误拒合法插件）
+            return false; // 修复：解析失败拒绝放行（fail-closed），避免误判不兼容插件
 
         if (!TryParseSemVer(PluginSdkContract.CurrentVersion, out var curMajor, out var curMinor, out var curBuild))
-            return true; // 宿主 SDK 版本无法解析时放行（保守策略：交由上层处理）
+            return false; // 宿主 SDK 版本无法解析时拒绝（fail-closed）
 
         if (curMajor != reqMajor) return curMajor > reqMajor;
         if (curMinor != reqMinor) return curMinor > reqMinor;

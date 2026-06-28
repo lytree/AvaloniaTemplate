@@ -1,90 +1,104 @@
 # AvaloniaTemplate — AGENTS.md
 
-Compact guidance for OpenCode agents working in this repository.
+OpenCode 智能体在本仓库工作时的精简指南。
 
-## Build & Run
+## 构建与运行
 
-- **Build system**: Cake Frosting (`build/build.cs` — .NET 10 file-based app, Cake 6.1.0). Call via `.\build.ps1` (Windows) or `./build.sh` (Linux/macOS).
+- **构建系统**：Cake Frosting（`build/build.cs` — .NET 10 文件化应用，Cake 6.1.0）。通过 `.\build.ps1`（Windows）或 `./build.sh`（Linux/macOS）调用。
   ```
-  .\build.ps1 --build=all                    # default: bin (launcher + NuGet) + plugin
-  .\build.ps1 --build=bin                    # build launcher + pack SDK NuGet packages (host & SDK 同版本号，统一发版)
-  .\build.ps1 --build=plugin                 # build & zip all plugins
-  .\build.ps1 --configuration=Debug          # override config (default: Release)
-  .\build.ps1 --package-version=1.2.3        # set version (default: 1.0.0)
-  .\build.ps1 --runtime-identifier=win-x64   # set RID for launcher publish
-  .\build.ps1 --self-contained=true          # self-contained launcher publish
-  .\build.ps1 --nuget-api-key=<KEY>          # push packages to nuget.org
+  .\build.ps1 --build=all                    # 默认：bin（启动器 + NuGet）+ plugin
+  .\build.ps1 --build=bin                    # 构建启动器 + 打包 SDK NuGet 包（host 与 SDK 同版本号，统一发版）
+  .\build.ps1 --build=plugin                 # 构建并打包所有插件为 zip
+  .\build.ps1 --configuration=Debug          # 覆盖配置（默认：Release）
+  .\build.ps1 --package-version=1.2.3        # 设置版本（默认：1.0.0）
+  .\build.ps1 --runtime-identifier=win-x64   # 设置启动器发布的 RID
+  .\build.ps1 --self-contained=true          # 启动器自包含发布
+  .\build.ps1 --nuget-api-key=<KEY>          # 推送包到 nuget.org
   ```
-- **Build order matters**: `--build=bin` must run first before `--build=plugin` (or use `--build=all`), because `--build=bin` now packs the SDK NuGet packages and plugins depend on `Avalonia.Plugin.Generators` + `Avalonia.Plugin.Shared` locally built NuGet packages.
-- **Direct `dotnet build`** works for individual projects, but plugins may fail to restore without the local NuGet packages pre-built (use `--build=bin` or ensure `bin/nuget/` has the `.nupkg` files). `--build=nuget` is kept as a compatibility alias for `--build=bin`.
-- **Run launcher**: `dotnet run --project src/launcher/Avalonia.Launcher.Desktop`
-- **VS Code debug**: Use the "Debug Plugin - {Name}" launch configs — each sets `AVALONIA_EXTRA_PLUGINS_PATH` to the plugin's `bin/Debug/net10.0` output for live dev loading.
-- **No tests**, no CI workflows, no linters/formatters configured.
+- **构建顺序很重要**：`--build=bin` 必须先于 `--build=plugin` 运行（或直接使用 `--build=all`），因为 `--build=bin` 会打包 SDK NuGet 包，而插件依赖本地构建的 `Avalonia.Plugin.Generators` + `Avalonia.Plugin.Shared` NuGet 包。
+- **直接 `dotnet build`** 可用于单个项目，但若未预先构建本地 NuGet 包，插件可能还原失败（使用 `--build=bin` 或确保 `bin/nuget/` 下有 `.nupkg` 文件）。`--build=nuget` 保留为 `--build=bin` 的兼容别名。
+- **运行启动器**：`dotnet run --project src/launcher/Avalonia.Launcher.Desktop`
+- **VS Code 调试**：使用 "Debug Plugin - {Name}" 启动配置 — 每个配置将 `AVALONIA_EXTRA_PLUGINS_PATH` 指向插件的 `bin/Debug/net10.0` 输出目录，用于开发期实时加载。
+- **无测试**，无 CI 工作流，未配置 linter/formatter。
 
-## Architecture
+## 架构
 
-### Two solutions
-| Solution | Contents |
+### 两个解决方案
+| 解决方案 | 内容 |
 |----------|----------|
-| `Core.slnx` | Host: Generators, Shared, UI, Launcher, Platforms.Abstractions |
-| `Plugins.slnx` | Generators, Shared, all `plugins/*` projects (10 plugins) |
+| `Core.slnx` | 宿主：Generators、Shared、UI、Launcher、Platforms.Abstractions |
+| `Plugins.slnx` | Generators、Shared、所有 `plugins/*` 项目（10 个插件） |
 
-### Project layers (src/)
+### 项目分层（src/）
 ```
-Avalonia.Plugin.Generators/        Roslyn incremental source generator (netstandard2.1, IsRoslynComponent)
-Avalonia.Plugin.Shared/            Shared contracts: IPlugin, IPluginMetadata, ViewLocator, ServiceLocator, attributes, controls
-Avalonia.Platforms.Abstractions/   Cross-platform abstraction base classes (empty README only)
-Avalonia.UI/                       Host app: ViewModels, Views, Services (EF Core, navigation, menu, localization, ZLogger)
-Avalonia.Launcher.Desktop/         Desktop entry point (Program.cs → App.axaml.cs). Sets AvaloniaUseCompiledBindingsByDefault=true.
+Avalonia.Plugin.Generators/        Roslyn 增量源生成器（netstandard2.1，IsRoslynComponent）
+Avalonia.Plugin.Shared/            共享契约：IPlugin、IPluginMetadata、ViewLocator、ServiceLocator、特性、控件
+Avalonia.Platforms.Abstractions/   跨平台抽象基类（仅空 README）
+Avalonia.UI/                       宿主应用：ViewModels、Views、Services（EF Core、导航、菜单、本地化、ZLogger）
+Avalonia.Launcher.Desktop/         桌面入口（Program.cs → App.axaml.cs）。设置 AvaloniaUseCompiledBindingsByDefault=true。
 ```
 
-### Platform-specific projects
-`src/platforms/` contains:
+### 平台特定项目
+`src/platforms/` 包含：
 - `Avalonia.Platforms.Windows` — `net10.0-windows10.0.19041.0`
 - `Avalonia.Platforms.MacOs` — `net10.0-macos15.0`
 - `Avalonia.Platforms.Linux` — `net10.0`
 
-### Plugin projects (plugins/)
-Each plugin is a `net10.0` library referencing `Avalonia.Plugin.Generators` (analyzer, `OutputItemType="Analyzer"`, `ReferenceOutputAssembly="false"`) and `Avalonia.Plugin.Shared` (`PrivateAssets="all"`). Plugin metadata is declared via MSBuild properties:
+### 插件项目（plugins/）
+每个插件是 `net10.0` 类库，引用 `Avalonia.Plugin.Generators`（analyzer，`OutputItemType="Analyzer"`，`ReferenceOutputAssembly="false"`）和 `Avalonia.Plugin.Shared`（`PrivateAssets="all"`）。插件元数据通过 MSBuild 属性声明：
 ```xml
 <PluginId>UUID</PluginId>
 <PluginName>...</PluginName>
 <PluginAuthor>...</PluginAuthor>
 <PluginDescription>...</PluginDescription>
-<PluginVersion>1.0.0</PluginVersion>  <!-- optional, falls back to <Version> -->
+<PluginVersion>1.0.0</PluginVersion>  <!-- 可选，缺省回退到 <Version> -->
 ```
 
-10 plugins: ButtonsInputs, DateTime, DialogFeedbacks, Downloader, LayoutDisplay, NavigationMenus, ProDataGrid, ScottPlot, TDLSharp, Template.
+10 个插件：ButtonsInputs、DateTime、DialogFeedbacks、Downloader、LayoutDisplay、NavigationMenus、ProDataGrid、ScottPlot、TDLSharp、Template。
 
-### App startup flow
+### 应用启动流程
 ```
 Program.cs → App.Initialize()
-  1. Build DI container via ServiceCollectionExtensions.AddAvaloniaServices()
-  2. ServiceLocator.Initialize(provider) — static gateway for plugin code
-  3. InitializeDatabase() — SQLite via EF Core (AppDbContext)
-  4. InitializeLocalization() — restore saved locale
-  5. LoadPluginsAsync() — discover, load, and register all plugins
-  6. OnFrameworkInitializationCompleted() → show splash, then MainWindow
+  1. 通过 ServiceCollectionExtensions.AddAvaloniaServices() 构建 DI 容器
+  2. ServiceLocator.Initialize(provider) — 插件代码使用的静态网关
+  3. InitializeDatabase() — 通过 EF Core 初始化 SQLite（AppDbContext）
+  4. InitializeLocalization() — 恢复已保存的语言设置
+  5. LoadPluginsAsync() — 发现、加载并注册所有插件
+  6. OnFrameworkInitializationCompleted() → 显示启动闪屏，然后显示 MainWindow
 ```
 
-### Plugin loading & assembly exclusion
-- Each plugin loads in an isolated, collectible `AssemblyLoadContext`
-- Framework/shared assemblies are forwarded to the default context (exclusion list in `Avalonia.Plugin.Shared.props`/`.targets`)
-- Plugins auto-generate `plugin.json` manifests via the `GeneratePluginManifest` target (from `Avalonia.Plugin.Shared.targets`)
-- Discovery: scans `{AppBaseDir}/plugins/` and `AVALONIA_EXTRA_PLUGINS_PATH` env var
-- Built output: `bin/plugins/{Name}/publish/` (publish directory) + `bin/plugins/zip/{Name}-{Version}.zip` (stripped of .pdb, .xml, .deps.json, .runtimeconfig.json)
+### 插件加载与程序集排除
+- 每个插件在独立的、可收集的 `AssemblyLoadContext` 中加载
+- 框架/共享程序集转发到默认上下文（排除清单见 `Avalonia.Plugin.Shared.props`/`.targets`）
+- 插件通过 `GeneratePluginManifest` 目标自动生成 `plugin.json` 清单（来自 `Avalonia.Plugin.Shared.targets`）
+- 发现：扫描 `{AppBaseDir}/plugins/` 和 `AVALONIA_EXTRA_PLUGINS_PATH` 环境变量
+- 构建输出：`bin/plugins/{Name}/publish/`（发布目录）+ `bin/plugins/zip/{Name}-{Version}.zip`（剥离 .pdb、.xml、.deps.json、.runtimeconfig.json）
 
-## Key Patterns (don't break these)
+## 插件系统前提约束（强制）
 
-| Pattern | What to know |
+**当前项目不支持插件热加载与热卸载。** 所有插件在应用启动时一次性加载，状态变更（启用/禁用/标记卸载）需重启应用生效。
+
+基于此前提，开发时遵循以下规则：
+
+| 规则 | 说明 |
+|------|------|
+| **无运行时插件增删** | 插件安装/卸载/启用/禁用均通过修改 `plugin.json` 状态实现，下次启动时生效。UI 中相关操作需提示用户重启。 |
+| **无需处理 ALC 卸载清理** | `PluginLoadContext` 虽标记 `isCollectible=true`，但运行时不调用 `Unload()`。`ViewLocator._viewRegistry`、`LocalizationService._resourceManagers`、`MenuConfigurationService._menuItemsMap` 等静态/长生命周期字典无需在运行时清理。 |
+| **应用退出需优雅关闭** | `App.OnShutdownRequested` 中应调用 `IPlugin.ShutdownAsync()` 并 `ServiceProvider.Dispose()`，确保插件持有的原生资源（如 TdLib 客户端）正确释放。 |
+| **插件安装冲突处理** | 覆盖安装时若旧插件 ALC 仍持有 DLL 文件锁，需提示用户重启后再安装，或先关闭应用再安装。 |
+| **DisablePlugin/EnablePlugin 语义** | 仅修改状态字段并持久化到 manifest，不触发 ALC 卸载/重载。下次启动时按新状态决定是否加载。 |
+
+## 关键模式（请勿破坏）
+
+| 模式 | 要点 |
 |---------|-------------|
-| **ServiceLocator** | Static `IServiceProvider` wrapper for plugins. Initialized once in `App.Initialize()`. Check `TryGetService<T>()` before `GetService<T>()`. |
-| **ViewLocator** | Global `IDataTemplate` using `ConditionalWeakTable` for cache (leak-free VM→View cycle). Registered in XAML — `ContentControl.Content="{Binding Content}"` auto-resolves. |
-| **Navigation** | Key-based `NavigationService` + `WeakReferenceMessenger` pub/sub ("JumpTo" message). Plugins register nav items in `IPlugin.GetNavigationItems()`. |
-| **Menu hierarchy** | Flat menu items with optional `parentKey`. `MenuItemTreeBuilder.BuildTree()` resolves the tree. `MenuConfigurationService` manages add/remove. |
-| **Source generator** | `[GenerateMetadata]` on a class implementing `IPluginMetadata` → auto-generates `IPlugin` impl. Scans companion classes for `[ViewMap]`, `[NavigationItem]`, `[Menu]` attributes. |
-| **Localization** | `ILocalizationService` stacks `.resx` `ResourceManager` instances. Plugins register theirs in `Initialize()`. |
-| **Plugin lifecycle** | `NotInstalled → Installed → Loaded → Disabled → PendingUninstall`. State changes fire events for UI. |
+| **ServiceLocator** | 插件使用的静态 `IServiceProvider` 包装器。在 `App.Initialize()` 中初始化一次。调用 `GetService<T>()` 前先用 `TryGetService<T>()` 检查。 |
+| **ViewLocator** | 全局 `IDataTemplate`，使用 `ConditionalWeakTable` 缓存（VM→View 循环无泄漏）。在 XAML 中注册 — `ContentControl.Content="{Binding Content}"` 自动解析。 |
+| **导航** | 基于 key 的 `NavigationService` + `WeakReferenceMessenger` 发布/订阅（"JumpTo" 消息）。插件在 `IPlugin.GetNavigationItems()` 中注册导航项。 |
+| **菜单层级** | 扁平菜单项 + 可选 `parentKey`。`MenuItemTreeBuilder.BuildTree()` 解析为树。`MenuConfigurationService` 管理增删。 |
+| **源生成器** | 在实现 `IPluginMetadata` 的类上标注 `[GenerateMetadata]` → 自动生成 `IPlugin` 实现。扫描伴生类上的 `[ViewMap]`、`[NavigationItem]`、`[Menu]` 特性。 |
+| **本地化** | `ILocalizationService` 堆叠 `.resx` `ResourceManager` 实例。插件在 `Initialize()` 中注册自己的 ResourceManager。 |
+| **插件生命周期** | `NotInstalled → Installed → Loaded → Disabled → PendingUninstall`。状态变更触发事件通知 UI。 |
 
 ## UI 组件与样式规范（强制）
 
@@ -212,9 +226,9 @@ Program.cs → App.Initialize()
 - **CompiledBindings**：`AvaloniaUseCompiledBindingsByDefault=true`（已全局开启）。所有 `Binding` 必须有正确的 `x:DataType`，避免运行时反射开销。
 - **MVVM Toolkit 源生成器**：partial VM 类必须标注 `[INotifyPropertyChanged]` 或继承 `ObservableObject`，否则 `[ObservableProperty]` 不会生成。
 
-## Package & Framework Versions
+## 包与框架版本
 
-All versions centralized as MSBuild properties in `src/Directory.Packages.props`:
+所有版本以 MSBuild 属性形式集中管理于 `src/Directory.Packages.props`：
 - Avalonia: `12.0.3` (`$(AvaloniaVersion)`)
 - Irihi.Ursa: `2.0.*` (`$(IrihiUrsaVersion)`)
 - CommunityToolkit.Mvvm: `8.4.2` (`$(CommunityToolkit)`)
@@ -225,33 +239,33 @@ All versions centralized as MSBuild properties in `src/Directory.Packages.props`
 - ProDataGrid: `12.0.0`
 - ScottPlot: `5.1.58`
 - ZLogger: `2.1.0`
-- Plugin NuGet packages: `Avalonia.Plugin.Generators` + `Avalonia.Plugin.Shared`, version `1.0.0`, built locally to `bin/nuget/`
+- 插件 NuGet 包：`Avalonia.Plugin.Generators` + `Avalonia.Plugin.Shared`，版本 `1.0.0`，本地构建到 `bin/nuget/`
 
-## NuGet Configuration
+## NuGet 配置
 
-- **Root `nuget.config`**: sets `globalPackagesFolder` to `<repo>/packages` (local cache, tracked as packages/ in `.gitignore` exception for `packages/nuget/`)
-- **`plugins/nuget.config`**: inherits root config, adds `AvaloniaPluginLocal` feed pointing at `<repo>/bin/nuget` — this is how plugins resolve the locally-built `Avalonia.Plugin.Generators` and `Avalonia.Plugin.Shared` packages
+- **根 `nuget.config`**：将 `globalPackagesFolder` 设置为 `<repo>/packages`（本地缓存，在 `.gitignore` 中以 `packages/nuget/` 例外跟踪）
+- **`plugins/nuget.config`**：继承根配置，新增 `AvaloniaPluginLocal` 源指向 `<repo>/bin/nuget` — 插件通过此源解析本地构建的 `Avalonia.Plugin.Generators` 和 `Avalonia.Plugin.Shared` 包
 
-## Platform Targeting
+## 平台目标
 
-`src/Environment.props` manages platform-specific TFMs:
-- Windows: `net10.0-windows10.0.19041.0` + defines `Platforms_Windows`
-- macOS: `net10.0-macos15.0` + defines `Platforms_MacOs` + `SupportedOSPlatformVersion=10.15`
-- Linux: `net10.0` (no platform suffix) + defines `Platforms_Linux`
-- Dev mode auto-detects OS via `[System.OperatingSystem]::IsWindows()` etc.
-- CI uses `PublishBuilding=true` + `PublishPlatform=windows|linux|macos`
-- Release+Windows → `OutputType=WinExe`
+`src/Environment.props` 管理平台特定的 TFM：
+- Windows: `net10.0-windows10.0.19041.0` + 定义 `Platforms_Windows`
+- macOS: `net10.0-macos15.0` + 定义 `Platforms_MacOs` + `SupportedOSPlatformVersion=10.15`
+- Linux: `net10.0`（无平台后缀）+ 定义 `Platforms_Linux`
+- 开发模式通过 `[System.OperatingSystem]::IsWindows()` 等自动检测 OS
+- CI 使用 `PublishBuilding=true` + `PublishPlatform=windows|linux|macos`
+- Release + Windows → `OutputType=WinExe`
 
-## Installed Skills (local)
+## 已安装的 Skills（本地）
 
-Three Avalonia/Zafiro skills in `.agents/skills/` (from `sickn33/antigravity-awesome-skills`):
-- `avalonia-layout-zafiro` — XAML layout conventions
-- `avalonia-viewmodels-zafiro` — ViewModel/Wizard patterns
-- `avalonia-zafiro-development` — mandatory conventions and rules
+`.agents/skills/` 中有三个 Avalonia/Zafiro skill（来自 `sickn33/antigravity-awesome-skills`）：
+- `avalonia-layout-zafiro` — XAML 布局约定
+- `avalonia-viewmodels-zafiro` — ViewModel/Wizard 模式
+- `avalonia-zafiro-development` — 强制约定与规则
 
-Skills are active and should be used when their patterns apply.
+这些 skill 处于激活状态，当其模式适用时应予使用。
 
-## Plugin .csproj template (for new plugins)
+## 插件 .csproj 模板（用于新插件）
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -273,13 +287,13 @@ Skills are active and should be used when their patterns apply.
 </Project>
 ```
 
-## Gotchas
+## 注意事项
 
-- `.slnx` format (not `.sln`) — .NET 10 XML solution format
-- The build script (`build/build.cs`) discovers plugins by scanning all `*.csproj` under `plugins/` — `PluginId` etc. are read from .csproj XML
-- `Core.slnx` and `Plugins.slnx` share `src/Avalonia.Plugin.Generators` and `src/Avalonia.Plugin.Shared`
-- Plugin NuGet packages must be built locally before plugins can restore. Build with `.\build.ps1 --build=bin` first; packages go to `bin/nuget/`. The `plugins/nuget.config` adds this as a local feed.
-- `AvaloniaUseCompiledBindingsByDefault` is set to `true` in the launcher project — follow this convention for new plugins
-- `Directory.Build.props` at `src/` imports `Environment.props` and sets default `TargetFramework=net10.0` (overridden per-platform)
-- The Generators project targets `netstandard2.1` (Roslyn source generator constraint) while everything else targets `net10.0`
-- No `opencode.json` or `CLAUDE.md` in the repo — this `AGENTS.md` is the sole instruction file
+- `.slnx` 格式（非 `.sln`）— .NET 10 XML 解决方案格式
+- 构建脚本（`build/build.cs`）通过扫描 `plugins/` 下所有 `*.csproj` 发现插件 — `PluginId` 等从 .csproj XML 读取
+- `Core.slnx` 和 `Plugins.slnx` 共享 `src/Avalonia.Plugin.Generators` 和 `src/Avalonia.Plugin.Shared`
+- 插件 NuGet 包必须在还原插件前本地构建。先用 `.\build.ps1 --build=bin` 构建；包输出到 `bin/nuget/`。`plugins/nuget.config` 将此目录添加为本地源。
+- `AvaloniaUseCompiledBindingsByDefault` 在启动器项目中设为 `true` — 新插件应遵循此约定
+- `src/` 下的 `Directory.Build.props` 导入 `Environment.props` 并设置默认 `TargetFramework=net10.0`（按平台覆盖）
+- Generators 项目目标为 `netstandard2.1`（Roslyn 源生成器约束），其余项目均为 `net10.0`
+- 仓库中无 `opencode.json` 或 `CLAUDE.md` — 本 `AGENTS.md` 是唯一的指令文件

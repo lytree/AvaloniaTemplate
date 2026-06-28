@@ -142,7 +142,11 @@ internal class PluginLoadContext : AssemblyLoadContext
             }
             catch (FileNotFoundException)
             {
-                // Shared assembly not found in host — fall through to plugin-local probing
+                // 修复：原代码 fallthrough 到插件本地探测，会导致同一程序集
+                // 同时存在于 Default ALC 与 Plugin ALC（如未来宿主补齐依赖后），
+                // 类型标识不一致引发 InvalidCastException / DependencyContext 冲突。
+                // 共享程序集必须由宿主提供；缺失即宿主配置错误，直接抛出。
+                throw;
             }
         }
 

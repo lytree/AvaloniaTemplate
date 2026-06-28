@@ -18,6 +18,9 @@ public partial class App : Application
 {
     public static IServiceProvider? ServiceProvider { get; private set; }
 
+    // 保存 pluginLoader 引用用于退出时 ShutdownAsync 与 Dispose（Dispose 内部会再次调用 ShutdownAsync，幂等安全）
+    private PluginLoader? _pluginLoader;
+
     public App()
     {
         // 全局异常处理：后台线程未观察到的异常
@@ -67,6 +70,7 @@ public partial class App : Application
 
         // 阶段1：发现所有插件程序集，创建 IPlugin 实例
         var pluginLoader = new PluginLoader();
+        _pluginLoader = pluginLoader;
         pluginLoader.DiscoverAllPluginAssembliesAsync().GetAwaiter().GetResult();
 
         // 阶段2：调用插件 InitializeAsync(IServiceCollection)，注册 DI 服务
@@ -129,6 +133,11 @@ public partial class App : Application
         if (navigationService == null || menuConfigurationService == null)
             return;
 
+        // 修复 #12：原 catch 仅 Console.WriteLine，未持久化插件错误状态，UI 上仍显示为已加载，
+        // 用户无法感知插件故障。改为：失败时调用 MarkPluginError 持久化状态，并记录结构化日志。
+        var logger = ServiceProvider?.GetRequiredService<ILogger<App>>();
+        var concreteLoader = pluginLoader as PluginLoader;
+
         foreach (var pluginInfo in pluginLoader.GetInstalledPlugins())
         {
             if (pluginInfo.State != PluginState.Loaded)
@@ -149,7 +158,8 @@ public partial class App : Application
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error registering plugin {pluginInfo.Name}: {ex.Message}");
+                logger?.LogError(ex, "注册插件 {PluginId} 导航/菜单失败", pluginInfo.PluginId);
+                concreteLoader?.MarkPluginError(pluginInfo.PluginId, $"Registration failed: {ex.Message}");
             }
         }
     }
@@ -191,5 +201,48 @@ public partial class App : Application
             var logger = ServiceProvider?.GetRequiredService<ILogger<App>>();
             logger?.LogWarning("应用退出时仍有正在运行的任务: {Tasks}", taskNames);
         }
+
+        // 修复 #1+#2+#4：完整退出流程——
+        //   1) 优雅关闭插件（IPlugin.ShutdownAsync），释放插件持有的原生资源（如 TdLib 客户端）
+        //   2) Dispose ServiceProvider，触发所有 Singleton 的 Dispose（IDbContextFactory、ZLogger 等）
+        //   3) Dispose PluginLoader（内部会再次 ShutdownAsync，幂等；并 ALC.Unload）
+        // ShutdownRequestedEventArgs 不支持 async，使用 Task.Run 避免在 UI 线程上 sync-over-async 死锁
+        try
+        {
+            Task.Run(async () =>
+            {
+                if (_pluginLoader is not null)
+                {
+                    await _pluginLoader.ShutdownAllPluginsAsync();
+                }
+            }).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ShutdownAllPluginsAsync failed on exit: {ex.Message}");
+        }
+
+        try
+        {
+            (ServiceProvider as IDisposable)?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ServiceProvider.Dispose failed on exit: {ex.Message}");
+        }
+
+        try
+        {
+            _pluginLoader?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"PluginLoader.Dispose failed on exit: {ex.Message}");
+        }
+
+        // 修复 #14：取消订阅全局异常处理，避免在 ServiceProvider Dispose 后日志器失效导致异常处理再抛异常
+        TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
+        AppDomain.CurrentDomain.UnhandledException -= OnDomainUnhandledException;
+        Avalonia.Threading.Dispatcher.UIThread.UnhandledException -= OnUIThreadUnhandledException;
     }
 }

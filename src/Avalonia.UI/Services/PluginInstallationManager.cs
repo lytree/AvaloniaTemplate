@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.Models;
 using Avalonia.Plugin.Shared.Services;
 
@@ -103,13 +104,53 @@ public class PluginInstallationManager : IPluginInstallationManager
                 };
             }
 
+            // 修复 #11：安装时即校验 MinPluginSdkVersion，避免安装后启动失败。
+            if (!PluginLoader.IsPluginSdkCompatible(pluginInfo.MinPluginSdkVersion))
+            {
+                var required = string.IsNullOrWhiteSpace(pluginInfo.MinPluginSdkVersion)
+                    ? "0.0.0" : pluginInfo.MinPluginSdkVersion!;
+                return new PluginInstallResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Plugin requires Plugin SDK >= {required}, but host provides " +
+                                   $"{PluginSdkContract.CurrentVersion}. Update the host application " +
+                                   "or contact the plugin author."
+                };
+            }
+
             var existingPlugin = _pluginLoader.GetPlugin(pluginInfo.PluginId);
             if (existingPlugin != null)
             {
+                // 修复 #8：本项目不支持热卸载（见 AGENTS.md）。已加载插件的 DLL 被进程锁定，
+                // 直接删除目录会失败（IOException）。需区分状态处理：
+                //   - Loaded/Error：拒绝覆盖安装，提示用户重启应用
+                //   - 其他状态：尝试删除旧目录
+                if (existingPlugin.State == PluginState.Loaded || existingPlugin.State == PluginState.Error)
+                {
+                    return new PluginInstallResult
+                    {
+                        Success = false,
+                        ErrorMessage = $"Plugin '{existingPlugin.Name}' is currently loaded (state={existingPlugin.State}). " +
+                                       "Hot unload is not supported. Close the application, then run the installer again."
+                    };
+                }
+
                 var targetDir = GetPluginDirectory(pluginInfo.PluginId);
                 if (Directory.Exists(targetDir))
                 {
-                    Directory.Delete(targetDir, true);
+                    try
+                    {
+                        Directory.Delete(targetDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new PluginInstallResult
+                        {
+                            Success = false,
+                            ErrorMessage = $"Cannot remove previous install at '{targetDir}': {ex.Message}. " +
+                                           "Close the application and try again."
+                        };
+                    }
                 }
             }
 
