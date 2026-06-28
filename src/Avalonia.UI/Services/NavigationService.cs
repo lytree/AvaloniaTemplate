@@ -32,7 +32,6 @@ public class NavigationService : INavigationService
     private void RegisterDefaultNavigations()
     {
         RegisterNavigation("Introduction", () => new IntroductionDemoViewModel());
-        RegisterNavigation("AboutUs", () => new AboutUsDemoViewModel());
         RegisterNavigation("Settings", () => new SettingsPageViewModel(
             ServiceLocator.GetService<ISettingsService>(),
             ServiceLocator.GetService<ILocalizationService>()));
@@ -41,7 +40,6 @@ public class NavigationService : INavigationService
             ServiceLocator.GetService<IPluginInstallationManager>()));
 
         ViewLocator.Register<IntroductionDemoViewModel, IntroductionDemo>();
-        ViewLocator.Register<AboutUsDemoViewModel, AboutUsDemo>();
         ViewLocator.Register<SettingsPageViewModel, SettingsPage>();
         ViewLocator.Register<PluginManagementViewModel, PluginManagementPage>();
     }

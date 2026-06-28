@@ -86,7 +86,6 @@
   <data name="NAV_Settings" xml:space="preserve"><value>设置</value></data>
   <data name="NAV_Plugins" xml:space="preserve"><value>插件</value></data>
   <data name="NAV_PluginManagement" xml:space="preserve"><value>插件管理</value></data>
-  <data name="NAV_AboutUs" xml:space="preserve"><value>关于我们</value></data>
   <data name="PLUGIN_MANAGEMENT_TITLE" xml:space="preserve"><value>插件管理</value></data>
   <data name="PLUGIN_MANAGEMENT_DESC" xml:space="preserve"><value>安装、卸载、启用或禁用插件</value></data>
   <data name="INSTALL_PLUGIN" xml:space="preserve"><value>安装插件</value></data>
@@ -131,21 +130,6 @@
   <data name="SETTING_USER_NAME_DESC" xml:space="preserve"><value>设置您的显示名称</value></data>
   <data name="GROUP_APPEARANCE" xml:space="preserve"><value>外观</value></data>
   <data name="GROUP_GENERAL" xml:space="preserve"><value>通用</value></data>
-  <data name="COMPANY_NAME_CN" xml:space="preserve"><value>铱泓科技</value></data>
-  <data name="COMPANY_NAME_EN" xml:space="preserve"><value>IRIHI Technology</value></data>
-  <data name="SLOGAN_CN" xml:space="preserve"><value>聚焦生产力的美学进化</value></data>
-  <data name="SLOGAN_EN" xml:space="preserve"><value>Aesthetic Evolution of Productivity</value></data>
-  <data name="SEMI_DESC_CN" xml:space="preserve"><value>开箱即用的独立主题库</value></data>
-  <data name="SEMI_DESC_EN" xml:space="preserve"><value>A ready-to-use standalone theme library</value></data>
-  <data name="URSA_DESC_CN" xml:space="preserve"><value>高性能企业级桌面客户端控件库</value></data>
-  <data name="URSA_DESC_EN" xml:space="preserve"><value>High-performance enterprise level control library for desktop apps</value></data>
-  <data name="MANTRA_DESC_CN" xml:space="preserve"><value>高性能文字排版渲染控件库</value></data>
-  <data name="MANTRA_DESC_EN" xml:space="preserve"><value>High-performance typography control library</value></data>
-  <data name="HUSKA_DESC_CN" xml:space="preserve"><value>手绘风格主题库</value></data>
-  <data name="HUSKA_DESC_EN" xml:space="preserve"><value>Hand-drawing theme library</value></data>
-  <data name="OPEN_SOURCE" xml:space="preserve"><value>开源</value></data>
-  <data name="COMMERCIAL" xml:space="preserve"><value>商业</value></data>
-  <data name="HOMEPAGE" xml:space="preserve"><value>主页</value></data>
   <data name="TOOLTIP_SETTINGS" xml:space="preserve"><value>设置</value></data>
   <data name="TOOLTIP_PLUGIN_MANAGEMENT" xml:space="preserve"><value>插件管理</value></data>
   <data name="TOOLTIP_TOGGLE_SIDEBAR" xml:space="preserve"><value>切换侧边栏</value></data>
@@ -158,7 +142,6 @@
   <data name="SPLASH_WELCOME" xml:space="preserve"><value>欢迎来到 AvaloniaTemplate，启动页已加载本地图像资源：Assets/jk-girl.png</value></data>
   <data name="WELCOME_IRIHI" xml:space="preserve"><value>欢迎来到铱泓科技</value></data>
   <data name="LOADING_MODULES" xml:space="preserve"><value>正在加载组件...</value></data>
-  <data name="MENU_ABOUT_US" xml:space="preserve"><value>关于我们</value></data>
   <data name="EXIT_CONFIRM_MESSAGE" xml:space="preserve"><value>确定要退出吗？</value></data>
   <data name="EXIT_CONFIRM_TITLE" xml:space="preserve"><value>退出</value></data>
   <data name="RESTART_REQUIRED" xml:space="preserve"><value>部分更改需要重启后生效</value></data>

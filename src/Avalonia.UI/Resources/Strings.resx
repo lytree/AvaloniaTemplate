@@ -166,9 +166,6 @@
   <data name="NAV_PluginManagement" xml:space="preserve">
     <value>Plugin Management</value>
   </data>
-  <data name="NAV_AboutUs" xml:space="preserve">
-    <value>About Us</value>
-  </data>
   <data name="PLUGIN_MANAGEMENT_TITLE" xml:space="preserve">
     <value>Plugin Management</value>
   </data>
@@ -301,51 +298,6 @@
   <data name="GROUP_GENERAL" xml:space="preserve">
     <value>General</value>
   </data>
-  <data name="COMPANY_NAME_CN" xml:space="preserve">
-    <value>铱泓科技</value>
-  </data>
-  <data name="COMPANY_NAME_EN" xml:space="preserve">
-    <value>IRIHI Technology</value>
-  </data>
-  <data name="SLOGAN_CN" xml:space="preserve">
-    <value>聚焦生产力的美学进化</value>
-  </data>
-  <data name="SLOGAN_EN" xml:space="preserve">
-    <value>Aesthetic Evolution of Productivity</value>
-  </data>
-  <data name="SEMI_DESC_CN" xml:space="preserve">
-    <value>开箱即用的独立主题库</value>
-  </data>
-  <data name="SEMI_DESC_EN" xml:space="preserve">
-    <value>A ready-to-use standalone theme library</value>
-  </data>
-  <data name="URSA_DESC_CN" xml:space="preserve">
-    <value>高性能企业级桌面客户端控件库</value>
-  </data>
-  <data name="URSA_DESC_EN" xml:space="preserve">
-    <value>High-performance enterprise level control library for desktop apps</value>
-  </data>
-  <data name="MANTRA_DESC_CN" xml:space="preserve">
-    <value>高性能文字排版渲染控件库</value>
-  </data>
-  <data name="MANTRA_DESC_EN" xml:space="preserve">
-    <value>High-performance typography control library</value>
-  </data>
-  <data name="HUSKA_DESC_CN" xml:space="preserve">
-    <value>手绘风格主题库</value>
-  </data>
-  <data name="HUSKA_DESC_EN" xml:space="preserve">
-    <value>Hand-drawing theme library</value>
-  </data>
-  <data name="OPEN_SOURCE" xml:space="preserve">
-    <value>Open Source</value>
-  </data>
-  <data name="COMMERCIAL" xml:space="preserve">
-    <value>Commercial</value>
-  </data>
-  <data name="HOMEPAGE" xml:space="preserve">
-    <value>Homepage</value>
-  </data>
   <data name="TOOLTIP_SETTINGS" xml:space="preserve">
     <value>Settings</value>
   </data>
@@ -381,9 +333,6 @@
   </data>
   <data name="LOADING_MODULES" xml:space="preserve">
     <value>Initializing modules...</value>
-  </data>
-  <data name="MENU_ABOUT_US" xml:space="preserve">
-    <value>About Us</value>
   </data>
   <data name="EXIT_CONFIRM_MESSAGE" xml:space="preserve">
     <value>Are you sure you want to exit?</value>

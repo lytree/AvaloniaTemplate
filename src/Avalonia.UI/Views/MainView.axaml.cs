@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using CommunityToolkit.Mvvm.Messaging;
 using System;
 using Ursa.Controls;
 using Avalonia.UI.ViewModels;
@@ -26,11 +25,6 @@ public partial class MainView : UserControl
         _viewModel.NotificationManager = WindowNotificationManager.TryGetNotificationManager(topLevel, out var manager)
             ? manager
             : new WindowNotificationManager(topLevel);
-    }
-
-    private async void JumpToAbout(object? sender, RoutedEventArgs e)
-    {
-        WeakReferenceMessenger.Default.Send("AboutUs", "JumpTo");
     }
 
     private async void OpenRepository(object? sender, RoutedEventArgs e)

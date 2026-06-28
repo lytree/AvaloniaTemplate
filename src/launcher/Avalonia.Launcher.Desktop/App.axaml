@@ -24,12 +24,4 @@ x:DataType="viewmodels:ApplicationViewModel">
 			<StreamGeometry x:Key="Icon_AvaloniaLogo">M12 2L2 22L12 16L22 22Z</StreamGeometry>
 		</ResourceDictionary>
 	</Application.Resources>
-	<NativeMenu.Menu>
-		<NativeMenu>
-			<NativeMenuItem
-			Header="{DynamicResource MENU_ABOUT_US}"
-			Command="{Binding JumpToCommand}"
-			CommandParameter="AboutUs"/>
-		</NativeMenu>
-	</NativeMenu.Menu>
 </Application>
