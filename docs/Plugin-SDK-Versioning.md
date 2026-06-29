@@ -60,33 +60,32 @@
 
 | 包名 | 当前版本 | 引入版本 | 在 SDK 中的作用 |
 |------|---------|---------|----------------|
-| `Avalonia` | `12.0.3` | 自 SDK 初始版本 | UI 框架本体，`Control`/`StyledElement` 等基础类型出现在 SDK 公共 API |
-| `Avalonia.Skia` | `12.0.3` | 自 SDK 初始版本 | Skia 渲染后端，Avalonia 框架传递依赖 |
+| `Avalonia` | `12.0.5` | 自 SDK 初始版本 | UI 框架本体，`Control`/`StyledElement` 等基础类型出现在 SDK 公共 API |
+| `Avalonia.Skia` | `12.0.5` | 自 SDK 初始版本 | Skia 渲染后端，Avalonia 框架传递依赖 |
 | `Irihi.Ursa` | `2.0.*` | 自 SDK 初始版本 | Ursa 控件库，SDK 暴露的控件基类与 `IUriContext` 等公共类型 |
 | `Semi.Avalonia` | （Ursa 传递） | 自 SDK 初始版本 | Semi 主题，由 `UrsaSemiTheme` 自动带入 |
 | `CommunityToolkit.Mvvm` | `8.4.2` | 自 SDK 初始版本 | `ObservableObject`/`ObservableProperty`/`RelayCommand` —— SDK `ViewModelBase` 与源生成器依赖 |
-| `Microsoft.Extensions.DependencyInjection` | `10.0.8` | 自 SDK 初始版本 | `IServiceCollection`/`IServiceProvider` —— `IPlugin.InitializeAsync` 入参类型 |
-| `Microsoft.Extensions.DependencyInjection.Abstractions` | `10.0.8` | 自 SDK 初始版本 | 上者的抽象包，SDK 公共 API 仅依赖抽象 |
-| `Microsoft.Extensions.Logging.Abstractions` | `10.0.8` | 自 SDK 初始版本 | `ILogger<T>` 等抽象，插件可从 DI 获取日志器 |
-| `Microsoft.Extensions.Options` | `10.0.8` | 自 SDK 初始版本 | 选项模式基础类型，传递依赖 |
-| `Microsoft.Extensions.Primitives` | `10.0.8` | 自 SDK 初始版本 | `ChangeToken`/`StringValues` 等基础类型，传递依赖 |
+| `Microsoft.Extensions.DependencyInjection` | `10.0.9` | 自 SDK 初始版本 | `IServiceCollection`/`IServiceProvider` —— `IPlugin.InitializeAsync` 入参类型 |
+| `Microsoft.Extensions.DependencyInjection.Abstractions` | `10.0.9` | 自 SDK 初始版本 | 上者的抽象包，SDK 公共 API 仅依赖抽象 |
+| `Microsoft.Extensions.Logging.Abstractions` | `10.0.9` | 自 SDK 初始版本 | `ILogger<T>` 等抽象，插件可从 DI 获取日志器。SDK 仅依赖抽象侧，实现侧由宿主通过 ZLogger 提供 |
+| `Microsoft.Extensions.Options` | `10.0.9` | 自 SDK 初始版本 | 选项模式基础类型，传递依赖 |
+| `Microsoft.Extensions.Primitives` | `10.0.9` | 自 SDK 初始版本 | `ChangeToken`/`StringValues` 等基础类型，传递依赖 |
 | `System.Reactive` | `6.1.0` | 自 SDK 初始版本 | 响应式编程支持，`IObservable<T>` 出现在 SDK 部分 API |
 | `Microsoft.Bcl.AsyncInterfaces` | （传递） | 自 SDK 初始版本 | `IAsyncEnumerable<T>` 等异步接口，BCL 传递依赖 |
 | `SkiaSharp` / `HarfBuzzSharp` / `MicroCom.Runtime` | （Avalonia 传递） | 自 SDK 初始版本 | Avalonia 原生渲染依赖，通过 `Avalonia.*` 模式匹配共享 |
 
 > **匹配规则**：上述清单由 `Avalonia.Plugin.Shared.props` 中的 `_SharedAssembliesPatterns` 属性生成 `shared-assemblies.txt`，运行时 `PluginLoadContext.IsShared(name)` 按"精确名或前缀通配"判断。新增共享程序集必须修改该属性，并升 `HostVersion` Major（破坏性）。
 
-### 2. SDK 私有依赖（包内引用但运行时为插件私有）
+### 2. SDK 传递的私有依赖（包内引用但运行时为插件私有）
 
-这些包被 SDK csproj 引用，但其类型 **未出现在 SDK 公共 API** 中，因此不出现在 `shared-assemblies.txt`。每个插件 ALC 独立加载一份，避免不同插件间版本冲突。
+这些包被 SDK csproj 引用，但不列入 `shared-assemblies.txt`。SDK 通过 NuGet 传递依赖让所有引用 SDK 的插件都能拿到这些类型，运行时每个插件 ALC 独立加载一份，避免不同插件间版本冲突。
 
 | 包名 | 当前版本 | 引入版本 | 在 SDK 中的作用 | 备注 |
 |------|---------|---------|----------------|------|
-| `Microsoft.EntityFrameworkCore.Sqlite` | `10.0.8` | 自 SDK 初始版本 | SQLite 持久化支持，SDK 内部 `IDbContextFactory` 包装使用 | 插件可直接 `PackageReference` 同版本覆盖；若需独立版本可保留插件私有 |
-| `Microsoft.Extensions.Logging` | `10.0.8` | 自 SDK 初始版本 | 日志实现（非抽象），SDK 内部使用 | 实现侧包；抽象侧已共享 |
-| `ProDataGrid` | `12.0.0` | 自 SDK 初始版本 | 高级 DataGrid 控件，SDK 包装为样式/辅助类 | 插件可直接使用宿主提供的 `ProDataGrid` 控件主题；若需新版本需测试与宿主样式兼容性 |
+| `Microsoft.EntityFrameworkCore` | `10.0.9` | SDK 2.1.0 | EF Core 基础抽象包，SDK 公共 API 暴露 `DbContext`/`DbSet` 等抽象类型 | 具体数据库实现（Sqlite 等）由宿主或插件按需引用；宿主引用 Sqlite 用于 `AppDbContext` |
+| `ProDataGrid` | `12.0.4` | 自 SDK 初始版本 | 高级 DataGrid 控件，保留供插件编写表格时通过 SDK 传递依赖直接复用 | 插件若需新版本需测试与宿主样式兼容性 |
 
-> **插件私有依赖原则**：未列入 `shared-assemblies.txt` 的包，每个插件 ALC 各自加载一份。插件可自由升级这些包的版本（仅限兼容性允许范围内），不影响宿主与其他插件。
+> **历史变更**：SDK 2.1.0 之前曾引用 `Microsoft.EntityFrameworkCore.Sqlite`（SQLite 实现）与 `Microsoft.Extensions.Logging`（日志实现），自 SDK 2.1.0 起改为仅依赖基础抽象包（EF Core 基础 + Logging 抽象），实现侧由宿主统一提供，避免插件 ALC 加载冗余实现程序集。
 
 ### 3. 宿主侧依赖（不在 SDK 中，插件可通过 DI 间接使用）
 
@@ -94,10 +93,20 @@
 
 | 包名 | 当前版本 | 引入版本 | 宿主中作用 | 插件访问方式 |
 |------|---------|---------|------------|------------|
-| `ZLogger` | `2.1.0` | 自 SDK 初始版本 | 结构化日志（UTF-8 + File） | 通过 `ILogger<T>` 抽象间接使用，插件无需直接引用 |
-| `Microsoft.Extensions.Localization` | `10.0.8` | 自 SDK 初始版本 | `IStringLocalizer` 等本地化抽象 | 通过 `ILocalizationService`（SDK 抽象）间接使用 |
-| `Avalonia.Diagnostics` | `2.2.1` | 自 SDK 初始版本 | Avalonia DevTools，开发期调试 | 仅 Debug 配置可用，插件不直接接触 |
-| `ScottPlot` | `5.1.58` | 自 SDK 初始版本 | 图表控件，宿主 `Avalonia.Plugin.Shared` 包装 | 通过 `ScottPlotAvalonia` 控件间接使用 |
+| `Microsoft.EntityFrameworkCore.Sqlite` | `10.0.9` | 自 SDK 初始版本 | SQLite 数据库实现，宿主 `AppDbContext` 使用 | 插件如需自身持久化可直接 `PackageReference` 同版本（插件私有），或通过宿主 DI 间接使用 |
+| `ZLogger` | `2.5.10` | 自 SDK 初始版本 | 结构化日志（UTF-8 + File），作为 `ILogger<T>` 实现侧 | 通过 `ILogger<T>` 抽象间接使用，插件无需直接引用 |
+| `Microsoft.Extensions.Localization` | `10.0.9` | 自 SDK 初始版本 | `IStringLocalizer` 等本地化抽象 | 通过 `ILocalizationService`（SDK 抽象）间接使用 |
+| `AvaloniaUI.DiagnosticsSupport` | `2.2.3` | 自 SDK 初始版本 | Avalonia DevTools，开发期调试 | 仅 Debug 配置可用，插件不直接接触 |
+
+### 4. 插件私有依赖示例（既不在 SDK 也不在宿主）
+
+以下包既不在 SDK 也不在宿主中，由具体插件自行 `PackageReference` 引用，运行时为该插件 ALC 私有。这类依赖不影响宿主与其他插件，可自由升级版本（仅受兼容性约束）。
+
+| 包名 | 当前版本 | 使用插件 | 用途 |
+|------|---------|---------|------|
+| `ScottPlot` | `5.1.59` | `Avalonia.Plugin.ScottPlot` | 图表绘制控件 |
+| `CliWrap` | `3.10.2` | `Avalonia.Plugin.Downloader` | 调用外部进程（FFmpeg 等） |
+| `TDLib` / `TDLib.Api` / `tdlib.native` | `1.8.*` | `Avalonia.Plugin.TDLSharp` | Telegram TDLib 绑定 |
 
 ### 关于"引入版本"列的说明
 
