@@ -1,6 +1,6 @@
 # 插件 API 参考文档
 
-本参考详细描述 `Avalonia.Plugin.Shared` 命名空间下插件开发者可用的全部 API。所有 API 都位于 NuGet 包 `Avalonia.Plugin.Shared` 中，插件通过 `PrivateAssets="all"` 引用，版本由 `$(PluginSdkVersion)` 统一管理。
+本参考详细描述 `LYBox.Plugin.Shared` 命名空间下插件开发者可用的全部 API。所有 API 都位于 NuGet 包 `LYBox.Plugin.Shared` 中，插件通过 `PrivateAssets="all"` 引用，版本由 `$(PluginSdkVersion)` 统一管理。
 
 ---
 
@@ -46,7 +46,7 @@
 ### 1.1 IPlugin
 
 ```csharp
-namespace Avalonia.Plugin.Shared;
+namespace LYBox.Plugin.Shared;
 
 public interface IPlugin
 {
@@ -84,7 +84,7 @@ public delegate Control ViewFactory();       // 创建 View 实例
 ### 1.2 IPluginMetadata
 
 ```csharp
-namespace Avalonia.Plugin.Shared;
+namespace LYBox.Plugin.Shared;
 
 public interface IPluginMetadata
 {
@@ -114,12 +114,12 @@ public interface IPluginMetadata
 
 ## 2. 元数据生成器（源生成器）
 
-通过 `Avalonia.Plugin.Generators` NuGet 包（analyzer 引用）提供。生成器扫描 `[GenerateMetadata]` 标注的类，自动实现 `IPlugin` 接口。
+通过 `LYBox.Plugin.Generators` NuGet 包（analyzer 引用）提供。生成器扫描 `[GenerateMetadata]` 标注的类，自动实现 `IPlugin` 接口。
 
 ### 2.1 GenerateMetadataAttribute
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Attributes;
+namespace LYBox.Plugin.Shared.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class GenerateMetadataAttribute : Attribute { }
@@ -147,7 +147,7 @@ public partial class MyPlugin : IPluginMetadata
 ### 2.2 ViewMapAttribute
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Attributes;
+namespace LYBox.Plugin.Shared.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class ViewMapAttribute(Type viewType) : Attribute
@@ -173,7 +173,7 @@ public class MyPageViewModel : ViewModelBase
 ### 2.3 NavigationItemAttribute
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Attributes;
+namespace LYBox.Plugin.Shared.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class NavigationItemAttribute(string key) : Attribute
@@ -197,7 +197,7 @@ public class MyPageViewModel : ViewModelBase { ... }
 ### 2.4 MenuAttribute
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Attributes;
+namespace LYBox.Plugin.Shared.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 public class MenuAttribute(string header, string key, string? parentKey = null) : Attribute
@@ -242,7 +242,7 @@ public class MySubPageViewModel : ViewModelBase { ... }
 ### 3.1 ServiceLocator
 
 ```csharp
-namespace Avalonia.Plugin.Shared;
+namespace LYBox.Plugin.Shared;
 
 public static class ServiceLocator
 {
@@ -281,7 +281,7 @@ nav.NavigateTo("my-plugin:main");
 ### 3.2 ViewLocator
 
 ```csharp
-namespace Avalonia.Plugin.Shared;
+namespace LYBox.Plugin.Shared;
 
 public class ViewLocator : IDataTemplate
 {
@@ -307,7 +307,7 @@ public class ViewLocator : IDataTemplate
 ### 3.3 ViewModelBase
 
 ```csharp
-namespace Avalonia.Plugin.Shared;
+namespace LYBox.Plugin.Shared;
 
 public class ViewModelBase : ObservableObject, IDisposable
 {
@@ -349,7 +349,7 @@ public class MyPageViewModel : ViewModelBase
 ### 4.1 MenuItemViewModel
 
 ```csharp
-namespace Avalonia.Plugin.Shared.ViewModels;
+namespace LYBox.Plugin.Shared.ViewModels;
 
 public enum ControlStatus { New, Beta, Stable }
 
@@ -410,7 +410,7 @@ public class ToolBarComboBoxItemViewModel : ToolBarItemViewModel
 ### 5.1 PluginManifest
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Models;
+namespace LYBox.Plugin.Shared.Models;
 
 public class PluginManifest
 {
@@ -436,7 +436,7 @@ public class PluginManifest
 ### 5.2 PluginInfo
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Models;
+namespace LYBox.Plugin.Shared.Models;
 
 public class PluginInfo
 {
@@ -454,7 +454,7 @@ public class PluginInfo
 ### 5.3 PluginState（枚举）
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Models;
+namespace LYBox.Plugin.Shared.Models;
 
 public enum PluginState
 {
@@ -522,7 +522,7 @@ public class SettingDefinition
 ### 6.1 ILocalizationService
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Services;
+namespace LYBox.Plugin.Shared.Services;
 
 public interface ILocalizationService
 {
@@ -551,7 +551,7 @@ public Task RegisterAsync(IServiceProvider serviceProvider)
 ### 6.2 IPluginLoader
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Services;
+namespace LYBox.Plugin.Shared.Services;
 
 public interface IPluginLoader
 {
@@ -569,7 +569,7 @@ public interface IPluginLoader
 ### 6.3 IPluginInstallationManager
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Services;
+namespace LYBox.Plugin.Shared.Services;
 
 public interface IPluginInstallationManager
 {
@@ -597,7 +597,7 @@ foreach (var p in mgr.GetInstalledPlugins())
 ### 6.4 ISettingsService
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Services;
+namespace LYBox.Plugin.Shared.Services;
 
 public interface ISettingsService
 {
@@ -642,7 +642,7 @@ var enabled = ServiceLocator.GetService<ISettingsService>().Get<bool>("my-plugin
 ### 6.5 ITaskRegistry
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Services;
+namespace LYBox.Plugin.Shared.Services;
 
 public interface ITaskRegistry
 {
@@ -676,7 +676,7 @@ registry.Unregister(taskId);
 ### 6.6 IWindowInfoService
 
 ```csharp
-namespace Avalonia.Plugin.Shared.Services;
+namespace LYBox.Plugin.Shared.Services;
 
 public interface IWindowInfoService
 {
@@ -735,9 +735,9 @@ await dialog.ShowDialog(mainWnd);
 </PropertyGroup>
 
 <ItemGroup>
-    <PackageReference Include="Avalonia.Plugin.Generators" Version="$(PluginSdkVersion)"
+    <PackageReference Include="LYBox.Plugin.Generators" Version="$(PluginSdkVersion)"
                       OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <PackageReference Include="Avalonia.Plugin.Shared" Version="$(PluginSdkVersion)"
+    <PackageReference Include="LYBox.Plugin.Shared" Version="$(PluginSdkVersion)"
                       PrivateAssets="all" />
 </ItemGroup>
 ```
@@ -748,7 +748,7 @@ await dialog.ShowDialog(mainWnd);
 
 ### 7.2 自动生成的 plugin.json 清单
 
-由 `GeneratePluginManifest` target（在 `Avalonia.Plugin.Shared.targets` 中定义）在编译时生成，输出到 `bin/$(Configuration)/$(TargetFramework)/plugin.json`。内容示例：
+由 `GeneratePluginManifest` target（在 `LYBox.Plugin.Shared.targets` 中定义）在编译时生成，输出到 `bin/$(Configuration)/$(TargetFramework)/plugin.json`。内容示例：
 
 ```json
 {
@@ -780,7 +780,7 @@ await dialog.ShowDialog(mainWnd);
 - `Microsoft.Bcl.AsyncInterfaces`
 - `Avalonia`、`Avalonia.*`
 - `SkiaSharp`、`SkiaSharp.*`、`HarfBuzzSharp.*`、`MicroCom.Runtime`
-- `Avalonia.Plugin.Shared`
+- `LYBox.Plugin.Shared`
 - `CommunityToolkit.*`
 - `Microsoft.Extensions.DependencyInjection`（及 `Abstractions`、`Options`、`Primitives`、`Logging.Abstractions`）
 - `Irihi.*`、`Ursa`、`Semi.Avalonia`
@@ -798,7 +798,7 @@ await dialog.ShowDialog(mainWnd);
 **禁用程序集排除**（不推荐，仅供调试）：
 
 ```xml
-<AvaloniaPluginSharedExclusionsEnabled>false</AvaloniaPluginSharedExclusionsEnabled>
+<LYBoxPluginSharedExclusionsEnabled>false</LYBoxPluginSharedExclusionsEnabled>
 ```
 
 ---
@@ -808,9 +808,9 @@ await dialog.ShowDialog(mainWnd);
 ### 8.1 Plugin.cs
 
 ```csharp
-using Avalonia.Plugin.Shared;
-using Avalonia.Plugin.Shared.Attributes;
-using Avalonia.Plugin.Shared.Services;
+using LYBox.Plugin.Shared;
+using LYBox.Plugin.Shared.Attributes;
+using LYBox.Plugin.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 using MyPlugin.Resources;
 
@@ -876,7 +876,7 @@ public partial class MyPlugin : IPluginMetadata
 ### 8.2 ViewModel
 
 ```csharp
-using Avalonia.Plugin.Shared;
+using LYBox.Plugin.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MyPlugin.Views;

@@ -1,0 +1,50 @@
+<Project>
+  <PropertyGroup>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <LYBoxPluginSharedExclusionsEnabled Condition="'$(LYBoxPluginSharedExclusionsEnabled)' == ''">true</LYBoxPluginSharedExclusionsEnabled>
+    <GeneratePluginManifest Condition="'$(GeneratePluginManifest)' == ''">true</GeneratePluginManifest>
+  </PropertyGroup>
+
+  <!--
+    Must-share assemblies: these are forwarded to the host's default AssemblyLoadContext
+    at runtime because their types appear in LYBox.Plugin.Shared's public API or base classes.
+    Everything NOT listed here is plugin-local (each plugin loads its own copy).
+
+    Principle: an assembly must be shared if and only if:
+      - It is part of the .NET runtime/BCL, OR
+      - It is part of the Avalonia UI framework (host renders plugin views), OR
+      - It defines types used in LYBox.Plugin.Shared's public API (e.g. IPlugin, ViewModelBase), OR
+      - It is a transitive dependency required by the above.
+
+    The _SharedAssembliesPatterns property below is the single source of truth for
+    shared-assemblies.txt (consumed at runtime by PluginLoadContext). Each line is either
+    an exact assembly name or a prefix pattern ending with '*'.
+
+    NOTE: We use a property (not ItemGroup Include) because MSBuild treats Include="Foo.*"
+    as a glob pattern and expands it to matching filenames in the project directory.
+    A property preserves the literal "*" character.
+  -->
+  <PropertyGroup Condition="'$(LYBoxPluginSharedExclusionsEnabled)' == 'true'">
+    <_SharedAssembliesPatterns>System.*
+System.Private.Uri
+System.Reactive
+Microsoft.Bcl.AsyncInterfaces
+Avalonia
+Avalonia.*
+SkiaSharp
+SkiaSharp.*
+HarfBuzzSharp
+HarfBuzzSharp.*
+MicroCom.Runtime
+LYBox.Plugin.Shared
+CommunityToolkit.*
+Microsoft.Extensions.DependencyInjection
+Microsoft.Extensions.DependencyInjection.Abstractions
+Microsoft.Extensions.Options
+Microsoft.Extensions.Primitives
+Microsoft.Extensions.Logging.Abstractions
+Irihi.*
+Ursa
+Semi.Avalonia</_SharedAssembliesPatterns>
+  </PropertyGroup>
+</Project>

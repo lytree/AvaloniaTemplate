@@ -45,13 +45,13 @@ Task("Clean")
         CleanDirectoryIfExists(c, buildContext.NuGetPackagesDir);
         CleanDirectoryIfExists(c, buildContext.BinPackagesDir);
 
-        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "Avalonia.Plugin.Generators", "bin"));
-        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "Avalonia.Plugin.Generators", "obj"));
-        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "Avalonia.Plugin.Shared", "bin"));
-        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "Avalonia.Plugin.Shared", "obj"));
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "LYBox.Plugin.Generators", "bin"));
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "LYBox.Plugin.Generators", "obj"));
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "LYBox.Plugin.Shared", "bin"));
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "LYBox.Plugin.Shared", "obj"));
 
-        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "launcher", "Avalonia.Launcher.Desktop", "bin"));
-        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "launcher", "Avalonia.Launcher.Desktop", "obj"));
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "launcher", "LYBox.Launcher.Desktop", "bin"));
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "launcher", "LYBox.Launcher.Desktop", "obj"));
     }
 
     if (t.HasFlag(BuildTarget.Plugin))
@@ -504,9 +504,9 @@ public class BuildContext
         BinPackagesDir = Path.Combine(PackagesDir, "bin");
         PluginPackagesDir = Path.Combine(PackagesDir, "plugins");
 
-        GeneratorsProject = Path.Combine(RootDir, "src", "Avalonia.Plugin.Generators", "Avalonia.Plugin.Generators.csproj");
-        SharedProject = Path.Combine(RootDir, "src", "Avalonia.Plugin.Shared", "Avalonia.Plugin.Shared.csproj");
-        LauncherProject = Path.Combine(RootDir, "src", "launcher", "Avalonia.Launcher.Desktop", "Avalonia.Launcher.Desktop.csproj");
+        GeneratorsProject = Path.Combine(RootDir, "src", "LYBox.Plugin.Generators", "LYBox.Plugin.Generators.csproj");
+        SharedProject = Path.Combine(RootDir, "src", "LYBox.Plugin.Shared", "LYBox.Plugin.Shared.csproj");
+        LauncherProject = Path.Combine(RootDir, "src", "launcher", "LYBox.Launcher.Desktop", "LYBox.Launcher.Desktop.csproj");
 
         PluginProjects = FilterPlugins(DiscoverPlugins(RootDir), PluginFilter);
     }

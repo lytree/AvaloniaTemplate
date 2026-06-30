@@ -53,7 +53,7 @@
 **A**：
 
 1. 在插件 csproj 中 `<PackageReference Include="YourPackage" Version="x.y.z" />`。
-2. 若该包的类型出现在插件公共 API（被 `Avalonia.Plugin.Shared` 引用），需加入 `shared-assemblies.txt` —— 但通常不应这样做，应保持插件私有。
+2. 若该包的类型出现在插件公共 API（被 `LYBox.Plugin.Shared` 引用），需加入 `shared-assemblies.txt` —— 但通常不应这样做，应保持插件私有。
 3. 默认情况下，第三方包作为插件私有依赖，由 `PluginLoadContext` 在插件 ALC 中加载，与宿主隔离。
 4. 若包内含原生库（如 `libsqlite3.so`），需检查 `CleanPublishedPluginOutput` target 是否误删 —— 该 target 已排除已知共享原生库（`e_sqlite3`、`libSkiaSharp` 等）。
 
@@ -83,7 +83,7 @@
 
 1. 在插件项目设置 `<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>`。
 2. 构建后查看 `obj/Generated/` 目录下的 `.g.cs` 文件。
-3. 源生成器项目本身可在 `src/Avalonia.Plugin.Generators/` 中调试，启动设置为 "Roslyn Component"。
+3. 源生成器项目本身可在 `src/LYBox.Plugin.Generators/` 中调试，启动设置为 "Roslyn Component"。
 
 ---
 

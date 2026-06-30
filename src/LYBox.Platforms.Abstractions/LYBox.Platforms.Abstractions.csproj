@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Description>LYBox 应用跨平台抽象基类。</Description>
+        <PackageTags>LYBox;avalonia;</PackageTags>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <RootNamespace>LYBox.Platforms.Abstraction</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+        <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="$(CommunityToolkit)" />
+    </ItemGroup>
+
+</Project>

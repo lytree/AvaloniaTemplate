@@ -1,14 +1,14 @@
 <Solution>
     <Folder Name="/plugins/">
-        <Project Path="plugins/Avalonia.Plugin.ButtonsInputs/Avalonia.Plugin.ButtonsInputs.csproj" />
-        <Project Path="plugins/Avalonia.Plugin.DateTime/Avalonia.Plugin.DateTime.csproj" />
-        <Project Path="plugins/Avalonia.Plugin.DialogFeedbacks/Avalonia.Plugin.DialogFeedbacks.csproj" />
-        <Project Path="plugins/Avalonia.Plugin.LayoutDisplay/Avalonia.Plugin.LayoutDisplay.csproj" />
-        <Project Path="plugins/Avalonia.Plugin.NavigationMenus/Avalonia.Plugin.NavigationMenus.csproj" />
-        <Project Path="plugins/Avalonia.Plugin.Downloader/Avalonia.Plugin.Downloader.csproj" />
-        <Project Path="plugins/Avalonia.Plugin.TDLSharp/Avalonia.Plugin.TDLSharp.csproj" />
-        <Project Path="plugins/Avalonia.Plugin.Template/Avalonia.Plugin.Template.csproj" />
-        <Project Path="plugins/Avalonia.Plugin.ScottPlot/Avalonia.Plugin.ScottPlot.csproj" />
-        <Project Path="plugins/Avalonia.Plugin.ProDataGrid/Avalonia.Plugin.ProDataGrid.csproj" />
+        <Project Path="plugins/LYBox.Plugin.ButtonsInputs/LYBox.Plugin.ButtonsInputs.csproj" />
+        <Project Path="plugins/LYBox.Plugin.DateTime/LYBox.Plugin.DateTime.csproj" />
+        <Project Path="plugins/LYBox.Plugin.DialogFeedbacks/LYBox.Plugin.DialogFeedbacks.csproj" />
+        <Project Path="plugins/LYBox.Plugin.LayoutDisplay/LYBox.Plugin.LayoutDisplay.csproj" />
+        <Project Path="plugins/LYBox.Plugin.NavigationMenus/LYBox.Plugin.NavigationMenus.csproj" />
+        <Project Path="plugins/LYBox.Plugin.Downloader/LYBox.Plugin.Downloader.csproj" />
+        <Project Path="plugins/LYBox.Plugin.TDLSharp/LYBox.Plugin.TDLSharp.csproj" />
+        <Project Path="plugins/LYBox.Plugin.Template/LYBox.Plugin.Template.csproj" />
+        <Project Path="plugins/LYBox.Plugin.ScottPlot/LYBox.Plugin.ScottPlot.csproj" />
+        <Project Path="plugins/LYBox.Plugin.ProDataGrid/LYBox.Plugin.ProDataGrid.csproj" />
     </Folder>
 </Solution>

@@ -43,20 +43,20 @@
 - 升 Minor → 新增 API，旧插件仍兼容
 - 升 Build → 无 API 变更的 bug 修复
 
-宿主与所有插件引用同一份 `Avalonia.Plugin.Shared` NuGet 包 → 编译期就能保证双方看到的契约一致；运行时再通过 `PluginSdkContract.CurrentVersion` 常量做一道兜底校验。
+宿主与所有插件引用同一份 `LYBox.Plugin.Shared` NuGet 包 → 编译期就能保证双方看到的契约一致；运行时再通过 `PluginSdkContract.CurrentVersion` 常量做一道兜底校验。
 
 ---
 
 ## SDK 依赖包清单
 
-`Avalonia.Plugin.Shared` NuGet 包（即 Plugin SDK）本身引用了以下第三方包。插件通过 `PrivateAssets="all"` 引用 SDK 时，这些依赖会按下面表格中的"加载位置"规则流入插件或由宿主提供。
+`LYBox.Plugin.Shared` NuGet 包（即 Plugin SDK）本身引用了以下第三方包。插件通过 `PrivateAssets="all"` 引用 SDK 时，这些依赖会按下面表格中的"加载位置"规则流入插件或由宿主提供。
 
 > **当前 SDK 版本**：`2.1.0`（即 `HostVersion=2.1.0`）
-> **真相源**：[`src/Directory.Packages.props`](../src/Directory.Packages.props) + [`src/Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj`](../src/Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj) + [`buildTransitive/Avalonia.Plugin.Shared.props`](../src/Avalonia.Plugin.Shared/buildTransitive/Avalonia.Plugin.Shared.props) 中的 `_SharedAssembliesPatterns`
+> **真相源**：[`src/Directory.Packages.props`](../src/Directory.Packages.props) + [`src/LYBox.Plugin.Shared/LYBox.Plugin.Shared.csproj`](../src/LYBox.Plugin.Shared/LYBox.Plugin.Shared.csproj) + [`buildTransitive/LYBox.Plugin.Shared.props`](../src/LYBox.Plugin.Shared/buildTransitive/LYBox.Plugin.Shared.props) 中的 `_SharedAssembliesPatterns`
 
 ### 1. 共享程序集（由宿主默认 ALC 提供，插件转发引用）
 
-这些包的类型出现在 SDK 公共 API 中，或属于 Avalonia 框架本体，必须由宿主统一加载，避免类型标识冲突。运行时由 [`PluginLoadContext`](../src/Avalonia.UI/Services/PluginLoadContext.cs) 转发到 `AssemblyLoadContext.Default`。
+这些包的类型出现在 SDK 公共 API 中，或属于 Avalonia 框架本体，必须由宿主统一加载，避免类型标识冲突。运行时由 [`PluginLoadContext`](../src/LYBox.UI/Services/PluginLoadContext.cs) 转发到 `AssemblyLoadContext.Default`。
 
 | 包名 | 当前版本 | 引入版本 | 在 SDK 中的作用 |
 |------|---------|---------|----------------|
@@ -74,7 +74,7 @@
 | `Microsoft.Bcl.AsyncInterfaces` | （传递） | 自 SDK 初始版本 | `IAsyncEnumerable<T>` 等异步接口，BCL 传递依赖 |
 | `SkiaSharp` / `HarfBuzzSharp` / `MicroCom.Runtime` | （Avalonia 传递） | 自 SDK 初始版本 | Avalonia 原生渲染依赖，通过 `Avalonia.*` 模式匹配共享 |
 
-> **匹配规则**：上述清单由 `Avalonia.Plugin.Shared.props` 中的 `_SharedAssembliesPatterns` 属性生成 `shared-assemblies.txt`，运行时 `PluginLoadContext.IsShared(name)` 按"精确名或前缀通配"判断。新增共享程序集必须修改该属性，并升 `HostVersion` Major（破坏性）。
+> **匹配规则**：上述清单由 `LYBox.Plugin.Shared.props` 中的 `_SharedAssembliesPatterns` 属性生成 `shared-assemblies.txt`，运行时 `PluginLoadContext.IsShared(name)` 按"精确名或前缀通配"判断。新增共享程序集必须修改该属性，并升 `HostVersion` Major（破坏性）。
 
 ### 2. SDK 传递的私有依赖（包内引用但运行时为插件私有）
 
@@ -89,7 +89,7 @@
 
 ### 3. 宿主侧依赖（不在 SDK 中，插件可通过 DI 间接使用）
 
-这些包由宿主 `Avalonia.UI` 直接引用，不在 `Avalonia.Plugin.Shared` NuGet 包内。插件通过 DI 容器获取相关服务时间接使用，**不可直接 `PackageReference` 同名包为公共 API 类型**，否则会引发 ALC 类型标识冲突。
+这些包由宿主 `LYBox.UI` 直接引用，不在 `LYBox.Plugin.Shared` NuGet 包内。插件通过 DI 容器获取相关服务时间接使用，**不可直接 `PackageReference` 同名包为公共 API 类型**，否则会引发 ALC 类型标识冲突。
 
 | 包名 | 当前版本 | 引入版本 | 宿主中作用 | 插件访问方式 |
 |------|---------|---------|------------|------------|
@@ -104,9 +104,9 @@
 
 | 包名 | 当前版本 | 使用插件 | 用途 |
 |------|---------|---------|------|
-| `ScottPlot` | `5.1.59` | `Avalonia.Plugin.ScottPlot` | 图表绘制控件 |
-| `CliWrap` | `3.10.2` | `Avalonia.Plugin.Downloader` | 调用外部进程（FFmpeg 等） |
-| `TDLib` / `TDLib.Api` / `tdlib.native` | `1.8.*` | `Avalonia.Plugin.TDLSharp` | Telegram TDLib 绑定 |
+| `ScottPlot` | `5.1.59` | `LYBox.Plugin.ScottPlot` | 图表绘制控件 |
+| `CliWrap` | `3.10.2` | `LYBox.Plugin.Downloader` | 调用外部进程（FFmpeg 等） |
+| `TDLib` / `TDLib.Api` / `tdlib.native` | `1.8.*` | `LYBox.Plugin.TDLSharp` | Telegram TDLib 绑定 |
 
 ### 关于"引入版本"列的说明
 
@@ -119,7 +119,7 @@
 > git log -p -- src/Directory.Packages.props | Select-String "<AvaloniaVersion>"
 >
 > # 查看 SDK csproj 引用列表的变更
-> git log -p -- src/Avalonia.Plugin.Shared/Avalonia.Plugin.Shared.csproj
+> git log -p -- src/LYBox.Plugin.Shared/LYBox.Plugin.Shared.csproj
 > ```
 >
 > 当未来新增依赖包时，请在本表中显式标注"引入版本 = X.Y.Z"，并升 `HostVersion` 的 Minor（新增 API，向后兼容）或 Major（破坏性变更）。
@@ -132,7 +132,7 @@
 
 ```
 插件 .csproj <MinPluginSdkVersion>
-    ↓ GeneratePluginManifest target（Avalonia.Plugin.Shared.targets）
+    ↓ GeneratePluginManifest target（LYBox.Plugin.Shared.targets）
 plugin.json: "minPluginSdkVersion": "..."
     ↓ PluginLoader 读取
 PluginInfo.MinPluginSdkVersion
@@ -155,7 +155,7 @@ IsPluginSdkCompatible(MinPluginSdkVersion, PluginSdkContract.CurrentVersion)
 不通过 → 标记 PluginState.Error，写入错误信息，拒绝加载
 ```
 
-**SemVer 比对规则**（[`PluginLoader.IsPluginSdkCompatible`](../src/Avalonia.UI/Services/PluginLoader.cs)）：
+**SemVer 比对规则**（[`PluginLoader.IsPluginSdkCompatible`](../src/LYBox.UI/Services/PluginLoader.cs)）：
 
 - `null` / 空 → 通过（无约束）
 - 解析失败 → **拒绝**（fail-closed，避免误判不兼容插件）

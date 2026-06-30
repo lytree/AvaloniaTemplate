@@ -1,4 +1,4 @@
-# AvaloniaTemplate — AGENTS.md
+# LYBox — AGENTS.md
 
 OpenCode 智能体在本仓库工作时的精简指南。
 
@@ -15,9 +15,9 @@ OpenCode 智能体在本仓库工作时的精简指南。
   .\build.ps1 --self-contained=true          # 启动器自包含发布
   .\build.ps1 --nuget-api-key=<KEY>          # 推送包到 nuget.org
   ```
-- **构建顺序很重要**：`--build=bin` 必须先于 `--build=plugin` 运行（或直接使用 `--build=all`），因为 `--build=bin` 会打包 SDK NuGet 包，而插件依赖本地构建的 `Avalonia.Plugin.Generators` + `Avalonia.Plugin.Shared` NuGet 包。
+- **构建顺序很重要**：`--build=bin` 必须先于 `--build=plugin` 运行（或直接使用 `--build=all`），因为 `--build=bin` 会打包 SDK NuGet 包，而插件依赖本地构建的 `LYBox.Plugin.Generators` + `LYBox.Plugin.Shared` NuGet 包。
 - **直接 `dotnet build`** 可用于单个项目，但若未预先构建本地 NuGet 包，插件可能还原失败（使用 `--build=bin` 或确保 `bin/nuget/` 下有 `.nupkg` 文件）。`--build=nuget` 保留为 `--build=bin` 的兼容别名。
-- **运行启动器**：`dotnet run --project src/launcher/Avalonia.Launcher.Desktop`
+- **运行启动器**：`dotnet run --project src/launcher/LYBox.Launcher.Desktop`
 - **VS Code 调试**：使用 "Debug Plugin - {Name}" 启动配置 — 每个配置将 `AVALONIA_EXTRA_PLUGINS_PATH` 指向插件的 `bin/Debug/net10.0` 输出目录，用于开发期实时加载。
 - **无测试**，无 CI 工作流，未配置 linter/formatter。
 
@@ -31,21 +31,21 @@ OpenCode 智能体在本仓库工作时的精简指南。
 
 ### 项目分层（src/）
 ```
-Avalonia.Plugin.Generators/        Roslyn 增量源生成器（netstandard2.1，IsRoslynComponent）
-Avalonia.Plugin.Shared/            共享契约：IPlugin、IPluginMetadata、ViewLocator、ServiceLocator、特性、控件
-Avalonia.Platforms.Abstractions/   跨平台抽象基类（仅空 README）
-Avalonia.UI/                       宿主应用：ViewModels、Views、Services（EF Core、导航、菜单、本地化、ZLogger）
-Avalonia.Launcher.Desktop/         桌面入口（Program.cs → App.axaml.cs）。设置 AvaloniaUseCompiledBindingsByDefault=true。
+LYBox.Plugin.Generators/        Roslyn 增量源生成器（netstandard2.1，IsRoslynComponent）
+LYBox.Plugin.Shared/            共享契约：IPlugin、IPluginMetadata、ViewLocator、ServiceLocator、特性、控件
+LYBox.Platforms.Abstractions/   跨平台抽象基类（仅空 README）
+LYBox.UI/                       宿主应用：ViewModels、Views、Services（EF Core、导航、菜单、本地化、ZLogger）
+LYBox.Launcher.Desktop/         桌面入口（Program.cs → App.axaml.cs）。设置 AvaloniaUseCompiledBindingsByDefault=true。
 ```
 
 ### 平台特定项目
 `src/platforms/` 包含：
-- `Avalonia.Platforms.Windows` — `net10.0-windows10.0.19041.0`
-- `Avalonia.Platforms.MacOs` — `net10.0-macos15.0`
-- `Avalonia.Platforms.Linux` — `net10.0`
+- `LYBox.Platforms.Windows` — `net10.0-windows10.0.19041.0`
+- `LYBox.Platforms.MacOs` — `net10.0-macos15.0`
+- `LYBox.Platforms.Linux` — `net10.0`
 
 ### 插件项目（plugins/）
-每个插件是 `net10.0` 类库，引用 `Avalonia.Plugin.Generators`（analyzer，`OutputItemType="Analyzer"`，`ReferenceOutputAssembly="false"`）和 `Avalonia.Plugin.Shared`（`PrivateAssets="all"`）。插件元数据通过 MSBuild 属性声明：
+每个插件是 `net10.0` 类库，引用 `LYBox.Plugin.Generators`（analyzer，`OutputItemType="Analyzer"`，`ReferenceOutputAssembly="false"`）和 `LYBox.Plugin.Shared`（`PrivateAssets="all"`）。插件元数据通过 MSBuild 属性声明：
 ```xml
 <PluginId>UUID</PluginId>
 <PluginName>...</PluginName>
@@ -69,8 +69,8 @@ Program.cs → App.Initialize()
 
 ### 插件加载与程序集排除
 - 每个插件在独立的、可收集的 `AssemblyLoadContext` 中加载
-- 框架/共享程序集转发到默认上下文（排除清单见 `Avalonia.Plugin.Shared.props`/`.targets`）
-- 插件通过 `GeneratePluginManifest` 目标自动生成 `plugin.json` 清单（来自 `Avalonia.Plugin.Shared.targets`）
+- 框架/共享程序集转发到默认上下文（排除清单见 `LYBox.Plugin.Shared.props`/`.targets`）
+- 插件通过 `GeneratePluginManifest` 目标自动生成 `plugin.json` 清单（来自 `LYBox.Plugin.Shared.targets`）
 - 发现：扫描 `{AppBaseDir}/plugins/` 和 `AVALONIA_EXTRA_PLUGINS_PATH` 环境变量
 - 构建输出：`bin/plugins/{Name}/publish/`（发布目录）+ `bin/plugins/zip/{Name}-{Version}.zip`（剥离 .pdb、.xml、.deps.json、.runtimeconfig.json）
 
@@ -110,14 +110,14 @@ Program.cs → App.Initialize()
 |--------|------|---------|---------|
 | 1 | **Irihi.Ursa**（`u:` 命名空间） | `<u:Button />`、`<u:Banner />`、`<u:NavMenu />`、`<u:Form />`、`<u:NumericUpDown />`、`<u:TagInput />`、`<u:IPv4Box />`、`<u:TimeBox />`、`<u:Avatar />`、`<u:Card />`、`<u:Badge />`、`<u:Loading />`、`<u:Breadcrumb />`、`<u:Dialog />`、`<u:Drawer />` | 默认首选。所有通用控件优先用 Ursa。 |
 | 2 | **Avalonia 内置控件**（无 `u:` 前缀） | `<Button />`、`<TextBox />`、`<CheckBox />`、`<ComboBox />`、`<ListBox />`、`<TreeView />`、`<TabControl />`、`<ProgressBar />`、`<Slider />`、`<DatePicker />`、`<DataGrid />` | Ursa 未覆盖或场景不适合 Ursa 时使用。DataGrid 已应用 `<datagrid:DataGridFluentTheme />`。 |
-| 3 | **项目自定义 Fluent 补充样式**（`src/Avalonia.UI/Theme/FluentDesign/FluentDesignStyles.axaml`） | `Button.FluentSettingsCard`、`Border.FluentInfoBadge`、`ProgressBar.circular.FluentProgressRing`、`Button.FluentBreadcrumbItem`、`Border.FluentContentDialogSurface` | Ursa 未提供的 WinUI 风格控件。详见下表。 |
+| 3 | **项目自定义 Fluent 补充样式**（`src/LYBox.UI/Theme/FluentDesign/FluentDesignStyles.axaml`） | `Button.FluentSettingsCard`、`Border.FluentInfoBadge`、`ProgressBar.circular.FluentProgressRing`、`Button.FluentBreadcrumbItem`、`Border.FluentContentDialogSurface` | Ursa 未提供的 WinUI 风格控件。详见下表。 |
 | 4 | **CommunityToolkit.Mvvm** | `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]` | ViewModel 基础设施（与组件选型并列，但所有 VM 必须用此库）。 |
 
 **禁止**：直接引入 `Avalonia-Fluent-UI`（`AvaloniaFluentUI` NuGet/项目引用）整库。该库与 Irihi.Ursa 大量功能重叠且未发布到 NuGet，仅在风格上作为参考。需要 WinUI 风格控件时，使用上述第 3 级的项目内补充样式。
 
 ### 2. 自定义 Fluent 补充样式速查表
 
-所有补充样式位于 `src/Avalonia.UI/Theme/FluentDesign/FluentDesignStyles.axaml`，通过 `UrsaSemiTheme` 自动加载，无需手动 `<StyleInclude>`。
+所有补充样式位于 `src/LYBox.UI/Theme/FluentDesign/FluentDesignStyles.axaml`，通过 `UrsaSemiTheme` 自动加载，无需手动 `<StyleInclude>`。
 
 | 类名 | 控件类型 | 替代的 WinUI 控件 | 用途 |
 |------|---------|------------------|------|
@@ -184,11 +184,11 @@ Program.cs → App.Initialize()
 - **圆角规范**：卡片 8px、徽章/小按钮 4px、点状元素圆形（`CornerRadius="0"` + `CornerRadius` 全值 = 宽/2）。
 - **间距规范**：内边距遵循 12/16/24 三档；元素间用 `Spacing` 而非 `Margin`。
 - **动画规范**：颜色/画刷过渡统一用 `BrushTransition`，时长 `0:0:0.15`；阴影过渡用 `BoxShadowsTransition`。复杂动画引用 `Theme/Animations/` 下的 `DefaultSizeAnimations`、`NavMenuSizeAnimations`、`SemiPopupAnimations`。
-- **主题入口**：所有样式通过 `src/Avalonia.UI/Theme/UrsaSemiTheme.axaml` 注册，应用入口 `App.axaml` 仅引用 `<fluent:FluentTheme />` + `<theme:UrsaSemiTheme />` + `<sizeanimations:SemiPopupAnimations />` + `<datagrid:DataGridFluentTheme />`，**不要**在 `App.axaml` 中追加额外 `<StyleInclude>`。
+- **主题入口**：所有样式通过 `src/LYBox.UI/Theme/UrsaSemiTheme.axaml` 注册，应用入口 `App.axaml` 仅引用 `<fluent:FluentTheme />` + `<theme:UrsaSemiTheme />` + `<sizeanimations:SemiPopupAnimations />` + `<datagrid:DataGridFluentTheme />`，**不要**在 `App.axaml` 中追加额外 `<StyleInclude>`。
 
 ### 4. 图标使用规则（优先 Fluent-UI icon）
 
-- **首选图标集**：Fluent Icons（Microsoft Fluent UI System Icons）。资源位于 `src/Avalonia.UI/Theme/Icons/Fluent/`，按 `Regular/Filled` × `16/20/24/28/32/48` 切分。
+- **首选图标集**：Fluent Icons（Microsoft Fluent UI System Icons）。资源位于 `src/LYBox.UI/Theme/Icons/Fluent/`，按 `Regular/Filled` × `16/20/24/28/32/48` 切分。
 - **图标资源键命名规范**：`FluentIcon{Size}{Variant}{Name}`，例如：
   - `FluentIcon24RegularSettings`
   - `FluentIcon20FilledWarning`
@@ -210,7 +210,7 @@ Program.cs → App.Initialize()
      ```xml
      <u:IconButton Icon="{DynamicResource FluentIcon24RegularSettings}" />
      ```
-- **次选图标集**：项目自定义 `Semi` 风格图标（`src/Avalonia.UI/Theme/Icons/_index.axaml` 中以 `SemiIcon` 开头的资源键，如 `SemiIconChevronDown`）。仅当 Fluent Icons 中找不到对应图标时使用，且需在代码注释中说明原因。
+- **次选图标集**：项目自定义 `Semi` 风格图标（`src/LYBox.UI/Theme/Icons/_index.axaml` 中以 `SemiIcon` 开头的资源键，如 `SemiIconChevronDown`）。仅当 Fluent Icons 中找不到对应图标时使用，且需在代码注释中说明原因。
 - **禁止**：硬编码 `Geometry.Parse("...")` 字面量路径。所有路径必须以 `StreamGeometry` 资源形式定义在 `Theme/Icons/` 下。
 - **新增 Fluent 图标流程**：
   1. 从 [Fluent UI System Icons](https://github.com/microsoft/fluentui-system-icons) 获取 SVG path
@@ -239,12 +239,12 @@ Program.cs → App.Initialize()
 - ProDataGrid: `12.0.0`
 - ScottPlot: `5.1.58`
 - ZLogger: `2.1.0`
-- 插件 NuGet 包：`Avalonia.Plugin.Generators` + `Avalonia.Plugin.Shared`，版本 `1.0.0`，本地构建到 `bin/nuget/`
+- 插件 NuGet 包：`LYBox.Plugin.Generators` + `LYBox.Plugin.Shared`，版本 `1.0.0`，本地构建到 `bin/nuget/`
 
 ## NuGet 配置
 
 - **根 `nuget.config`**：将 `globalPackagesFolder` 设置为 `<repo>/packages`（本地缓存，在 `.gitignore` 中以 `packages/nuget/` 例外跟踪）
-- **`plugins/nuget.config`**：继承根配置，新增 `AvaloniaPluginLocal` 源指向 `<repo>/bin/nuget` — 插件通过此源解析本地构建的 `Avalonia.Plugin.Generators` 和 `Avalonia.Plugin.Shared` 包
+- **`plugins/nuget.config`**：继承根配置，新增 `LYBoxPluginLocal` 源指向 `<repo>/bin/nuget` — 插件通过此源解析本地构建的 `LYBox.Plugin.Generators` 和 `LYBox.Plugin.Shared` 包
 
 ## 平台目标
 
@@ -280,9 +280,9 @@ Program.cs → App.Initialize()
     <PluginDescription>...</PluginDescription>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Plugin.Generators" Version="1.0.0"
+    <PackageReference Include="LYBox.Plugin.Generators" Version="1.0.0"
       OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <PackageReference Include="Avalonia.Plugin.Shared" Version="1.0.0" PrivateAssets="all" />
+    <PackageReference Include="LYBox.Plugin.Shared" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
 </Project>
 ```
@@ -291,7 +291,7 @@ Program.cs → App.Initialize()
 
 - `.slnx` 格式（非 `.sln`）— .NET 10 XML 解决方案格式
 - 构建脚本（`build/build.cs`）通过扫描 `plugins/` 下所有 `*.csproj` 发现插件 — `PluginId` 等从 .csproj XML 读取
-- `Core.slnx` 和 `Plugins.slnx` 共享 `src/Avalonia.Plugin.Generators` 和 `src/Avalonia.Plugin.Shared`
+- `Core.slnx` 和 `Plugins.slnx` 共享 `src/LYBox.Plugin.Generators` 和 `src/LYBox.Plugin.Shared`
 - 插件 NuGet 包必须在还原插件前本地构建。先用 `.\build.ps1 --build=bin` 构建；包输出到 `bin/nuget/`。`plugins/nuget.config` 将此目录添加为本地源。
 - `AvaloniaUseCompiledBindingsByDefault` 在启动器项目中设为 `true` — 新插件应遵循此约定
 - `src/` 下的 `Directory.Build.props` 导入 `Environment.props` 并设置默认 `TargetFramework=net10.0`（按平台覆盖）

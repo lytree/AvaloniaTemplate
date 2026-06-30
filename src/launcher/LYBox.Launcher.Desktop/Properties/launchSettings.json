@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "Launcher": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "AVALONIA_EXTRA_PLUGINS_PATH": ""
+      }
+    },
+    "Launcher + Template Plugin": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "AVALONIA_EXTRA_PLUGINS_PATH": "$(SolutionDir)plugins/LYBox.Plugin.TDLSharp/bin/Debug/net10.0"
+      }
+    }
+  }
+}
