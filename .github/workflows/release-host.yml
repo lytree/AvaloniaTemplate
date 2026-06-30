@@ -50,7 +50,7 @@ jobs:
             --build=bin \
             --runtime-identifier=${{ matrix.rid }} \
             --self-contained=true \
-            --host-version=${{ needs.pack-sdk.outputs.version }}
+            --host-version=${{ inputs.version }}
 
       - name: Zip published output
         shell: pwsh
@@ -72,7 +72,7 @@ jobs:
 
   release:
     name: GitHub Release
-    needs: [pack-sdk, publish-host]
+    needs: [publish-host]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
