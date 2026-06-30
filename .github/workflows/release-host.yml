@@ -27,7 +27,6 @@ env:
 jobs:
   publish-host:
     name: Publish Launcher (${{ matrix.rid }})
-    needs: pack-sdk
     strategy:
       fail-fast: false
       matrix:
