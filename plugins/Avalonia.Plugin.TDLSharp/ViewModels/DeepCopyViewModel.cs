@@ -1,43 +1,72 @@
-using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.Attributes;
 using Avalonia.Plugin.TDLSharp.Models;
+using Avalonia.Plugin.TDLSharp.Resources;
 using Avalonia.Plugin.TDLSharp.Services;
 
 namespace Avalonia.Plugin.TDLSharp.ViewModels;
 
 [NavigationItem("TDL_DeepCopy")]
-[Menu("NAV_TDL_DeepCopy", "TDL_DeepCopy", ParentKey = "NAV_TDL", Order = 3)]
-[ViewMap(typeof(Pages.TdlScriptPage))]
+[Menu("NAV_TDL_DeepCopy", "TDL_DeepCopy", ParentKey = "NAV_TDL", Order = 8)]
+[ViewMap(typeof(Pages.DeepCopyPage))]
 public partial class DeepCopyViewModel : TdlViewModelBase
 {
     public override ScriptDescriptor Script => new()
     {
         Id = "forward",
-        Name = "深度Copy转发",
-        Description = "将频道中的浅转发消息转换为深度Copy（从原始来源重新发送副本，然后删除旧浅转发）",
+        Name = Strings.Get("SCRIPT_DeepCopy_Name"),
+        Description = Strings.Get("SCRIPT_DeepCopy_Desc"),
         Parameters =
         [
-            ScriptParameter.Text("source", "源频道", "源频道/群聊链接或用户名 (留空=收藏夹)", required: false),
-            ScriptParameter.Number("limit", "最大处理数量", "0=全部", 0),
-            ScriptParameter.Switch("comments", "处理评论", "是否同时处理评论中的浅转发", true),
+            ScriptParameter.HistoryText("source", Strings.Get("PARAM_SourceChannel"), Strings.Get("PARAM_SourceChannelDesc"), required: false),
+            ScriptParameter.Number("limit", Strings.Get("PARAM_Limit"), Strings.Get("PARAM_LimitDesc"), 0),
+            ScriptParameter.Switch("comments", Strings.Get("PARAM_ProcessComments"), Strings.Get("PARAM_ProcessCommentsDesc"), true),
+            ScriptParameter.Number("maxNonShallow", Strings.Get("PARAM_MaxNonShallow"), Strings.Get("PARAM_MaxNonShallowDesc"), 5000),
         ]
     };
 
     protected override async Task ExecuteCoreAsync(TdlService tdlService, Dictionary<string, string> paramValues, CancellationToken ct)
     {
-        var source = paramValues.GetValueOrDefault("source");
+        var sourceRaw = paramValues.GetValueOrDefault("source")?.Trim();
         var limit = int.TryParse(paramValues.GetValueOrDefault("limit", "0"), out var l) ? l : 0;
         var comments = bool.TryParse(paramValues.GetValueOrDefault("comments", "true"), out var c) && c;
+        var maxNonShallow = int.TryParse(paramValues.GetValueOrDefault("maxNonShallow", "5000"), out var m) ? m : 5000;
 
-        await tdlService.DeepCopyAsync(source, limit, comments, ct);
+        var sources = ParseSources(sourceRaw);
 
-        var chatId = await tdlService.ResolveChatIdAsync(source);
-        if (chatId == 0)
+        if (sources.Count == 0)
+            sources.Add("");
+
+        for (int i = 0; i < sources.Count; i++)
         {
-            var currentUser = await tdlService.GetCurrentUserAsync();
-            chatId = currentUser.Id;
-        }
+            ct.ThrowIfCancellationRequested();
+            var source = sources[i];
+            var channelLabel = string.IsNullOrWhiteSpace(source) ? Strings.Get("WORD_Favorites") : source;
 
-        await tdlService.DeleteShallowForwardMessagesAsync(chatId, ct);
+            if (sources.Count > 1)
+                AddLogEntry(new LogEntry { Message = Strings.Get("FMT_ProcessingChannel", i + 1, sources.Count, channelLabel) });
+
+            await tdlService.DeepCopyAsync(source, limit, comments, maxNonShallow, ct);
+
+            var chatId = await tdlService.ResolveChatIdAsync(source);
+            if (chatId == 0)
+            {
+                var currentUser = await tdlService.GetCurrentUserAsync();
+                chatId = currentUser.Id;
+            }
+
+            await tdlService.DeleteShallowForwardMessagesAsync(chatId, maxNonShallow, ct);
+        }
+    }
+
+    private static List<string> ParseSources(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return [];
+
+        return raw.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -6,8 +6,12 @@
 		<Nullable>enable</Nullable>
 		<OutputType>Library</OutputType>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IsPluginSdkProject>true</IsPluginSdkProject>
 		<PackageId>Avalonia.Plugin.Shared</PackageId>
-		<Version>1.0.0</Version>
+		<!-- SDK 与宿主共用 HostVersion：PluginSdkVersion 在根 Directory.Build.props 中已是 HostVersion 的别名 -->
+		<Version>$(HostVersion)</Version>
+		<AssemblyVersion>$(HostVersion)</AssemblyVersion>
+		<FileVersion>$(HostVersion)</FileVersion>
 		<Description>Shared library for Avalonia plugin development, including controls, converters, and services.</Description>
 		<Authors>AvaloniaPlugin</Authors>
 		<PackageTags>avalonia;plugin;shared;controls;mvvm</PackageTags>
@@ -16,19 +20,83 @@
 		<RepositoryUrl>https://github.com/example/AvaloniaTemplate</RepositoryUrl>
 	</PropertyGroup>
 
+	<!--
+		SDK 依赖分为两层：
+		1. 顶级依赖：SDK 直接引用的包，其类型出现在 SDK 公共 API 中（或 SDK 决定向插件
+		   传递暴露的控件库，如 ProDataGrid）。
+		2. 递归依赖（显式声明）：顶级依赖的传递依赖，已通过 _SharedAssembliesPatterns
+		   列为共享程序集（运行时由宿主提供）。显式声明的目的：
+		     - 锁定版本，防止传递依赖版本漂移；
+		     - 让 SDK nupkg 的依赖树明确，便于诊断共享程序集版本冲突；
+		     - 与 buildTransitive 的 _SharedAssembliesPatterns 保持一一对应。
+
+		设计原则：
+		  - EF Core：SDK 仅依赖基础抽象包（Microsoft.EntityFrameworkCore），暴露
+		    DbContext / DbSet 等抽象类型；SQLite 等具体数据库实现由宿主或插件按需引用
+		    （宿主引用 Sqlite 用于 AppDbContext）。
+		  - Logging：SDK 仅依赖抽象侧（Microsoft.Extensions.Logging.Abstractions），
+		    实现侧由宿主通过 ZLogger 提供。抽象包已在下方递归依赖区显式声明。
+		  - ProDataGrid：保留以供插件编写表格时通过 SDK 传递依赖直接复用。
+		  - ScottPlot：不引入 SDK，由需要图表的插件自行引用（插件私有依赖）。
+	-->
 	<ItemGroup>
+		<!-- 顶级依赖：SDK 公共 API 直接暴露的类型所在的包 -->
 		<PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+		<PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDI)" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="$(CommunityToolkit)" />
 		<PackageReference Include="Irihi.Ursa" Version="$(IrihiUrsaVersion)" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EfCoreVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsDI)" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="$(EfCoreVersion)" />
 		<PackageReference Include="System.Reactive" Version="6.1.0" />
+		<PackageReference Include="ProDataGrid" Version="$(ProDataGridVersion)" />
+
+		<!-- 递归依赖（共享）：显式声明以锁定版本，运行时由宿主通过 _SharedAssembliesPatterns 提供 -->
+
+		<!-- Microsoft.Extensions.* 系列（DI / Logging 的传递依赖） -->
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsDI)" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsDI)" />
+		<PackageReference Include="Microsoft.Extensions.Primitives" Version="$(MicrosoftExtensionsDI)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsDI)" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftExtensionsDI)" />
+
+		<!-- Avalonia 渲染递归依赖（Avalonia / Avalonia.Skia 的传递依赖） -->
+		<PackageReference Include="SkiaSharp" Version="$(SkiaSharpVersion)" />
+		<PackageReference Include="HarfBuzzSharp" Version="$(HarfBuzzSharpVersion)" />
+		<PackageReference Include="MicroCom.Runtime" Version="$(MicroComRuntimeVersion)" />
+
+		<!-- Ursa 递归依赖（Irihi.Ursa 的传递依赖） -->
+		<PackageReference Include="Irihi.Avalonia.Shared" Version="$(IrihiAvaloniaSharedVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<None Include="buildTransitive\Avalonia.Plugin.Shared.props" Pack="true" PackagePath="buildTransitive\net10.0\Avalonia.Plugin.Shared.props" />
 		<None Include="buildTransitive\Avalonia.Plugin.Shared.targets" Pack="true" PackagePath="buildTransitive\net10.0\Avalonia.Plugin.Shared.targets" />
 	</ItemGroup>
+
+	<!--
+		生成 PluginSdkContract.g.cs：编译时把 SDK 契约版本（即 HostVersion）嵌入程序集。
+		宿主与 SDK 共用 HostVersion，因此 PluginSdkVersion 在根 Directory.Build.props 中已是 $(HostVersion) 的别名。
+		主体程序通过 ProjectReference 引用本程序集，运行时读 PluginSdkContract.CurrentVersion
+		获得当前 SDK 契约版本，用于校验插件 MinPluginSdkVersion。
+		文件输出到 obj/ 避免污染源码树。
+	-->
+	<Target Name="GeneratePluginSdkContract" BeforeTargets="CoreCompile">
+		<ItemGroup>
+			<_PluginSdkContractLines Include="// &lt;auto-generated /&gt;" />
+			<_PluginSdkContractLines Include="namespace Avalonia.Plugin.Shared%3B" />
+			<_PluginSdkContractLines Include="/// &lt;summary&gt;" />
+			<_PluginSdkContractLines Include="/// 当前宿主链接的 Plugin SDK 契约版本。编译时由 $(HostVersion) 注入（宿主与 SDK 同步发版）。" />
+			<_PluginSdkContractLines Include="/// 插件通过 plugin.json 的 minPluginSdkVersion 声明所需最低版本，主体程序加载时与此常量比对。" />
+			<_PluginSdkContractLines Include="/// &lt;/summary&gt;" />
+			<_PluginSdkContractLines Include="public static class PluginSdkContract" />
+			<_PluginSdkContractLines Include="{" />
+			<_PluginSdkContractLines Include='    public const string CurrentVersion = "$(HostVersion)"%3B' />
+			<_PluginSdkContractLines Include="}" />
+		</ItemGroup>
+		<WriteLinesToFile File="$(IntermediateOutputPath)PluginSdkContract.g.cs" Lines="@(_PluginSdkContractLines)" Overwrite="true" Encoding="UTF-8" />
+		<ItemGroup>
+			<Compile Include="$(IntermediateOutputPath)PluginSdkContract.g.cs" />
+		</ItemGroup>
+	</Target>
 
 </Project>

@@ -7,25 +7,32 @@ namespace Avalonia.Platform.Windows.Services;
 
 public class DesktopService : IDesktopService
 {
+    private readonly string _startupShortcutPath;
+    private bool? _cachedAutoStart;
+
+    public DesktopService()
+    {
+        _startupShortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "Avalonia.lnk");
+    }
+
     public bool IsAutoStartEnabled
     {
-        get => File.Exists(
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "Avalonia.lnk"));
+        get => _cachedAutoStart ??= File.Exists(_startupShortcutPath);
         set
         {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "Avalonia.lnk");
             if (value)
             {
                 using var shortcut = new WindowsShortcut();
                 shortcut.Path = AppBase.ExecutingEntrance;
                 shortcut.WorkingDirectory = Path.GetDirectoryName(AppBase.ExecutingEntrance);
-                shortcut.Save(path);
+                shortcut.Save(_startupShortcutPath);
             }
             else
             {
-                File.Delete(path);
+                if (File.Exists(_startupShortcutPath))
+                    File.Delete(_startupShortcutPath);
             }
-            
+            _cachedAutoStart = value;
         }
     }
     public bool IsUrlSchemeRegistered{

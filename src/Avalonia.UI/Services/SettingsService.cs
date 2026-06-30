@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.Models;
 using Avalonia.Plugin.Shared.Services;
@@ -10,11 +11,31 @@ public class SettingsService : ISettingsService
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly ILocalizationService? _localizationService;
+    private ConcurrentDictionary<string, SettingItem>? _settingsCache;
+    private bool _cacheInitialized;
 
     public SettingsService(IDbContextFactory<AppDbContext> dbFactory)
     {
         _dbFactory = dbFactory;
         _localizationService = ServiceLocator.GetService<ILocalizationService>();
+    }
+
+    private ConcurrentDictionary<string, SettingItem> EnsureCache()
+    {
+        if (_cacheInitialized) return _settingsCache!;
+
+        using var db = _dbFactory.CreateDbContext();
+        var items = db.Settings.OrderBy(s => s.GroupOrder).ThenBy(s => s.ItemOrder).ToList();
+        _settingsCache = new ConcurrentDictionary<string, SettingItem>(
+            items.Select(i => new KeyValuePair<string, SettingItem>(i.Key, i)));
+        _cacheInitialized = true;
+        return _settingsCache;
+    }
+
+    private void InvalidateCache()
+    {
+        _cacheInitialized = false;
+        _settingsCache = null;
     }
 
     public void RegisterSetting(SettingDefinition definition)
@@ -34,6 +55,7 @@ public class SettingsService : ISettingsService
             if (definition.Options != null)
                 existing.SetOptions(definition.Options);
             db.SaveChanges();
+            InvalidateCache();
             return;
         }
 
@@ -48,6 +70,7 @@ public class SettingsService : ISettingsService
             SettingType = definition.SettingType,
             DefaultValue = definition.DefaultValue,
             PluginId = definition.PluginId,
+            IsFolder = definition.IsFolder,
             RawValue = definition.DefaultValue ?? string.Empty
         };
         if (definition.Options != null)
@@ -55,20 +78,57 @@ public class SettingsService : ISettingsService
 
         db.Settings.Add(item);
         db.SaveChanges();
+        InvalidateCache();
     }
 
     public void RegisterSettings(IEnumerable<SettingDefinition> definitions)
     {
+        using var db = _dbFactory.CreateDbContext();
         foreach (var def in definitions)
         {
-            RegisterSetting(def);
+            var existing = db.Settings.FirstOrDefault(s => s.Key == def.Key);
+            if (existing != null)
+            {
+                existing.DisplayName = def.DisplayName;
+                existing.Description = def.Description;
+                existing.GroupName = def.GroupName;
+                existing.GroupOrder = def.GroupOrder;
+                existing.ItemOrder = def.ItemOrder;
+                existing.SettingType = def.SettingType;
+                existing.DefaultValue = def.DefaultValue;
+                existing.PluginId = def.PluginId;
+                if (def.Options != null)
+                    existing.SetOptions(def.Options);
+            }
+            else
+            {
+                var item = new SettingItem
+                {
+                    Key = def.Key,
+                    DisplayName = def.DisplayName,
+                    Description = def.Description,
+                    GroupName = def.GroupName,
+                    GroupOrder = def.GroupOrder,
+                    ItemOrder = def.ItemOrder,
+                    SettingType = def.SettingType,
+                    DefaultValue = def.DefaultValue,
+                    PluginId = def.PluginId,
+                    IsFolder = def.IsFolder,
+                    RawValue = def.DefaultValue ?? string.Empty
+                };
+                if (def.Options != null)
+                    item.SetOptions(def.Options);
+                db.Settings.Add(item);
+            }
         }
+        db.SaveChanges();
+        InvalidateCache();
     }
 
     public T? GetValue<T>(string key)
     {
-        var item = GetSetting(key);
-        return item != null ? item.GetValue<T>() : default;
+        var cache = EnsureCache();
+        return cache.TryGetValue(key, out var item) ? item.GetValue<T>() : default;
     }
 
     public string? GetValue(string key)
@@ -83,18 +143,24 @@ public class SettingsService : ISettingsService
         if (item == null) return;
         item.SetValue(value);
         db.SaveChanges();
+
+        var cache = EnsureCache();
+        if (cache.TryGetValue(key, out var cached))
+        {
+            cached.SetValue(value);
+        }
     }
 
     public List<SettingItem> GetAllSettings()
     {
-        using var db = _dbFactory.CreateDbContext();
-        return db.Settings.OrderBy(s => s.GroupOrder).ThenBy(s => s.ItemOrder).ToList();
+        var cache = EnsureCache();
+        return cache.Values.OrderBy(s => s.GroupOrder).ThenBy(s => s.ItemOrder).ToList();
     }
 
     public List<SettingItem> GetSettingsByGroup(string groupName)
     {
-        using var db = _dbFactory.CreateDbContext();
-        return db.Settings
+        var cache = EnsureCache();
+        return cache.Values
             .Where(s => s.GroupName == groupName)
             .OrderBy(s => s.ItemOrder)
             .ToList();
@@ -102,8 +168,8 @@ public class SettingsService : ISettingsService
 
     public List<string> GetGroups()
     {
-        using var db = _dbFactory.CreateDbContext();
-        return db.Settings
+        var cache = EnsureCache();
+        return cache.Values
             .Select(s => s.GroupName)
             .Distinct()
             .OrderBy(g => g)
@@ -112,8 +178,8 @@ public class SettingsService : ISettingsService
 
     public SettingItem? GetSetting(string key)
     {
-        using var db = _dbFactory.CreateDbContext();
-        return db.Settings.FirstOrDefault(s => s.Key == key);
+        var cache = EnsureCache();
+        return cache.TryGetValue(key, out var item) ? item : null;
     }
 
     public void RemoveSetting(string key)
@@ -123,32 +189,27 @@ public class SettingsService : ISettingsService
         if (item == null) return;
         db.Settings.Remove(item);
         db.SaveChanges();
+        InvalidateCache();
     }
 
     public void InitializeDefaults()
     {
         var themeDisplayName = _localizationService?.GetString("SETTING_THEME", "Theme") ?? "Theme";
         var themeDesc = _localizationService?.GetString("SETTING_THEME_DESC", "Select a theme for the application") ?? "Select a theme for the application";
-        var langDisplayName = _localizationService?.GetString("SETTING_LANGUAGE", "Language") ?? "Language";
-        var langDesc = _localizationService?.GetString("SETTING_LANGUAGE_DESC", "Select display language (restart required for full effect)") ?? "Select display language (restart required for full effect)";
         var sidebarDisplayName = _localizationService?.GetString("SETTING_COLLAPSE_SIDEBAR", "Collapse Sidebar") ?? "Collapse Sidebar";
         var sidebarDesc = _localizationService?.GetString("SETTING_COLLAPSE_SIDEBAR_DESC", "Collapse the sidebar navigation") ?? "Collapse the sidebar navigation";
-        var userNameDisplayName = _localizationService?.GetString("SETTING_USER_NAME", "User Name") ?? "User Name";
-        var userNameDesc = _localizationService?.GetString("SETTING_USER_NAME_DESC", "Set your display name") ?? "Set your display name";
 
         var appearanceGroup = _localizationService?.GetString("GROUP_APPEARANCE", "Appearance") ?? "Appearance";
-        var generalGroup = _localizationService?.GetString("GROUP_GENERAL", "General") ?? "General";
 
         RegisterSetting(SettingDefinition.Dropdown("App.Theme", themeDisplayName, ["Default", "Light", "Dark"],
             themeDesc, appearanceGroup, 0, 0, "Default"));
 
-        RegisterSetting(SettingDefinition.Dropdown("App.Locale", langDisplayName, ["en-US", "zh-CN"],
-            langDesc, appearanceGroup, 0, 1, "en-US"));
+        var langDisplayName = _localizationService?.GetString("SETTING_LANGUAGE", "Language") ?? "Language";
+        var langDesc = _localizationService?.GetString("SETTING_LANGUAGE_DESC", "Select display language (restart required)") ?? "Select display language (restart required)";
+        RegisterSetting(SettingDefinition.Dropdown("App.Locale", langDisplayName, ["Default", "zh-CN", "en-US"],
+            langDesc, appearanceGroup, 0, 1, "Default"));
 
         RegisterSetting(SettingDefinition.Switch("App.SidebarCollapsed", sidebarDisplayName,
             sidebarDesc, appearanceGroup, 0, 2, false));
-
-        RegisterSetting(SettingDefinition.Text("App.UserName", userNameDisplayName,
-            userNameDesc, generalGroup, "", 1, 0, ""));
     }
 }

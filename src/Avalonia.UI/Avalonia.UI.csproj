@@ -4,6 +4,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<OutputType>Library</OutputType>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -20,6 +21,8 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EfCoreVersion)" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(EfCoreVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Localization" Version="$(MicrosoftExtensionsLocalization)" />
+		<PackageReference Include="ProDataGrid" Version="$(ProDataGridVersion)" />
+		<PackageReference Include="ZLogger" Version="$(ZLoggerVersion)" />
 	</ItemGroup>
 
 	<ItemGroup>

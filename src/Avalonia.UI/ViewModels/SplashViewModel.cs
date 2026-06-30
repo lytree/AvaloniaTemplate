@@ -9,10 +9,11 @@ public partial class SplashViewModel: ObservableObject, IDialogContext
 {
     [ObservableProperty] private double _progress;
     private Random _r = new();
+    private IDisposable? _timerDisposable;
 
     public SplashViewModel()
     {
-        DispatcherTimer.Run(OnUpdate, TimeSpan.FromMilliseconds(20), DispatcherPriority.Default);
+        _timerDisposable = DispatcherTimer.Run(OnUpdate, TimeSpan.FromMilliseconds(20), DispatcherPriority.Default);
     }
 
     private bool OnUpdate()
@@ -24,6 +25,8 @@ public partial class SplashViewModel: ObservableObject, IDialogContext
         }
         else
         {
+            _timerDisposable?.Dispose();
+            _timerDisposable = null;
             RequestClose?.Invoke(this, true);
             return false;
         }
@@ -31,6 +34,8 @@ public partial class SplashViewModel: ObservableObject, IDialogContext
     
     public void Close()
     {
+        _timerDisposable?.Dispose();
+        _timerDisposable = null;
         RequestClose?.Invoke(this, false);
     }
 

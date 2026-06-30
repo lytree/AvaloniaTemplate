@@ -7,6 +7,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.Services;
 using Avalonia.UI.Resources;
+using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.UI.Theme.Animations;
 
@@ -21,13 +22,20 @@ public partial class UrsaSemiTheme : Styles
     public UrsaSemiTheme(IServiceProvider? provider = null)
     {
         AvaloniaXamlLoader.Load(provider, this);
+
+        // FontFamily 不支持 XAML 元素语法实例化，需在代码中注册
+        // 使用跨平台回退链：Windows → macOS → Linux → 通用
+        Resources["SemiFontFamilyRegular"] = new FontFamily(
+            "Microsoft YaHei, PingFang SC, Noto Sans CJK SC, WenQuanYi Micro Hei, sans-serif");
+        Resources["CodeFontFamily"] = new FontFamily(
+            "Cascadia Code, Consolas, SF Mono, Menlo, DejaVu Sans Mono, Inconsolata, monospace");
+
         Resources.MergedDictionaries.Add(new DefaultSizeAnimations());
         Resources.MergedDictionaries.Add(new NavMenuSizeAnimations());
 
         var systemCulture = CultureInfo.CurrentUICulture;
-        LoadLocaleFromResx(systemCulture);
-
         _instance = this;
+        LoadLocaleFromResx(systemCulture);
     }
 
     public CultureInfo? Locale
@@ -64,7 +72,7 @@ public partial class UrsaSemiTheme : Styles
             foreach (DictionaryEntry entry in resourceSet)
             {
                 if (entry.Value is not string s) continue;
-                var resourceKey = $"STRING_{entry.Key}";
+                var resourceKey = $"{entry.Key}";
                 _instance.Resources[resourceKey] = s;
             }
         }
@@ -122,7 +130,7 @@ public partial class UrsaSemiTheme : Styles
         foreach (DictionaryEntry entry in resourceSet)
         {
             if (entry.Value is not string s) continue;
-            var resourceKey = $"STRING_{entry.Key}";
+            var resourceKey = $"{entry.Key}";
             application.Resources[resourceKey] = s;
             if (_instance is not null)
             {
@@ -144,7 +152,7 @@ public partial class UrsaSemiTheme : Styles
         foreach (DictionaryEntry entry in resourceSet)
         {
             if (entry.Value is not string s) continue;
-            var resourceKey = $"STRING_{entry.Key}";
+            var resourceKey = $"{entry.Key}";
             element.Resources[resourceKey] = s;
             if (_instance is not null)
             {

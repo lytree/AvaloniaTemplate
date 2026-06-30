@@ -166,9 +166,6 @@
   <data name="NAV_PluginManagement" xml:space="preserve">
     <value>Plugin Management</value>
   </data>
-  <data name="NAV_AboutUs" xml:space="preserve">
-    <value>About Us</value>
-  </data>
   <data name="PLUGIN_MANAGEMENT_TITLE" xml:space="preserve">
     <value>Plugin Management</value>
   </data>
@@ -190,8 +187,14 @@
   <data name="UNINSTALL" xml:space="preserve">
     <value>Uninstall</value>
   </data>
+  <data name="CANCEL_UPGRADE" xml:space="preserve">
+    <value>Cancel Upgrade</value>
+  </data>
   <data name="VERSION_LABEL" xml:space="preserve">
     <value>Version: </value>
+  </data>
+  <data name="PENDING_VERSION_LABEL" xml:space="preserve">
+    <value>Pending: </value>
   </data>
   <data name="AUTHOR_LABEL" xml:space="preserve">
     <value>Author: </value>
@@ -220,6 +223,9 @@
   <data name="STATE_PENDING_UNINSTALL" xml:space="preserve">
     <value>Pending Uninstall</value>
   </data>
+  <data name="STATE_PENDING_UPGRADE" xml:space="preserve">
+    <value>Pending Upgrade</value>
+  </data>
   <data name="STATE_ERROR" xml:space="preserve">
     <value>Error</value>
   </data>
@@ -234,6 +240,12 @@
   </data>
   <data name="PLUGIN_UNINSTALL_AFTER_RESTART" xml:space="preserve">
     <value>Plugin '{0}' will be uninstalled after restart</value>
+  </data>
+  <data name="PLUGIN_UPGRADE_SCHEDULED" xml:space="preserve">
+    <value>Plugin '{0}' upgrade scheduled, restart to apply</value>
+  </data>
+  <data name="PLUGIN_UPGRADE_CANCELLED" xml:space="preserve">
+    <value>Plugin '{0}' upgrade cancelled</value>
   </data>
   <data name="SETTINGS_TITLE" xml:space="preserve">
     <value>Settings</value>
@@ -268,6 +280,9 @@
   <data name="SELECT_FILE_PATH" xml:space="preserve">
     <value>Select file path...</value>
   </data>
+  <data name="SELECT_FOLDER_PATH" xml:space="preserve">
+    <value>Select folder path...</value>
+  </data>
   <data name="SETTING_THEME" xml:space="preserve">
     <value>Theme</value>
   </data>
@@ -298,51 +313,6 @@
   <data name="GROUP_GENERAL" xml:space="preserve">
     <value>General</value>
   </data>
-  <data name="COMPANY_NAME_CN" xml:space="preserve">
-    <value>铱泓科技</value>
-  </data>
-  <data name="COMPANY_NAME_EN" xml:space="preserve">
-    <value>IRIHI Technology</value>
-  </data>
-  <data name="SLOGAN_CN" xml:space="preserve">
-    <value>聚焦生产力的美学进化</value>
-  </data>
-  <data name="SLOGAN_EN" xml:space="preserve">
-    <value>Aesthetic Evolution of Productivity</value>
-  </data>
-  <data name="SEMI_DESC_CN" xml:space="preserve">
-    <value>开箱即用的独立主题库</value>
-  </data>
-  <data name="SEMI_DESC_EN" xml:space="preserve">
-    <value>A ready-to-use standalone theme library</value>
-  </data>
-  <data name="URSA_DESC_CN" xml:space="preserve">
-    <value>高性能企业级桌面客户端控件库</value>
-  </data>
-  <data name="URSA_DESC_EN" xml:space="preserve">
-    <value>High-performance enterprise level control library for desktop apps</value>
-  </data>
-  <data name="MANTRA_DESC_CN" xml:space="preserve">
-    <value>高性能文字排版渲染控件库</value>
-  </data>
-  <data name="MANTRA_DESC_EN" xml:space="preserve">
-    <value>High-performance typography control library</value>
-  </data>
-  <data name="HUSKA_DESC_CN" xml:space="preserve">
-    <value>手绘风格主题库</value>
-  </data>
-  <data name="HUSKA_DESC_EN" xml:space="preserve">
-    <value>Hand-drawing theme library</value>
-  </data>
-  <data name="OPEN_SOURCE" xml:space="preserve">
-    <value>Open Source</value>
-  </data>
-  <data name="COMMERCIAL" xml:space="preserve">
-    <value>Commercial</value>
-  </data>
-  <data name="HOMEPAGE" xml:space="preserve">
-    <value>Homepage</value>
-  </data>
   <data name="TOOLTIP_SETTINGS" xml:space="preserve">
     <value>Settings</value>
   </data>
@@ -351,6 +321,12 @@
   </data>
   <data name="TOOLTIP_TOGGLE_SIDEBAR" xml:space="preserve">
     <value>Toggle Sidebar</value>
+  </data>
+  <data name="SEARCH_PLACEHOLDER" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="SEARCH_NO_RESULTS" xml:space="preserve">
+    <value>No results found</value>
   </data>
   <data name="WINDOW_TITLE" xml:space="preserve">
     <value>Ursa Demo</value>
@@ -373,9 +349,6 @@
   <data name="LOADING_MODULES" xml:space="preserve">
     <value>Initializing modules...</value>
   </data>
-  <data name="MENU_ABOUT_US" xml:space="preserve">
-    <value>About Us</value>
-  </data>
   <data name="EXIT_CONFIRM_MESSAGE" xml:space="preserve">
     <value>Are you sure you want to exit?</value>
   </data>
@@ -384,5 +357,99 @@
   </data>
   <data name="RESTART_REQUIRED" xml:space="preserve">
     <value>Restart required for some changes to take effect</value>
+  </data>
+  <data name="EXIT_RUNNING_TASKS_WARNING" xml:space="preserve">
+    <value>The following tasks are still running:</value>
+  </data>
+  <!-- Shared keys consolidated from plugins -->
+  <data name="BTN_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="BTN_Execute" xml:space="preserve">
+    <value>Execute</value>
+  </data>
+  <data name="BTN_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="BTN_Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="BTN_AddLink" xml:space="preserve">
+    <value>Add Link</value>
+  </data>
+  <data name="BTN_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="BTN_DeleteSelected" xml:space="preserve">
+    <value>Delete Selected</value>
+  </data>
+  <data name="BTN_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="BTN_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="SW_On" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="SW_Off" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="STATUS_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="STATUS_Running" xml:space="preserve">
+    <value>Running: {0}...</value>
+  </data>
+  <data name="STATUS_Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="STATUS_Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="STATUS_Failed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="STATUS_Cancelling" xml:space="preserve">
+    <value>Cancelling...</value>
+  </data>
+  <data name="LBL_ParameterConfig" xml:space="preserve">
+    <value>Parameter Configuration</value>
+  </data>
+  <data name="LBL_LogOutput" xml:space="preserve">
+    <value>Log Output</value>
+  </data>
+  <data name="LBL_DownloadLinks" xml:space="preserve">
+    <value>Download Links</value>
+  </data>
+  <data name="LBL_SaveSettings" xml:space="preserve">
+    <value>Save Settings</value>
+  </data>
+  <data name="LBL_M3u8UrlList" xml:space="preserve">
+    <value>M3U8 URL List</value>
+  </data>
+  <data name="LBL_SavePath" xml:space="preserve">
+    <value>Save Path</value>
+  </data>
+  <data name="HINT_InputM3u8Url" xml:space="preserve">
+    <value>Enter M3U8 video URL</value>
+  </data>
+  <data name="HINT_FileNameOptional" xml:space="preserve">
+    <value>File name (optional)</value>
+  </data>
+  <data name="HINT_SelectSaveFolder" xml:space="preserve">
+    <value>Select save folder (default: current directory)</value>
+  </data>
+  <data name="DIALOG_SelectSavePath" xml:space="preserve">
+    <value>Select Save Path</value>
+  </data>
+  <data name="FMT_ExecutionHistoryTitle" xml:space="preserve">
+    <value>Execution History - {0}</value>
+  </data>
+  <data name="FMT_ExecuteFailed" xml:space="preserve">
+    <value>Execution failed: {0}</value>
+  </data>
+  <data name="FMT_SelectParam" xml:space="preserve">
+    <value>Select {0}</value>
   </data>
 </root>

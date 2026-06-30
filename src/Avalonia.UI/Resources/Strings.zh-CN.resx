@@ -86,7 +86,6 @@
   <data name="NAV_Settings" xml:space="preserve"><value>设置</value></data>
   <data name="NAV_Plugins" xml:space="preserve"><value>插件</value></data>
   <data name="NAV_PluginManagement" xml:space="preserve"><value>插件管理</value></data>
-  <data name="NAV_AboutUs" xml:space="preserve"><value>关于我们</value></data>
   <data name="PLUGIN_MANAGEMENT_TITLE" xml:space="preserve"><value>插件管理</value></data>
   <data name="PLUGIN_MANAGEMENT_DESC" xml:space="preserve"><value>安装、卸载、启用或禁用插件</value></data>
   <data name="INSTALL_PLUGIN" xml:space="preserve"><value>安装插件</value></data>
@@ -94,7 +93,9 @@
   <data name="ENABLE" xml:space="preserve"><value>启用</value></data>
   <data name="DISABLE" xml:space="preserve"><value>禁用</value></data>
   <data name="UNINSTALL" xml:space="preserve"><value>卸载</value></data>
+  <data name="CANCEL_UPGRADE" xml:space="preserve"><value>取消升级</value></data>
   <data name="VERSION_LABEL" xml:space="preserve"><value>版本：</value></data>
+  <data name="PENDING_VERSION_LABEL" xml:space="preserve"><value>待升级：</value></data>
   <data name="AUTHOR_LABEL" xml:space="preserve"><value>作者：</value></data>
   <data name="NO_PLUGINS_INSTALLED" xml:space="preserve"><value>没有已安装的插件</value></data>
   <data name="CLICK_INSTALL_PLUGIN" xml:space="preserve"><value>点击"安装插件"来添加新插件</value></data>
@@ -104,11 +105,14 @@
   <data name="STATE_INSTALLED" xml:space="preserve"><value>已安装</value></data>
   <data name="STATE_DISABLED" xml:space="preserve"><value>已禁用</value></data>
   <data name="STATE_PENDING_UNINSTALL" xml:space="preserve"><value>待卸载</value></data>
+  <data name="STATE_PENDING_UPGRADE" xml:space="preserve"><value>待升级</value></data>
   <data name="STATE_ERROR" xml:space="preserve"><value>错误</value></data>
   <data name="STATE_NOT_INSTALLED" xml:space="preserve"><value>未安装</value></data>
   <data name="PLUGIN_INSTALLED_SUCCESS" xml:space="preserve"><value>插件 '{0}' 安装成功</value></data>
   <data name="INSTALLATION_FAILED" xml:space="preserve"><value>安装失败：{0}</value></data>
   <data name="PLUGIN_UNINSTALL_AFTER_RESTART" xml:space="preserve"><value>插件 '{0}' 将在重启后卸载</value></data>
+  <data name="PLUGIN_UPGRADE_SCHEDULED" xml:space="preserve"><value>插件 '{0}' 升级已就绪，重启后生效</value></data>
+  <data name="PLUGIN_UPGRADE_CANCELLED" xml:space="preserve"><value>插件 '{0}' 升级已取消</value></data>
   <data name="SETTINGS_TITLE" xml:space="preserve"><value>设置</value></data>
   <data name="RESET" xml:space="preserve"><value>重置</value></data>
   <data name="SAVE" xml:space="preserve"><value>保存</value></data>
@@ -120,6 +124,7 @@
   <data name="APP_DESCRIPTION" xml:space="preserve"><value>基于 Avalonia 和 Ursa 控件构建的现代 UI 模板。</value></data>
   <data name="BROWSE" xml:space="preserve"><value>浏览</value></data>
   <data name="SELECT_FILE_PATH" xml:space="preserve"><value>选择文件路径...</value></data>
+  <data name="SELECT_FOLDER_PATH" xml:space="preserve"><value>选择文件夹路径...</value></data>
   <data name="SETTING_THEME" xml:space="preserve"><value>主题</value></data>
   <data name="SETTING_THEME_DESC" xml:space="preserve"><value>选择应用程序主题</value></data>
   <data name="SETTING_LANGUAGE" xml:space="preserve"><value>语言</value></data>
@@ -130,24 +135,11 @@
   <data name="SETTING_USER_NAME_DESC" xml:space="preserve"><value>设置您的显示名称</value></data>
   <data name="GROUP_APPEARANCE" xml:space="preserve"><value>外观</value></data>
   <data name="GROUP_GENERAL" xml:space="preserve"><value>通用</value></data>
-  <data name="COMPANY_NAME_CN" xml:space="preserve"><value>铱泓科技</value></data>
-  <data name="COMPANY_NAME_EN" xml:space="preserve"><value>IRIHI Technology</value></data>
-  <data name="SLOGAN_CN" xml:space="preserve"><value>聚焦生产力的美学进化</value></data>
-  <data name="SLOGAN_EN" xml:space="preserve"><value>Aesthetic Evolution of Productivity</value></data>
-  <data name="SEMI_DESC_CN" xml:space="preserve"><value>开箱即用的独立主题库</value></data>
-  <data name="SEMI_DESC_EN" xml:space="preserve"><value>A ready-to-use standalone theme library</value></data>
-  <data name="URSA_DESC_CN" xml:space="preserve"><value>高性能企业级桌面客户端控件库</value></data>
-  <data name="URSA_DESC_EN" xml:space="preserve"><value>High-performance enterprise level control library for desktop apps</value></data>
-  <data name="MANTRA_DESC_CN" xml:space="preserve"><value>高性能文字排版渲染控件库</value></data>
-  <data name="MANTRA_DESC_EN" xml:space="preserve"><value>High-performance typography control library</value></data>
-  <data name="HUSKA_DESC_CN" xml:space="preserve"><value>手绘风格主题库</value></data>
-  <data name="HUSKA_DESC_EN" xml:space="preserve"><value>Hand-drawing theme library</value></data>
-  <data name="OPEN_SOURCE" xml:space="preserve"><value>开源</value></data>
-  <data name="COMMERCIAL" xml:space="preserve"><value>商业</value></data>
-  <data name="HOMEPAGE" xml:space="preserve"><value>主页</value></data>
   <data name="TOOLTIP_SETTINGS" xml:space="preserve"><value>设置</value></data>
   <data name="TOOLTIP_PLUGIN_MANAGEMENT" xml:space="preserve"><value>插件管理</value></data>
   <data name="TOOLTIP_TOGGLE_SIDEBAR" xml:space="preserve"><value>切换侧边栏</value></data>
+  <data name="SEARCH_PLACEHOLDER" xml:space="preserve"><value>搜索</value></data>
+  <data name="SEARCH_NO_RESULTS" xml:space="preserve"><value>未找到相关功能</value></data>
   <data name="WINDOW_TITLE" xml:space="preserve"><value>Ursa 演示</value></data>
   <data name="SPLASH_STARTING" xml:space="preserve"><value>正在启动 Ursa 演示...</value></data>
   <data name="SPLASH_TITLE" xml:space="preserve"><value>主启动窗口</value></data>
@@ -155,8 +147,39 @@
   <data name="SPLASH_WELCOME" xml:space="preserve"><value>欢迎来到 AvaloniaTemplate，启动页已加载本地图像资源：Assets/jk-girl.png</value></data>
   <data name="WELCOME_IRIHI" xml:space="preserve"><value>欢迎来到铱泓科技</value></data>
   <data name="LOADING_MODULES" xml:space="preserve"><value>正在加载组件...</value></data>
-  <data name="MENU_ABOUT_US" xml:space="preserve"><value>关于我们</value></data>
   <data name="EXIT_CONFIRM_MESSAGE" xml:space="preserve"><value>确定要退出吗？</value></data>
   <data name="EXIT_CONFIRM_TITLE" xml:space="preserve"><value>退出</value></data>
   <data name="RESTART_REQUIRED" xml:space="preserve"><value>部分更改需要重启后生效</value></data>
+  <data name="EXIT_RUNNING_TASKS_WARNING" xml:space="preserve"><value>以下任务正在运行中：</value></data>
+  <!-- Shared keys consolidated from plugins -->
+  <data name="BTN_Clear" xml:space="preserve"><value>清除</value></data>
+  <data name="BTN_Execute" xml:space="preserve"><value>执行</value></data>
+  <data name="BTN_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="BTN_Browse" xml:space="preserve"><value>浏览</value></data>
+  <data name="BTN_AddLink" xml:space="preserve"><value>添加链接</value></data>
+  <data name="BTN_Delete" xml:space="preserve"><value>删除</value></data>
+  <data name="BTN_DeleteSelected" xml:space="preserve"><value>删除选中</value></data>
+  <data name="BTN_Save" xml:space="preserve"><value>保存</value></data>
+  <data name="BTN_Undo" xml:space="preserve"><value>撤销</value></data>
+  <data name="SW_On" xml:space="preserve"><value>是</value></data>
+  <data name="SW_Off" xml:space="preserve"><value>否</value></data>
+  <data name="STATUS_Ready" xml:space="preserve"><value>就绪</value></data>
+  <data name="STATUS_Running" xml:space="preserve"><value>正在执行: {0}...</value></data>
+  <data name="STATUS_Completed" xml:space="preserve"><value>执行完成</value></data>
+  <data name="STATUS_Cancelled" xml:space="preserve"><value>已取消</value></data>
+  <data name="STATUS_Failed" xml:space="preserve"><value>执行失败</value></data>
+  <data name="STATUS_Cancelling" xml:space="preserve"><value>正在取消...</value></data>
+  <data name="LBL_ParameterConfig" xml:space="preserve"><value>参数配置</value></data>
+  <data name="LBL_LogOutput" xml:space="preserve"><value>日志输出</value></data>
+  <data name="LBL_DownloadLinks" xml:space="preserve"><value>下载链接</value></data>
+  <data name="LBL_SaveSettings" xml:space="preserve"><value>保存设置</value></data>
+  <data name="LBL_M3u8UrlList" xml:space="preserve"><value>M3U8 链接列表</value></data>
+  <data name="LBL_SavePath" xml:space="preserve"><value>保存路径</value></data>
+  <data name="HINT_InputM3u8Url" xml:space="preserve"><value>输入 M3U8 视频 URL</value></data>
+  <data name="HINT_FileNameOptional" xml:space="preserve"><value>文件名 (可选)</value></data>
+  <data name="HINT_SelectSaveFolder" xml:space="preserve"><value>选择保存文件夹 (默认当前目录)</value></data>
+  <data name="DIALOG_SelectSavePath" xml:space="preserve"><value>选择保存路径</value></data>
+  <data name="FMT_ExecutionHistoryTitle" xml:space="preserve"><value>执行历史 - {0}</value></data>
+  <data name="FMT_ExecuteFailed" xml:space="preserve"><value>执行失败: {0}</value></data>
+  <data name="FMT_SelectParam" xml:space="preserve"><value>选择 {0}</value></data>
 </root>

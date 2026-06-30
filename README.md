@@ -1,0 +1,405 @@
+# AvaloniaTemplate
+
+基于 Avalonia 12 + .NET 10 的可扩展桌面应用模板，内置插件 SDK、源生成器驱动的插件元数据、AssemblyLoadContext 隔离加载、Fluent Design 视觉规范、EF Core SQLite 持久化、ZLogger 结构化日志。
+
+> 详细的 API 参考、组件指南、版本契约、覆盖安装评估与 FAQ 已拆分到 [`docs/`](docs/) 目录，见文末 [详细文档](#详细文档)。
+
+---
+
+## 目录
+
+- [快速开始](#快速开始)
+- [构建与运行](#构建与运行)
+- [架构概览](#架构概览)
+- [插件系统前提约束](#插件系统前提约束)
+- [插件开发指南](#插件开发指南)
+- [打包与部署](#打包与部署)
+- [关键文件参考](#关键文件参考)
+- [详细文档](#详细文档)
+
+---
+
+## 快速开始
+
+```powershell
+# 1. 一键构建宿主 + SDK NuGet 包 + 所有插件
+.\build.ps1 --build=all
+
+# 2. 运行启动器
+dotnet run --project src/launcher/Avalonia.Launcher.Desktop
+```
+
+Linux/macOS 用 `./build.sh` 替代 `.\build.ps1`。
+
+---
+
+## 构建与运行
+
+- **构建系统**：Cake Frosting（`build/build.cs` — .NET 10 文件化应用，Cake 6.1.0）。通过 `.\build.ps1`（Windows）或 `./build.sh`（Linux/macOS）调用。
+
+  ```
+  .\build.ps1 --build=all                    # 默认：bin（启动器 + NuGet）+ plugin
+  .\build.ps1 --build=bin                    # 构建启动器 + 打包 SDK NuGet 包（host 与 SDK 同版本号，统一发版）
+  .\build.ps1 --build=plugin                 # 构建并打包所有插件为 zip
+  .\build.ps1 --configuration=Debug          # 覆盖配置（默认：Release）
+  .\build.ps1 --package-version=1.2.3        # 设置版本（默认：1.0.0）
+  .\build.ps1 --runtime-identifier=win-x64   # 设置启动器发布的 RID
+  .\build.ps1 --self-contained=true          # 启动器自包含发布
+  .\build.ps1 --nuget-api-key=<KEY>          # 推送包到 nuget.org
+  ```
+
+- **构建顺序很重要**：`--build=bin` 必须先于 `--build=plugin` 运行（或直接使用 `--build=all`），因为 `--build=bin` 会打包 SDK NuGet 包，而插件依赖本地构建的 `Avalonia.Plugin.Generators` + `Avalonia.Plugin.Shared` NuGet 包。
+- **直接 `dotnet build`** 可用于单个项目，但若未预先构建本地 NuGet 包，插件可能还原失败（使用 `--build=bin` 或确保 `bin/nuget/` 下有 `.nupkg` 文件）。`--build=nuget` 保留为 `--build=bin` 的兼容别名。
+- **运行启动器**：`dotnet run --project src/launcher/Avalonia.Launcher.Desktop`
+- **VS Code 调试**：使用 "Debug Plugin - {Name}" 启动配置 — 每个配置将 `AVALONIA_EXTRA_PLUGINS_PATH` 指向插件的 `bin/Debug/net10.0` 输出目录，用于开发期实时加载。
+- **无测试**，无 CI 工作流，未配置 linter/formatter。
+
+---
+
+## 架构概览
+
+### 两个解决方案
+
+| 解决方案 | 内容 |
+|----------|------|
+| `Core.slnx` | 宿主：Generators、Shared、UI、Launcher、Platforms.Abstractions |
+| `Plugins.slnx` | Generators、Shared、所有 `plugins/*` 项目（10 个插件） |
+
+### 项目分层（src/）
+
+```
+Avalonia.Plugin.Generators/        Roslyn 增量源生成器（netstandard2.1，IsRoslynComponent）
+Avalonia.Plugin.Shared/            共享契约：IPlugin、IPluginMetadata、ViewLocator、ServiceLocator、特性、控件
+Avalonia.Platforms.Abstractions/   跨平台抽象基类（仅空 README）
+Avalonia.UI/                       宿主应用：ViewModels、Views、Services（EF Core、导航、菜单、本地化、ZLogger）
+Avalonia.Launcher.Desktop/         桌面入口（Program.cs → App.axaml.cs）。设置 AvaloniaUseCompiledBindingsByDefault=true。
+```
+
+### 平台特定项目
+
+`src/platforms/` 包含：
+- `Avalonia.Platforms.Windows` — `net10.0-windows10.0.19041.0`
+- `Avalonia.Platforms.MacOs` — `net10.0-macos15.0`
+- `Avalonia.Platforms.Linux` — `net10.0`
+
+### 插件项目（plugins/）
+
+每个插件是 `net10.0` 类库，引用 `Avalonia.Plugin.Generators`（analyzer，`OutputItemType="Analyzer"`，`ReferenceOutputAssembly="false"`）和 `Avalonia.Plugin.Shared`（`PrivateAssets="all"`）。插件元数据通过 MSBuild 属性声明：
+
+```xml
+<PluginId>UUID</PluginId>
+<PluginName>...</PluginName>
+<PluginAuthor>...</PluginAuthor>
+<PluginDescription>...</PluginDescription>
+<PluginVersion>1.0.0</PluginVersion>  <!-- 可选，缺省回退到 <Version> -->
+<MinPluginSdkVersion>2.1.0</MinPluginSdkVersion>  <!-- 可选，缺省 "0.0.0" 无约束 -->
+```
+
+10 个内置示例插件：ButtonsInputs、DateTime、DialogFeedbacks、Downloader、LayoutDisplay、NavigationMenus、ProDataGrid、ScottPlot、TDLSharp、Template。
+
+### 应用启动流程
+
+```
+Program.cs → App.Initialize()
+  1. 通过 ServiceCollectionExtensions.AddAvaloniaServices() 构建 DI 容器
+  2. ServiceLocator.Initialize(provider) — 插件代码使用的静态网关
+  3. InitializeDatabase() — 通过 EF Core 初始化 SQLite（AppDbContext）
+  4. InitializeLocalization() — 恢复已保存的语言设置
+  5. 阶段1：pluginLoader.DiscoverAllPluginAssembliesAsync()  发现并加载程序集
+  6. 阶段2：pluginLoader.InitializeAllPluginsAsync(services)   插件向 ServiceCollection 注册服务
+  7. ServiceProvider = services.BuildServiceProvider()
+  8. 阶段3：pluginLoader.RegisterAllPluginsAsync(provider)     插件执行多语言/设置注册
+  9. RegisterPluginNavigationAndMenus()                        注册插件导航与菜单
+ 10. OnFrameworkInitializationCompleted() → 显示启动闪屏，然后显示 MainWindow
+```
+
+退出流程（`App.OnShutdownRequested`）：
+
+```
+1. 检查 ITaskRegistry 是否有正在运行的任务（仅告警，不阻塞）
+2. pluginLoader.ShutdownAllPluginsAsync()  → 调用每个 IPlugin.ShutdownAsync()
+3. (ServiceProvider as IDisposable)?.Dispose()  → 释放 Singleton（IDbContextFactory、ZLogger 等）
+4. pluginLoader.Dispose()  → 再次 ShutdownAsync（幂等）+ ALC.Unload
+5. 取消订阅全局异常事件（TaskScheduler / AppDomain / Dispatcher）
+```
+
+### 插件加载与程序集排除
+
+- 每个插件在独立的、可收集的 `AssemblyLoadContext` 中加载（`isCollectible=true`，但运行时不调用 `Unload()`）
+- 框架/共享程序集转发到默认上下文（排除清单见 `Avalonia.Plugin.Shared.props`/`.targets`）
+- 插件通过 `GeneratePluginManifest` target 自动生成 `plugin.json` 清单
+- 发现位置：`{AppBaseDir}/plugins/` 与 `AVALONIA_EXTRA_PLUGINS_PATH` 环境变量
+- 构建输出：`bin/plugins/{Name}/publish/` + `bin/plugins/zip/{Name}-{Version}.zip`
+
+---
+
+## 插件系统前提约束
+
+**当前项目不支持插件热加载与热卸载。** 所有插件在应用启动时一次性加载，状态变更（启用/禁用/标记卸载）需重启应用生效。
+
+| 规则 | 说明 |
+|------|------|
+| **无运行时插件增删** | 插件安装/卸载/启用/禁用均通过修改 `plugin.json` 状态实现，下次启动时生效。UI 中相关操作需提示用户重启。 |
+| **无需处理 ALC 卸载清理** | `PluginLoadContext` 虽标记 `isCollectible=true`，但运行时不调用 `Unload()`。`ViewLocator._viewRegistry`、`LocalizationService._resourceManagers`、`MenuConfigurationService._menuItemsMap` 等静态/长生命周期字典无需在运行时清理。 |
+| **应用退出需优雅关闭** | `App.OnShutdownRequested` 调用 `IPlugin.ShutdownAsync()` 并 `ServiceProvider.Dispose()`，确保插件持有的原生资源（如 TdLib 客户端）正确释放。 |
+| **插件安装冲突处理** | 覆盖安装时若旧插件 ALC 仍持有 DLL 文件锁，安装管理器拒绝覆盖安装并提示用户重启应用后再试。详见 [docs/Plugin-Upgrade-Evaluation.md](docs/Plugin-Upgrade-Evaluation.md)。 |
+| **DisablePlugin/EnablePlugin 语义** | 仅修改状态字段并持久化到 manifest，不触发 ALC 卸载/重载。下次启动时按新状态决定是否加载。 |
+
+> 完整前提约束定义见 [`AGENTS.md`](AGENTS.md)。
+
+---
+
+## 插件开发指南
+
+### 最小插件模板
+
+参考 [`plugins/Avalonia.Plugin.Template`](plugins/Avalonia.Plugin.Template)。
+
+**1. csproj**
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+
+    <!-- 插件元数据 -->
+    <PluginId>YOUR-UUID-HERE</PluginId>
+    <PluginName>My Plugin</PluginName>
+    <PluginAuthor>Author</PluginAuthor>
+    <PluginDescription>Description</PluginDescription>
+    <PluginVersion>1.0.0</PluginVersion>
+
+    <!-- 声明本插件所需的最低 Plugin SDK 契约版本 -->
+    <MinPluginSdkVersion>2.1.0</MinPluginSdkVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Plugin.Generators" Version="1.0.0"
+      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <PackageReference Include="Avalonia.Plugin.Shared" Version="1.0.0" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
+```
+
+**2. 插件入口类**
+
+```csharp
+using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Attributes;
+using Avalonia.Plugin.Shared.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Avalonia.Plugin.MyPlugin;
+
+[GenerateMetadata]  // 触发源生成器自动实现 IPlugin（扫描伴生 ViewModel 上的 [ViewMap]/[NavigationItem]/[Menu]）
+public partial class MyPlugin : IPluginMetadata
+{
+    public string Name => "My Plugin";
+    public string Version => "1.0.0";
+    public string Author => "Me";
+    public string Description => "Demo";
+    public IEnumerable<string> Dependencies => [];
+    public string PluginId => "YOUR-UUID-HERE";
+
+    public Task InitializeAsync(IServiceCollection services) => Task.CompletedTask;
+
+    public Task RegisterAsync(IServiceProvider serviceProvider)
+    {
+        // 注册多语言资源
+        if (serviceProvider.GetService<ILocalizationService>() is { } loc)
+            loc.RegisterResourceManager(Strings.ResourceManager);
+        return Task.CompletedTask;
+    }
+}
+```
+
+**3. ViewModel + View（特性驱动）**
+
+```csharp
+[NavigationItem("MyDemo")]                                            // 导航 key
+[Menu("NAV_MyDemo", "MyDemo", ParentKey = null, Status = "New", Order = 999)]  // 菜单项
+[ViewMap(typeof(Pages.MyDemoPage))]                                   // VM→View 映射
+public partial class MyDemoViewModel : ViewModelBase
+{
+    [ObservableProperty] private string _message = "Hello";
+    [RelayCommand] private void DoWork() => Message = $"Clicked at {DateTime.Now:T}";
+}
+```
+
+源生成器会自动把这些特性转换为 `IPlugin.GetViewDefinitions()`、`GetNavigationItems()`、`GetMenuItems()` 的实现，无需手写。
+
+### `MinPluginSdkVersion` 声明规则
+
+- **何时声明**：插件用到了某个 SDK 版本才引入的 API（如新接口成员、新属性）。
+- **取值原则**：填入你 **实际依赖的最低 SDK 版本**，不是当前最新版本。
+- **不声明的情况**：插件只用了 1.0.0 就稳定存在的 API，可不填 `<MinPluginSdkVersion>`，构建时 `plugin.json` 会写 `"0.0.0"`，宿主视作无约束。
+- **运行时校验**：`PluginLoader.IsPluginSdkCompatible` 比对 `Major.Minor.Build` 三段；解析失败按 fail-closed 拒绝加载。详见 [docs/Plugin-SDK-Versioning.md](docs/Plugin-SDK-Versioning.md)。
+- **安装期校验**：`PluginInstallationManager` 在解析 manifest 后即调用同一校验，不兼容直接返回失败，避免安装后启动失败。
+
+### 在插件代码中读取当前 SDK 版本
+
+```csharp
+using Avalonia.Plugin.Shared;
+
+var current = PluginSdkContract.CurrentVersion;  // 编译期常量，字符串形式，例如 "2.1.0"
+```
+
+该常量由 `Avalonia.Plugin.Shared` NuGet 包内的 `GeneratePluginSdkContract` MSBuild target 在编译期生成（位于 `obj/PluginSdkContract.g.cs`），值来自编译时的 `$(HostVersion)`（SDK 与宿主同版本）。
+
+### 控件与 API 参考
+
+完整的"插件可用控件清单"和"插件可用 API 清单"已拆分到独立文档，避免本 README 过长：
+
+| 主题 | 文档 | 涵盖内容 |
+|------|------|---------|
+| **控件与样式** | [docs/Plugin-Components-Guide.md](docs/Plugin-Components-Guide.md) | Ursa 控件、Avalonia 内置控件、项目自定义 Fluent 样式类、颜色/画刷资源、图标使用、ServiceLocator、ViewLocator、完整页面示例 |
+| **API 参考** | [docs/Plugin-API-Reference.md](docs/Plugin-API-Reference.md) | `IPlugin`/`IPluginMetadata` 接口、特性清单、`ServiceLocator`/`ViewLocator`/`ViewModelBase`、`ILocalizationService`/`ISettingsService`/`ITaskRegistry`/`IPluginLoader`/`IPluginInstallationManager`/`INavigationService`/`IMenuConfigurationService`/`IWindowInfoService` 全部服务接口签名、模型类、MSBuild 属性与目标、完整插件实现示例 |
+| **SDK 版本契约** | [docs/Plugin-SDK-Versioning.md](docs/Plugin-SDK-Versioning.md) | 两层版本号（`HostVersion` / `PluginVersion`）、SDK 契约运行时含义、manifest 字段优先级、`IsPluginSdkCompatible` SemVer 比对规则、不兼容时的用户表现 |
+
+---
+
+## 打包与部署
+
+### 构建产物概览
+
+```
+bin/
+├── bin/                                      # 宿主 launcher 发布目录
+│   └── Avalonia.Launcher.Desktop(.exe) + 运行时依赖
+├── nuget/                                    # SDK NuGet 包（开发期分发用，与宿主同版本）
+│   ├── Avalonia.Plugin.Generators.{HostVersion}.nupkg
+│   └── Avalonia.Plugin.Shared.{HostVersion}.nupkg
+└── plugins/
+    ├── {PluginName}/publish/                 # 插件可加载目录
+    │   ├── {PluginName}.dll
+    │   ├── plugin.json                       # ← 含 minPluginSdkVersion
+    │   └── shared-assemblies.txt
+    └── zip/
+        └── {PluginName}-{PluginVer}.zip      # 分发用压缩包
+```
+
+> **重要**：SDK NuGet 包与宿主 launcher 共用同一版本号（`HostVersion`），且在 `--build=bin` 一次性产出。不再有独立的 `nuget` 构建目标，二者一起发版。
+
+### 标准构建流程
+
+```powershell
+# 1. 一键构建宿主 + SDK NuGet 包（统一发版，产物在 bin/bin 与 bin/nuget）
+.\build.ps1 --build=bin
+
+# 2. 构建并打包所有插件（依赖上一步产出的本地 NuGet 包做 restore）
+.\build.ps1 --build=plugin
+
+# 或一步到位
+.\build.ps1 --build=all
+```
+
+### 两层版本覆盖
+
+发版时可通过命令行临时覆盖 csproj 真相源：
+
+| 参数 | 覆盖 | 优先级 |
+|------|------|--------|
+| `--host-version=2.2.0` | 宿主+SDK 同步版本 | 仅本次构建 |
+| `--plugin-version=1.2.0` | 插件版本 | 仅本次构建（影响所有插件） |
+| `--package-version=2.2.0` | **所有层**（紧急发版兼容回退） | 覆盖上述未显式指定的层 |
+
+### 构建单插件
+
+```powershell
+.\build.ps1 --build=plugin --plugin=Avalonia.Plugin.Template
+# 多个用逗号分隔
+.\build.ps1 --build=plugin --plugin=Avalonia.Plugin.Template,Avalonia.Plugin.ButtonsInputs
+```
+
+### 部署目录结构
+
+宿主运行时扫描两个位置加载插件：
+
+1. `{AppBaseDir}/plugins/` — 默认插件目录
+2. `AVALONIA_EXTRA_PLUGINS_PATH` 环境变量 — 开发期临时加载路径
+
+每个插件是一个 **子目录**（不是 zip）：
+
+```
+{AppDir}/
+├── Avalonia.Launcher.Desktop.exe
+├── plugins/
+│   ├── MyPlugin/
+│   │   ├── MyPlugin.dll
+│   │   ├── plugin.json          ← 必需
+│   │   └── shared-assemblies.txt
+│   └── AnotherPlugin/
+│       └── ...
+└── ...
+```
+
+### 安装插件
+
+#### 方式 A：解压 zip 包到 plugins 目录
+
+```powershell
+# 假设用户拿到 Avalonia.Plugin.Template-1.0.0.zip
+Expand-Archive .\Avalonia.Plugin.Template-1.0.0.zip -DestinationPath .\plugins\Avalonia.Plugin.Template\
+```
+
+#### 方式 B：通过 `AVALONIA_EXTRA_PLUGINS_PATH` 临时加载（开发期）
+
+VS Code launch.json 已为每个插件配置了对应 launch config，设置环境变量指向插件 `bin/Debug/net10.0` 输出目录，可直接热加载调试。
+
+```powershell
+$env:AVALONIA_EXTRA_PLUGINS_PATH = "F:\Code\Dotnet\AvaloniaTemplate\plugins\Avalonia.Plugin.Template\bin\Debug\net10.0"
+dotnet run --project src/launcher/Avalonia.Launcher.Desktop
+```
+
+#### 方式 C：通过 `IPluginInstallationManager` 编程安装
+
+```csharp
+var installer = ServiceLocator.GetService<IPluginInstallationManager>();
+var result = await installer.InstallFromFileAsync(zipPath, progress);
+if (result.Success)
+{
+    // 安装成功，提示用户重启应用以加载新插件
+}
+```
+
+> **覆盖安装与版本升级方案**：已加载插件因 DLL 锁定无法直接覆盖安装。详细评估"临时目录 + 重启迁移"方案（可行性、风险、实施工作量）见 [docs/Plugin-Upgrade-Evaluation.md](docs/Plugin-Upgrade-Evaluation.md)。
+
+---
+
+## 关键文件参考
+
+| 类别 | 文件 |
+|------|------|
+| **构建系统** | [build/build.cs](build/build.cs)、[Directory.Build.props](Directory.Build.props)、[build.ps1](build.ps1) |
+| **应用入口** | [src/launcher/Avalonia.Launcher.Desktop/Program.cs](src/launcher/Avalonia.Launcher.Desktop/Program.cs)、[App.axaml.cs](src/launcher/Avalonia.Launcher.Desktop/App.axaml.cs) |
+| **插件契约** | [src/Avalonia.Plugin.Shared/IPlugin.cs](src/Avalonia.Plugin.Shared/IPlugin.cs)、[IPluginMetadata.cs](src/Avalonia.Plugin.Shared/IPluginMetadata.cs)、[PluginSdkContract.cs](src/Avalonia.Plugin.Shared/PluginSdkContract.cs) |
+| **插件加载** | [src/Avalonia.UI/Services/PluginLoader.cs](src/Avalonia.UI/Services/PluginLoader.cs)、[PluginLoadContext.cs](src/Avalonia.UI/Services/PluginLoadContext.cs) |
+| **插件安装** | [src/Avalonia.UI/Services/PluginInstallationManager.cs](src/Avalonia.UI/Services/PluginInstallationManager.cs) |
+| **导航与菜单** | [src/Avalonia.UI/Services/NavigationService.cs](src/Avalonia.UI/Services/NavigationService.cs)、[MenuConfigurationService.cs](src/Avalonia.UI/Services/MenuConfigurationService.cs) |
+| **本地化** | [src/Avalonia.UI/Services/LocalizationService.cs](src/Avalonia.UI/Services/LocalizationService.cs) |
+| **设置** | [src/Avalonia.UI/Services/SettingsService.cs](src/Avalonia.UI/Services/SettingsService.cs)、[src/Avalonia.Plugin.Shared/Models/SettingDefinition.cs](src/Avalonia.Plugin.Shared/Models/SettingDefinition.cs) |
+| **任务注册** | [src/Avalonia.Plugin.Shared/TaskScope.cs](src/Avalonia.Plugin.Shared/TaskScope.cs)、[src/Avalonia.UI/Services/TaskRegistry.cs](src/Avalonia.UI/Services/TaskRegistry.cs) |
+| **视图解析** | [src/Avalonia.Plugin.Shared/ViewLocator.cs](src/Avalonia.Plugin.Shared/ViewLocator.cs) |
+| **源生成器** | [src/Avalonia.Plugin.Generators/](src/Avalonia.Plugin.Generators/) |
+| **共享程序集配置** | [src/Avalonia.Plugin.Shared/buildTransitive/Avalonia.Plugin.Shared.props](src/Avalonia.Plugin.Shared/buildTransitive/Avalonia.Plugin.Shared.props)、[.targets](src/Avalonia.Plugin.Shared/buildTransitive/Avalonia.Plugin.Shared.targets) |
+| **主题与样式** | [src/Avalonia.UI/Theme/UrsaSemiTheme.axaml](src/Avalonia.UI/Theme/UrsaSemiTheme.axaml)、[FluentDesign/FluentDesignStyles.axaml](src/Avalonia.UI/Theme/FluentDesign/FluentDesignStyles.axaml) |
+| **示例插件** | [plugins/Avalonia.Plugin.Template/](plugins/Avalonia.Plugin.Template/)、[plugins/Avalonia.Plugin.TDLSharp/](plugins/Avalonia.Plugin.TDLSharp/)、[plugins/Avalonia.Plugin.Downloader/](plugins/Avalonia.Plugin.Downloader/) |
+
+---
+
+## 详细文档
+
+以下文档位于 [`docs/`](docs/) 目录，按主题分类详细展开：
+
+| 文档 | 主题 | 适用读者 |
+|------|------|---------|
+| [docs/Plugin-Components-Guide.md](docs/Plugin-Components-Guide.md) | **插件可用组件指南** — Ursa 控件清单、Avalonia 内置控件、项目自定义 Fluent 样式类、颜色/画刷资源、Fluent Icons、ServiceLocator、ViewLocator、完整插件页面示例 | 插件 UI 开发者 |
+| [docs/Plugin-API-Reference.md](docs/Plugin-API-Reference.md) | **插件 API 参考** — `IPlugin`/`IPluginMetadata` 接口、源生成器特性、`ServiceLocator`/`ViewLocator`/`ViewModelBase` 基础设施类、`MenuItemViewModel`/`ToolBarItemViewModel` 视图模型、`PluginManifest`/`PluginInfo`/`PluginState`/`SettingDefinition` 模型、`ILocalizationService`/`IPluginLoader`/`IPluginInstallationManager`/`ISettingsService`/`ITaskRegistry`/`IWindowInfoService` 全部服务接口、MSBuild 属性与目标、完整插件实现示例 | 插件开发者 |
+| [docs/Plugin-SDK-Versioning.md](docs/Plugin-SDK-Versioning.md) | **插件 SDK 版本契约** — `HostVersion`/`PluginVersion` 两层版本号、SDK 契约的运行时含义、`plugin.json` 中 `minPluginSdkVersion` 字段优先级、`IsPluginSdkCompatible` SemVer 比对规则、不兼容时的用户表现 | 宿主维护者、插件作者 |
+| [docs/Plugin-Upgrade-Evaluation.md](docs/Plugin-Upgrade-Evaluation.md) | **插件覆盖安装与升级方案评估** — 背景、方案设计（`.pending` 目录 + 重启迁移）、8 维度可行性评估、7 个潜在问题与对策、实现工作量评估、总结与建议实施顺序 | 宿主维护者 |
+| [docs/FAQ.md](docs/FAQ.md) | **常见问题** — 插件加载失败、菜单/导航不显示、设置项不显示、第三方 NuGet 包使用、全局快捷键、插件间通信、源生成器调试、`PluginLoadContext` 的 `isCollectible` 设计意图 | 所有开发者 |
+
+> 项目开发约束与前提（含插件系统强制约束）见 [`AGENTS.md`](AGENTS.md)。

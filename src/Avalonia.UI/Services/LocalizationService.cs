@@ -11,8 +11,11 @@ namespace Avalonia.UI.Services;
 public class LocalizationService : ILocalizationService
 {
     private readonly ConcurrentDictionary<string, (string? LookupPrefix, ResourceManager Manager)> _resourceManagers = new();
-    private CultureInfo _currentCulture = new("en-US");
+    private CultureInfo _currentCulture = new("zh-CN");
     private bool _initialSync = true;
+    private ConcurrentDictionary<string, string>? _stringCache;
+    // 跟踪已注册到 Application.Resources 的键，切换文化时清理残留避免内存累积
+    private HashSet<string>? _registeredResourceKeys;
 
     public CultureInfo CurrentCulture => _currentCulture;
 
@@ -25,6 +28,10 @@ public class LocalizationService : ILocalizationService
 
     public string GetString(string key)
     {
+        var cache = _stringCache;
+        if (cache is not null && cache.TryGetValue(key, out var cached))
+            return cached;
+
         foreach (var (_, (lookupPrefix, manager)) in _resourceManagers)
         {
             var lookupKey = string.IsNullOrEmpty(lookupPrefix) ? key : $"{lookupPrefix}_{key}";
@@ -38,6 +45,10 @@ public class LocalizationService : ILocalizationService
 
     public string GetString(string key, string fallback)
     {
+        var cache = _stringCache;
+        if (cache is not null && cache.TryGetValue(key, out var cached))
+            return cached;
+
         foreach (var (_, (lookupPrefix, manager)) in _resourceManagers)
         {
             var lookupKey = string.IsNullOrEmpty(lookupPrefix) ? key : $"{lookupPrefix}_{key}";
@@ -69,10 +80,11 @@ public class LocalizationService : ILocalizationService
             return;
 
         _currentCulture = culture;
-        CultureInfo.DefaultThreadCurrentCulture = culture;
-        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
 
-        SyncToResourceDictionary();
+        _stringCache = null;
+        RebuildCacheAndSyncResources();
 
         _initialSync = false;
 
@@ -84,14 +96,21 @@ public class LocalizationService : ILocalizationService
     {
         var dictKey = manager.BaseName;
         _resourceManagers[dictKey] = (prefix, manager);
+        _stringCache = null;
+
+        if (!_initialSync)
+            RebuildCacheAndSyncResources();
     }
 
-    private void SyncToResourceDictionary()
+    private void RebuildCacheAndSyncResources()
     {
         var app = Application.Current;
-        if (app is null) return;
-
         var themeInstance = UrsaSemiTheme.Instance;
+        var cache = new ConcurrentDictionary<string, string>();
+
+        // 记录本次注册的资源键，便于切换文化时清理上一轮残留键，避免 Application.Resources
+        // 长期累积不同文化的键值对导致内存增长。
+        var registeredKeys = new HashSet<string>();
 
         foreach (var (_, (lookupPrefix, manager)) in _resourceManagers)
         {
@@ -101,15 +120,40 @@ public class LocalizationService : ILocalizationService
             foreach (DictionaryEntry entry in resourceSet)
             {
                 if (entry.Value is not string s) continue;
+                var entryKey = entry.Key?.ToString() ?? string.Empty;
                 var resourceKey = string.IsNullOrEmpty(lookupPrefix)
-                    ? $"STRING_{entry.Key}"
-                    : $"STRING_{lookupPrefix}_{entry.Key}";
-                app.Resources[resourceKey] = s;
-                if (themeInstance is not null)
+                    ? entryKey
+                    : $"{lookupPrefix}_{entryKey}";
+
+                cache.TryAdd(entryKey, s);
+                registeredKeys.Add(resourceKey);
+
+                if (app is not null)
                 {
-                    themeInstance.Resources[resourceKey] = s;
+                    app.Resources[resourceKey] = s;
+                    if (themeInstance is not null)
+                    {
+                        themeInstance.Resources[resourceKey] = s;
+                    }
                 }
             }
         }
+
+        // 清理上一轮文化切换残留的资源键（仅清理我们注册的键，避免误删其他来源）
+        if (app is not null && _registeredResourceKeys is not null)
+        {
+            var stale = _registeredResourceKeys.Except(registeredKeys);
+            foreach (var key in stale)
+            {
+                app.Resources.Remove(key);
+                if (themeInstance is not null)
+                {
+                    themeInstance.Resources.Remove(key);
+                }
+            }
+        }
+        _registeredResourceKeys = registeredKeys;
+
+        _stringCache = cache;
     }
 }

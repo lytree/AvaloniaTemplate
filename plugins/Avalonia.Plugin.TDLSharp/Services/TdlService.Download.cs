@@ -4,247 +4,289 @@ namespace Avalonia.Plugin.TDLSharp.Services;
 
 public partial class TdlService
 {
-    private readonly HashSet<int> _downloadedFileIds = [];
-    private readonly Dictionary<int, long> _fileIdToAlbumId = new();
+    const int MaxConcurrentDownloads = 5;
 
-    public async Task GroupMediaDownloadAsync(string linksRaw, string? outputPath, bool includeComments, CancellationToken ct = default)
+    public async Task DownloadFilesAsync(
+        string linksText,
+        string outputDir,
+        string? includeExt,
+        string? excludeExt,
+        bool desc,
+        bool group,
+        bool skipSame,
+        CancellationToken ct = default)
     {
         await EnsureReadyAsync();
 
         var client = Client;
 
-        if (string.IsNullOrWhiteSpace(outputPath))
-        {
-            outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
-        }
-        Directory.CreateDirectory(outputPath);
+        var links = linksText.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .ToList();
 
-        var links = linksRaw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (links.Count == 0)
+        {
+            _logger.Log("没有提供消息链接");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(outputDir))
+        {
+            outputDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "tdl", "download");
+        }
+        Directory.CreateDirectory(outputDir);
+
+        var includeSet = ParseExtList(includeExt);
+        var excludeSet = ParseExtList(excludeExt);
+
+        _logger.Log($"开始下载文件，共 {links.Count} 个链接，输出目录: {outputDir}");
+
+        // Phase 1: Collect all files to download (logging allowed)
+        var filesToDownload = new List<DownloadItem>();
+        int skipped = 0;
 
         foreach (var link in links)
         {
             ct.ThrowIfCancellationRequested();
-            _logger.Log($"开始处理链接: {link}");
-            await DownloadMediaFromLink(client, link, includeComments, outputPath, ct);
-        }
 
-        _logger.Log("等待所有下载完成...");
-        await Task.Delay(10000, ct);
-
-        _logger.Log($"全部下载完毕！已下载文件数: {_downloadedFileIds.Count}");
-    }
-
-    async Task DownloadMediaFromLink(TdClient client, string link, bool includeComments, string outputPath, CancellationToken ct)
-    {
-        try
-        {
-            var linkInfo = await client.GetMessageLinkInfoAsync(link);
-            if (linkInfo.Message == null)
+            var (chatId, messageId) = await ResolveSourceLinkAsync(link);
+            if (chatId == 0)
             {
-                _logger.Log($"无法从链接获取消息: {link}");
-                return;
+                _logger.Log($"无法解析链接: {link}");
+                continue;
             }
 
-            var chatId = linkInfo.Message.ChatId;
-            var messageId = linkInfo.Message.Id;
-            var message = linkInfo.Message;
+            var messagesToDownload = new List<TdApi.Message>();
 
-            var chat = await client.GetChatAsync(chatId);
-            _logger.Log($"开始下载 {chat.Title} 的媒体组...");
-            _logger.Log($"包含评论: {includeComments}");
-
-            int totalDownloaded = 0;
-
-            if (message.MediaAlbumId != 0)
+            try
             {
-                _logger.Log($"发现媒体组: {message.MediaAlbumId}");
-                totalDownloaded += await DownloadMediaGroupByAlbumId(client, chatId, message.MediaAlbumId, messageId, outputPath, messageId, ct);
-            }
-            else
-            {
-                totalDownloaded += await DownloadMessageMedia(client, message, outputPath, messageId);
-            }
+                var msg = await client.GetMessageAsync(chatId, messageId);
+                messagesToDownload.Add(msg);
 
-            if (includeComments)
-            {
-                _logger.Log("开始下载评论区媒体...");
-                var comments = await GetMessageCommentsAsync(client, chatId, messageId);
-                _logger.Log($"找到 {comments.Length} 条评论");
-
-                int commentsDownloaded = 0;
-                int commentsSkipped = 0;
-                foreach (var comment in comments)
+                if (group && msg.MediaAlbumId != 0)
                 {
-                    ct.ThrowIfCancellationRequested();
-                    var fileId = GetFileIdFromMessage(comment);
-                    if (fileId > 0)
+                    var history = await client.GetChatHistoryAsync(chatId, messageId, 0, 20, false);
+                    if (history.Messages_ != null)
                     {
-                        if (_downloadedFileIds.Contains(fileId))
+                        var albumMsgs = history.Messages_
+                            .Where(m => m.MediaAlbumId == msg.MediaAlbumId)
+                            .OrderBy(m => m.Id)
+                            .ToList();
+                        if (albumMsgs.Count > 1)
                         {
-                            commentsSkipped++;
-                        }
-                        else
-                        {
-                            commentsDownloaded += await DownloadMessageMedia(client, comment, outputPath, messageId);
+                            messagesToDownload = albumMsgs;
+                            _logger.Log($"检测到相册，共 {albumMsgs.Count} 条消息");
                         }
                     }
                 }
-
-                _logger.Log($"评论区下载完成，共 {commentsDownloaded} 个新文件，{commentsSkipped} 个已跳过");
-                totalDownloaded += commentsDownloaded;
+            }
+            catch (TdException ex)
+            {
+                _logger.Log($"获取消息失败: {link} - {ex.Error.Message}");
+                continue;
             }
 
-            _logger.Log($"下载完成！共下载 {totalDownloaded} 个媒体文件");
+            if (desc)
+            {
+                messagesToDownload.Reverse();
+            }
+
+            foreach (var msg in messagesToDownload)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                var file = ExtractDownloadableFile(msg.Content);
+                if (file == null)
+                {
+                    _logger.Log($"消息中无可下载的媒体: MsgId={msg.Id}");
+                    continue;
+                }
+
+                var fileName = GetFileName(msg, file);
+                if (!ShouldDownloadByExtension(fileName, includeSet, excludeSet))
+                {
+                    _logger.Log($"被扩展名过滤: {fileName}");
+                    skipped++;
+                    continue;
+                }
+
+                var destPath = Path.Combine(outputDir, fileName);
+                if (skipSame && File.Exists(destPath))
+                {
+                    var existingLen = new FileInfo(destPath).Length;
+                    if (existingLen == file.ExpectedSize)
+                    {
+                        _logger.Log($"跳过 (同名同大小): {fileName}");
+                        skipped++;
+                        continue;
+                    }
+                }
+
+                filesToDownload.Add(new DownloadItem
+                {
+                    FileId = file.Id,
+                    FileName = fileName,
+                    FileSize = file.ExpectedSize,
+                    DestPath = destPath
+                });
+            }
+        }
+
+        if (filesToDownload.Count == 0)
+        {
+            _logger.Log($"下载完成: 0 个成功, 0 个失败, {skipped} 个跳过");
+            return;
+        }
+
+        _logger.Log($"收集到 {filesToDownload.Count} 个文件，开始并发下载 (最多 {MaxConcurrentDownloads} 个同时)");
+
+        // Phase 2: Download concurrently (no logging, only progress bars)
+        using var semaphore = new SemaphoreSlim(MaxConcurrentDownloads);
+        int downloaded = 0;
+        int failed = 0;
+
+        var tasks = filesToDownload.Select(async item =>
+        {
+            await semaphore.WaitAsync(ct);
+            try
+            {
+                await DownloadSingleFileWithProgressAsync(client, item, ct);
+                Interlocked.Increment(ref downloaded);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                Interlocked.Increment(ref failed);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }).ToList();
+
+        await Task.WhenAll(tasks);
+
+        // Phase 3: Summary
+        _logger.Log($"下载完成: {downloaded} 个成功, {failed} 个失败, {skipped} 个跳过");
+    }
+
+    async Task DownloadSingleFileWithProgressAsync(TdClient client, DownloadItem item, CancellationToken ct)
+    {
+        var progressEntry = _logger.StartProgress(item.FileName, item.FileSize, "等待中");
+
+        try
+        {
+            progressEntry.StatusText = "下载中";
+            var file = await client.DownloadFileAsync(item.FileId, 1, 0, 0, false);
+
+            while (!file.Local.IsDownloadingCompleted)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                var downloadedSize = file.Local.DownloadedSize;
+                var totalSize = file.ExpectedSize > 0 ? file.ExpectedSize : item.FileSize;
+                var percentage = totalSize > 0 ? (downloadedSize * 100.0 / totalSize) : 0;
+
+                _logger.UpdateProgress(progressEntry, percentage, $"{percentage:F1}%");
+
+                await Task.Delay(200, ct);
+                file = await client.GetFileAsync(file.Id);
+            }
+
+            if (file.Local.Path != item.DestPath && File.Exists(file.Local.Path))
+            {
+                var dir = Path.GetDirectoryName(item.DestPath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+                File.Copy(file.Local.Path, item.DestPath, overwrite: true);
+            }
+
+            _logger.CompleteProgress(progressEntry, "完成");
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.FailProgress(progressEntry, "已取消");
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.Log($"下载过程中发生错误: {ex.Message}");
+            _logger.FailProgress(progressEntry, $"失败: {ex.Message}");
+            throw;
         }
     }
 
-    async Task<int> DownloadMediaGroupByAlbumId(TdClient client, long chatId, long mediaAlbumId, long startMessageId, string outputPath, long messageId, CancellationToken ct)
+    TdApi.File? ExtractDownloadableFile(TdApi.MessageContent content)
     {
-        int totalDownloaded = 0;
-
-        try
+        return content switch
         {
-            _logger.Log($"开始下载媒体组 {mediaAlbumId}");
-
-            var foundMessages = new List<TdApi.Message>();
-
-            try
-            {
-                var firstMessage = await client.GetMessageAsync(chatId, startMessageId);
-                if (firstMessage != null && !foundMessages.Any(m => m.Id == firstMessage.Id))
-                {
-                    foundMessages.Add(firstMessage);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Log($"获取初始消息失败: {ex.Message}");
-            }
-
-            long searchBackwardId = startMessageId;
-            int backwardAttempts = 0;
-            while (backwardAttempts < 5)
-            {
-                ct.ThrowIfCancellationRequested();
-                try
-                {
-                    var messages = await client.GetChatHistoryAsync(chatId, searchBackwardId, 0, 50, false);
-                    if (messages.Messages_ == null || messages.Messages_.Length == 0) break;
-
-                    bool foundMore = false;
-                    foreach (var msg in messages.Messages_)
-                    {
-                        if (msg.MediaAlbumId == mediaAlbumId && !foundMessages.Any(m => m.Id == msg.Id))
-                        {
-                            foundMessages.Add(msg);
-                            foundMore = true;
-                        }
-                        searchBackwardId = msg.Id;
-                    }
-
-                    if (!foundMore) backwardAttempts++;
-                    else backwardAttempts = 0;
-
-                    await Task.Delay(100, ct);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Log($"搜索媒体组消息失败: {ex.Message}");
-                    break;
-                }
-            }
-
-            try
-            {
-                var initialMessages = await client.GetChatHistoryAsync(chatId, startMessageId, -20, 40, false);
-                if (initialMessages.Messages_ != null)
-                {
-                    foreach (var msg in initialMessages.Messages_)
-                    {
-                        if (msg.MediaAlbumId == mediaAlbumId && !foundMessages.Any(m => m.Id == msg.Id))
-                        {
-                            foundMessages.Add(msg);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Log($"搜索后续媒体组消息失败: {ex.Message}");
-            }
-
-            _logger.Log($"媒体组搜索完成，共找到 {foundMessages.Count} 条消息");
-
-            foreach (var msg in foundMessages.OrderBy(m => m.Id))
-            {
-                ct.ThrowIfCancellationRequested();
-                var count = await DownloadMessageMedia(client, msg, outputPath, messageId);
-                totalDownloaded += count;
-            }
-
-            _logger.Log($"媒体组 {mediaAlbumId} 下载完成，共 {totalDownloaded} 个文件");
-        }
-        catch (TdException ex)
-        {
-            _logger.Log($"下载媒体组失败: {ex.Message}");
-        }
-
-        return totalDownloaded;
-    }
-
-    async Task<int> DownloadMessageMedia(TdClient client, TdApi.Message message, string outputPath, long messageId)
-    {
-        int fileId = GetFileIdFromMessage(message);
-        int downloadedCount = 0;
-
-        if (fileId > 0 && !_downloadedFileIds.Contains(fileId))
-        {
-            _downloadedFileIds.Add(fileId);
-            _fileIdToAlbumId[fileId] = messageId;
-            await client.DownloadFileAsync(fileId, 32, 0, 0, true);
-            downloadedCount++;
-            _logger.Log($"队列下载: FileId: {fileId}, LinkId: {messageId}, MediaAlbumId: {message.MediaAlbumId}");
-        }
-
-        return downloadedCount;
-    }
-
-    int GetFileIdFromMessage(TdApi.Message message)
-    {
-        return message.Content switch
-        {
-            TdApi.MessageContent.MessageDocument d => d.Document.Document_.Id,
-            TdApi.MessageContent.MessageVideo v => v.Video.Video_.Id,
-            TdApi.MessageContent.MessagePhoto p => p.Photo.Sizes.LastOrDefault()?.Photo.Id ?? 0,
-            TdApi.MessageContent.MessageAudio a => a.Audio.Audio_.Id,
-            TdApi.MessageContent.MessageAnimation ani => ani.Animation.Animation_.Id,
-            TdApi.MessageContent.MessageVideoNote vn => vn.VideoNote.Video.Id,
-            TdApi.MessageContent.MessageVoiceNote vce => vce.VoiceNote.Voice.Id,
-            _ => 0
+            TdApi.MessageContent.MessagePhoto p => p.Photo.Sizes.LastOrDefault()?.Photo,
+            TdApi.MessageContent.MessageVideo v => v.Video.Video_,
+            TdApi.MessageContent.MessageAudio a => a.Audio.Audio_,
+            TdApi.MessageContent.MessageDocument d => d.Document.Document_,
+            TdApi.MessageContent.MessageVoiceNote vn => vn.VoiceNote.Voice,
+            TdApi.MessageContent.MessageVideoNote vn => vn.VideoNote.Video,
+            TdApi.MessageContent.MessageAnimation ani => ani.Animation.Animation_,
+            TdApi.MessageContent.MessageSticker s => s.Sticker.Sticker_,
+            _ => null
         };
     }
 
-    async Task<TdApi.Message[]> GetMessageCommentsAsync(TdClient client, long chatId, long messageId)
+    string GetFileName(TdApi.Message msg, TdApi.File file)
     {
-        try
+        var name = msg.Content switch
         {
-            var comments = await client.GetMessageThreadHistoryAsync(
-                chatId: chatId,
-                messageId: messageId,
-                fromMessageId: 0,
-                offset: 0,
-                limit: 50
-            );
-            return comments.Messages_ ?? [];
-        }
-        catch (TdException ex)
+            TdApi.MessageContent.MessageVideo v => v.Video.FileName,
+            TdApi.MessageContent.MessageAudio a => a.Audio.FileName,
+            TdApi.MessageContent.MessageDocument d => d.Document.FileName,
+            TdApi.MessageContent.MessageAnimation ani => ani.Animation.FileName,
+            TdApi.MessageContent.MessageSticker s => $"{s.Sticker.SetId}_{s.Sticker.Sticker_.Id}.webp",
+            _ => $"file_{file.Id}"
+        };
+
+        if (string.IsNullOrWhiteSpace(name))
         {
-            _logger.Log($"获取评论失败: {ex.Error.Message}");
-            return [];
+            name = $"file_{file.Id}";
         }
+
+        return name;
     }
+
+    HashSet<string> ParseExtList(string? ext)
+    {
+        if (string.IsNullOrWhiteSpace(ext)) return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        return ext.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(e => e.StartsWith('.') ? e[1..] : e)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    bool ShouldDownloadByExtension(string fileName, HashSet<string> includeSet, HashSet<string> excludeSet)
+    {
+        var ext = Path.GetExtension(fileName).TrimStart('.');
+
+        if (includeSet.Count > 0)
+        {
+            return includeSet.Contains(ext);
+        }
+
+        if (excludeSet.Count > 0)
+        {
+            return !excludeSet.Contains(ext);
+        }
+
+        return true;
+    }
+}
+
+class DownloadItem
+{
+    public int FileId { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public long FileSize { get; set; }
+    public string DestPath { get; set; } = string.Empty;
 }

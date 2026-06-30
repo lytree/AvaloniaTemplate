@@ -1,19 +1,36 @@
+using System.Diagnostics;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Avalonia.Plugin.Downloader.Models;
+using Avalonia.Plugin.Downloader.Resources;
 using CliWrap;
 
 namespace Avalonia.Plugin.Downloader.Services;
 
-public class M3u8DownloadService
+public class M3u8DownloadService : IDisposable
 {
+    private static readonly Regex BandwidthRegex = new(@"BANDWIDTH=(\d+)", RegexOptions.Compiled);
+    private static readonly Regex ResolutionRegex = new(@"RESOLUTION=(\d+x\d+)", RegexOptions.Compiled);
+    private static readonly Regex CodecsRegex = new(@"CODES=""([^""]+)""", RegexOptions.Compiled);
+    private static readonly Regex MethodRegex = new(@"METHOD=([^,]+)", RegexOptions.Compiled);
+    private static readonly Regex UriRegex = new(@"URI=""([^""]+)""", RegexOptions.Compiled);
+    private static readonly Regex IvRegex = new(@"IV=0x([0-9a-fA-F]+)", RegexOptions.Compiled);
+
     private readonly DirectUiLogger _logger;
+    private HttpClient? _ownedClient;
 
     public M3u8DownloadService(DirectUiLogger logger)
     {
         _logger = logger;
+    }
+
+    public void Dispose()
+    {
+        _ownedClient?.Dispose();
+        _ownedClient = null;
     }
 
     public async Task DownloadAsync(
@@ -39,9 +56,9 @@ public class M3u8DownloadService
         {
             Directory.CreateDirectory(tempDir);
 
-            using var client = CreateHttpClient(headers);
+            var client = GetOrCreateClient(headers);
 
-            _logger.Log("正在获取 M3U8...");
+            _logger.Log(Strings.Get("LOG_FetchingM3u8"));
             var masterContent = await FetchM3u8Async(client, url, ct);
             var streams = ParseMasterM3u8(masterContent, url);
 
@@ -52,17 +69,17 @@ public class M3u8DownloadService
             {
                 var videoStreams = streams.Where(s => IsVideoStream(s.Codecs)).ToList();
                 var displayStreams = videoStreams.Count > 0 ? videoStreams : streams;
-                _logger.Log($"发现 {streams.Count} 个质量选项, {displayStreams.Count} 个视频流");
+                _logger.Log(Strings.Get("FMT_QualityOptions", streams.Count, displayStreams.Count));
                 foreach (var s in streams)
                 {
                     var isVideo = IsVideoStream(s.Codecs);
                     var qualityLabel = GetQualityLabel(s.Resolution, s.Bandwidth);
-                    var videoTag = isVideo ? "" : " (仅音频)";
+                    var videoTag = isVideo ? "" : Strings.Get("WORD_AudioOnly");
                     _logger.Log($"  - {qualityLabel} ({FormatBandwidth(s.Bandwidth)}){videoTag}");
                 }
 
                 targetUrl = SelectStreamUrl(streams, quality, url);
-                _logger.Log($"使用: {targetUrl}");
+                _logger.Log(Strings.Get("FMT_UsingStream", targetUrl));
 
                 var m3u8Content = await FetchM3u8Async(client, targetUrl, ct);
                 m3u8Info = ParseM3u8(m3u8Content, targetUrl);
@@ -73,30 +90,30 @@ public class M3u8DownloadService
                 m3u8Info = ParseM3u8(masterContent, url);
             }
 
-            _logger.Log($"发现 {m3u8Info.Segments.Count} 个分片");
+            _logger.Log(Strings.Get("FMT_SegmentsFound", m3u8Info.Segments.Count));
 
             if (m3u8Info.KeyInfo != null)
             {
-                _logger.Log($"加密方式: {m3u8Info.KeyInfo.Method}");
+                _logger.Log(Strings.Get("FMT_EncryptionMethod", m3u8Info.KeyInfo.Method));
                 if (m3u8Info.KeyInfo.Method is "AES-128" or "AES-128-ECB")
                 {
                     var aesKey = await FetchAesKeyAsync(client, m3u8Info.KeyInfo, ct);
-                    _logger.Log($"{m3u8Info.KeyInfo.Method} 密钥获取成功");
+                    _logger.Log(Strings.Get("FMT_KeyFetchSuccess", m3u8Info.KeyInfo.Method));
                     await DownloadSegmentsAsync(client, m3u8Info, tempDir, aesKey, m3u8Info.KeyInfo.Method, retryCount, concurrency, ct);
                 }
                 else if (m3u8Info.KeyInfo.Method == "SAMPLE-AES")
                 {
-                    throw new NotSupportedException("SAMPLE-AES (FairPlay) 加密需要许可证服务器。");
+                    throw new NotSupportedException(Strings.Get("MSG_FairPlayNotSupported"));
                 }
                 else if (m3u8Info.KeyInfo.Method == "CHACHA20")
                 {
                     var key = await FetchAesKeyAsync(client, m3u8Info.KeyInfo, ct);
-                    _logger.Log("CHACHA20 密钥获取成功");
+                    _logger.Log(Strings.Get("MSG_CHACHA20KeySuccess"));
                     await DownloadSegmentsAsync(client, m3u8Info, tempDir, key, m3u8Info.KeyInfo.Method, retryCount, concurrency, ct);
                 }
                 else
                 {
-                    throw new NotSupportedException($"不支持的加密方式 '{m3u8Info.KeyInfo.Method}'。");
+                    throw new NotSupportedException(Strings.Get("FMT_UnsupportedEncryption", m3u8Info.KeyInfo.Method));
                 }
             }
             else
@@ -107,25 +124,32 @@ public class M3u8DownloadService
             await WriteConcatListAsync(m3u8Info, tempDir, ct);
             await MergeWithFFmpegAsync(tempDir, output, ffmpegPath, ct);
 
-            _logger.Log($"完成: {output}");
+            _logger.Log(Strings.Get("FMT_CompletedOutput", output));
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.Log($"错误: {ex.Message}");
+            _logger.Log(Strings.Get("FMT_Error", ex.Message));
             throw;
         }
         finally
         {
             if (Directory.Exists(tempDir))
             {
-                try { Directory.Delete(tempDir, true); } catch { }
+                try { Directory.Delete(tempDir, true); } catch (Exception ex) { Debug.WriteLine($"[M3u8] 清理临时目录失败 {tempDir}: {ex.Message}"); }
             }
         }
     }
 
-    private HttpClient CreateHttpClient(Dictionary<string, string>? headers)
+    private HttpClient GetOrCreateClient(Dictionary<string, string>? headers)
     {
-        var handler = new HttpClientHandler();
+        if (_ownedClient is not null)
+            return _ownedClient;
+
+        var handler = new HttpClientHandler
+        {
+            MaxConnectionsPerServer = 16,
+            AutomaticDecompression = DecompressionMethods.All
+        };
         var client = new HttpClient(handler);
         client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
         if (headers != null)
@@ -135,6 +159,7 @@ public class M3u8DownloadService
                 client.DefaultRequestHeaders.TryAddWithoutValidation(kv.Key, kv.Value);
             }
         }
+        _ownedClient = client;
         return client;
     }
 
@@ -185,9 +210,9 @@ public class M3u8DownloadService
 
             if (line.StartsWith("#EXT-X-STREAM-INF:"))
             {
-                var bandwidthMatch = Regex.Match(line, @"BANDWIDTH=(\d+)");
-                var resolutionMatch = Regex.Match(line, @"RESOLUTION=(\d+x\d+)");
-                var codecsMatch = Regex.Match(line, @"CODECS=""([^""]+)""");
+                var bandwidthMatch = BandwidthRegex.Match(line);
+                var resolutionMatch = ResolutionRegex.Match(line);
+                var codecsMatch = CodecsRegex.Match(line);
 
                 if (bandwidthMatch.Success && i + 1 < lines.Length)
                 {
@@ -250,9 +275,9 @@ public class M3u8DownloadService
 
             if (line.StartsWith("#EXT-X-KEY:"))
             {
-                var methodMatch = Regex.Match(line, @"METHOD=([^,]+)");
-                var uriMatch = Regex.Match(line, @"URI=""([^""]+)""");
-                var ivMatch = Regex.Match(line, @"IV=0x([0-9a-fA-F]+)");
+                var methodMatch = MethodRegex.Match(line);
+                var uriMatch = UriRegex.Match(line);
+                var ivMatch = IvRegex.Match(line);
 
                 var method = methodMatch.Success ? methodMatch.Groups[1].Value : "";
                 var keyUrl = uriMatch.Success ? uriMatch.Groups[1].Value : "";
@@ -295,7 +320,7 @@ public class M3u8DownloadService
         var lockObj = new object();
 
         using var semaphore = new SemaphoreSlim(concurrency);
-        var tasks = new List<Task>();
+        var tasks = new List<Task>(m3u8Info.Segments.Count);
 
         foreach (var segment in m3u8Info.Segments)
         {
@@ -329,7 +354,7 @@ public class M3u8DownloadService
                             var currentCompleted = completed;
                             if (currentCompleted % 50 == 0 || currentCompleted == total)
                             {
-                                _logger.Log($"下载进度: {currentCompleted}/{total} ({FormatSize(totalBytes)})");
+                                _logger.Log(Strings.Get("FMT_DownloadProgress", currentCompleted, total, FormatSize(totalBytes)));
                             }
                             return;
                         }
@@ -357,11 +382,11 @@ public class M3u8DownloadService
 
         var elapsed = DateTime.Now - startTime;
         var speed = elapsed.TotalSeconds > 0 ? totalBytes / elapsed.TotalSeconds : 0;
-        _logger.Log($"已下载 {completed}/{total} 个分片 ({FormatSize(totalBytes)}), 耗时 {elapsed.TotalSeconds:F1}s ({FormatSpeed(speed)})");
+        _logger.Log(Strings.Get("FMT_DownloadSummary", completed, total, FormatSize(totalBytes), elapsed.TotalSeconds, FormatSpeed(speed)));
 
         if (failedSegments.Count > 0)
         {
-            throw new Exception($"下载失败的分片: {string.Join(", ", failedSegments)}");
+            throw new Exception(Strings.Get("FMT_FailedSegments", string.Join(", ", failedSegments)));
         }
     }
 
@@ -420,7 +445,7 @@ public class M3u8DownloadService
 
     private byte[] AESDecrypt(byte[] encryptedData, byte[] key, byte[]? iv, CipherMode mode)
     {
-        var aes = Aes.Create();
+        using var aes = Aes.Create();
         aes.BlockSize = 128;
         aes.KeySize = 128;
         aes.Key = key;
@@ -441,6 +466,8 @@ public class M3u8DownloadService
         var decrypted = new byte[ciphertext.Length];
 
         var state = new uint[16];
+        var workingState = new uint[16];
+        var block = new byte[64];
 
         state[0] = 0x61707865;
         state[1] = 0x3320646e;
@@ -461,7 +488,7 @@ public class M3u8DownloadService
 
         for (int i = 0; i < ciphertext.Length; i += 64)
         {
-            var workingState = (uint[])state.Clone();
+            Array.Copy(state, workingState, 16);
 
             for (int round = 0; round < 10; round += 2)
             {
@@ -478,26 +505,7 @@ public class M3u8DownloadService
             for (int j = 0; j < 16; j++)
             {
                 workingState[j] += state[j];
-            }
-
-            var block = new byte[64];
-            for (int j = 0; j < 16; j++)
-            {
-                var bytes = BitConverter.GetBytes(workingState[j]);
-                if (BitConverter.IsLittleEndian)
-                {
-                    block[j * 4] = bytes[0];
-                    block[j * 4 + 1] = bytes[1];
-                    block[j * 4 + 2] = bytes[2];
-                    block[j * 4 + 3] = bytes[3];
-                }
-                else
-                {
-                    block[j * 4 + 3] = bytes[0];
-                    block[j * 4 + 2] = bytes[1];
-                    block[j * 4 + 1] = bytes[2];
-                    block[j * 4] = bytes[3];
-                }
+                MemoryMarshal.Write(block.AsSpan(j * 4, 4), in workingState[j]);
             }
 
             var remaining = Math.Min(64, ciphertext.Length - i);
@@ -606,7 +614,7 @@ public class M3u8DownloadService
     {
         var listPath = Path.Combine(tempDir, "filelist.txt");
 
-        _logger.Log("正在使用 FFmpeg 合并...");
+        _logger.Log(Strings.Get("LOG_MergingFFmpeg"));
 
         var result = await Cli.Wrap(ffmpegPath)
             .WithArguments($"-y -f concat -safe 0 -i \"{listPath}\" -c copy \"{outputPath}\"")
@@ -621,9 +629,9 @@ public class M3u8DownloadService
 
         if (result.ExitCode != 0)
         {
-            throw new Exception($"FFmpeg 退出码 {result.ExitCode}");
+            throw new Exception(Strings.Get("FMT_FFmpegExitCode", result.ExitCode));
         }
 
-        _logger.Log("合并完成!");
+        _logger.Log(Strings.Get("LOG_MergeComplete"));
     }
 }

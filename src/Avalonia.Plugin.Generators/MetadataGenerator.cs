@@ -1,180 +1,140 @@
-// MetadataGenerator.cs
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 [Generator]
-public class MetadataGenerator : ISourceGenerator
+public class MetadataGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext context) { }
-
-    public void Execute(GeneratorExecutionContext context)
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var classNodes = context.Compilation.SyntaxTrees
-            .SelectMany(st => st.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>()).ToList();
+        var targetClassProvider = context.SyntaxProvider
+            .CreateSyntaxProvider(
+                predicate: (node, _) => node is ClassDeclarationSyntax,
+                transform: (ctx, _) =>
+                {
+                    var classDecl = (ClassDeclarationSyntax)ctx.Node;
+                    var hasGenerateMetadata = classDecl.AttributeLists
+                        .SelectMany(al => al.Attributes)
+                        .Any(a => a.Name.ToString().Contains("GenerateMetadata"));
 
-        // 1. 寻找带有 [GenerateMetadata] 的类
-        var targetPlugin = classNodes.FirstOrDefault(c => HasAttr(c, "GenerateMetadata"));
-        if (targetPlugin == null) return;
+                    if (!hasGenerateMetadata) return (GeneratorData?)null;
 
-        string ns = GetNamespace(targetPlugin);
-        string className = targetPlugin.Identifier.Text;
+                    var model = ctx.SemanticModel;
+                    var allClasses = model.Compilation.SyntaxTrees
+                        .SelectMany(st => st.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
+                        .ToList();
 
-        // 2. 扫描元数据
-        var viewLines = new StringBuilder();
-        var navLines = new StringBuilder();
-        var menuData = new List<(string Header, string Key, string? Parent, string? Status, int Order, string VMType)>();
+                    var ns = GetNamespace(classDecl);
+                    var className = classDecl.Identifier.Text;
 
-        foreach (var cls in classNodes)
+                    var viewLines = new StringBuilder();
+                    var navLines = new StringBuilder();
+                    var menuData = new List<(string Header, string Key, string? Parent, string? IconName, string? Status, int Order)>();
+
+                    foreach (var cls in allClasses)
+                    {
+                        var vmName = cls.Identifier.Text;
+                        var vmNs = GetNamespace(cls);
+                        var fullVmName = $"{vmNs}.{vmName}";
+
+                        if (TryGetAttr(cls, "ViewMap", out var vAttr))
+                        {
+                            var vTypeShort = GetArg(vAttr!, 0);
+                            var vTypeFull = GetFullTypeName(vTypeShort, allClasses);
+                            viewLines.AppendLine($"        yield return new KeyValuePair<Type, ViewFactory>(typeof({fullVmName}), () => new {vTypeFull}());");
+                        }
+
+                        if (TryGetAttr(cls, "NavigationItem", out var nAttr))
+                        {
+                            var navKey = GetArg(nAttr!, 0);
+                            navLines.AppendLine($"        {{ {navKey}, () => new {fullVmName}() }},");
+                        }
+
+                        if (TryGetAttr(cls, "Menu", out var mAttr))
+                        {
+                            menuData.Add(ParseMenu(mAttr!));
+                        }
+                    }
+
+                    return new GeneratorData(ns, className, viewLines.ToString(), navLines.ToString(), menuData);
+                })
+            .Where(x => x != null)
+            .Select((x, _) => x!.Value);
+
+        context.RegisterSourceOutput(targetClassProvider, (ctx, data) =>
         {
-            var vmName = cls.Identifier.Text;
+            var menuAddLines = GenerateMenuAddStatements(data.MenuData);
 
-            // 处理 ViewMap
-            if (TryGetAttr(cls, "ViewMap", out var vAttr))
-            {
-                var vType = GetArg(vAttr, 0);
-                viewLines.AppendLine($"        yield return new KeyValuePair<Type, ViewFactory>(typeof({vmName}), () => new {vType}());");
-            }
-
-            // 处理 NavigationItem
-            if (TryGetAttr(cls, "NavigationItem", out var nAttr))
-            {
-                var navKey = GetArg(nAttr, 0);
-                navLines.AppendLine($"        {{ {navKey}, () => new {vmName}() }},");
-            }
-
-            // 处理 Menu
-            if (TryGetAttr(cls, "Menu", out var mAttr))
-            {
-                menuData.Add(ParseMenu(mAttr, vmName));
-            }
-        }
-
-        // 3. 构建菜单树生成逻辑 (静态代码)
-        var menuLines = GenerateMenuTreeCode(menuData);
-
-        // 4. 生成完整源码 (注意大括号转义 {{ }})
-        var source = $@"// <auto-generated />
+            var source = $@"// <auto-generated />
+#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.ViewModels;
-using {ns}.Pages;
-using {ns}.ViewModels;
+using Avalonia.Styling;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace {ns}
+namespace {data.Namespace}
 {{
-    public partial class {className} : IPlugin
+    public partial class {data.ClassName} : IPlugin
     {{
         public IEnumerable<KeyValuePair<Type, ViewFactory>> GetViewDefinitions()
         {{
-{viewLines}
+{data.ViewLines}
         }}
 
         public Dictionary<string, ViewModelFactory> GetNavigationItems() => new Dictionary<string, ViewModelFactory>
         {{
-{navLines}
+{data.NavLines}
         }};
 
-        public List<KeyValuePair<string, MenuItemViewModel>> GetMenuItems()
+        public List<KeyValuePair<string?, MenuItemViewModel>> GetMenuItems()
         {{
             var allItems = new List<(string? Parent, MenuItemViewModel Item, int Order)>();
-{menuLines}
-
-
-
-// 2. 建立索引字典，用于快速查找父节点
-var itemLookup = allItems.ToDictionary(x => x.Item.RawHeader ?? x.Item.MenuHeader, x => x.Item);
-
-// 3. 递归补全：如果子项引用了不存在的 ParentHeader，则自动创建虚拟根节点
-var missingParents = allItems
-    .Where(x => !string.IsNullOrEmpty(x.Parent) && !itemLookup.ContainsKey(x.Parent!))
-    .Select(x => x.Parent)
-    .Distinct()
-    .ToList();
-
-foreach (var pHeader in missingParents)
-{{
-    var virtualParent = new MenuItemViewModel {{MenuHeader = pHeader!,Key = pHeader!}};
-    itemLookup[pHeader!] = virtualParent;
-    allItems.Add((null, virtualParent,0)); // 虚拟节点作为顶级根节点
-}}
-
-// 4. 构造树形结构：将子项挂载到父项的 Children 集合中
-foreach (var entry in allItems)
-{{
-    if (!string.IsNullOrEmpty(entry.Parent) && itemLookup.TryGetValue(entry.Parent!, out var parentNode))
-    {{
-        // 避免重复挂载
-        if (!parentNode.Children.Contains(entry.Item))
-        {{
-            parentNode.Children.Add(entry.Item);
+{menuAddLines}
+            return MenuItemTreeBuilder.BuildTree(allItems);
         }}
-    }}
-}}
 
-// 5. 结果输出：只返回顶级节点（ParentHeader 为空的项），并按 Order 排序
- return allItems
-    .Where(x => string.IsNullOrEmpty(x.Parent))
-    .OrderBy(x => x.Item.Order)
-    .Select(x => new KeyValuePair<string, MenuItemViewModel>(null, x.Item))
-    .ToList();
-        }}
+        public IResourceDictionary? GetIconResources() => null;
     }}
 }}";
-        context.AddSource($"{className}.g.cs", SourceText.From(source, Encoding.UTF8));
+            ctx.AddSource($"{data.ClassName}.g.cs", SourceText.From(source, Encoding.UTF8));
+        });
     }
 
-    // 辅助方法：构建菜单项添加语句
-    private string GenerateMenuTreeCode(List<(string Header, string Key, string? Parent, string? Status, int Order, string VMType)> data)
+    private readonly struct GeneratorData
+    {
+        public string Namespace { get; }
+        public string ClassName { get; }
+        public string ViewLines { get; }
+        public string NavLines { get; }
+        public List<(string Header, string Key, string? Parent, string? IconName, string? Status, int Order)> MenuData { get; }
+
+        public GeneratorData(string ns, string className, string viewLines, string navLines,
+            List<(string Header, string Key, string? Parent, string? IconName, string? Status, int Order)> menuData)
+        {
+            Namespace = ns;
+            ClassName = className;
+            ViewLines = viewLines;
+            NavLines = navLines;
+            MenuData = menuData;
+        }
+    }
+
+    private static string GenerateMenuAddStatements(List<(string Header, string Key, string? Parent, string? IconName, string? Status, int Order)> data)
     {
         var sb = new StringBuilder();
         foreach (var d in data)
         {
-            sb.AppendLine($@"            allItems.Add(({d.Parent ?? "null"}, new MenuItemViewModel {{ MenuHeader = {d.Header}, Key = {d.Key}, Status = {d.Status ?? "null"}, Order = {d.Order} }}, {d.Order}));");
-        }
-        return sb.ToString();
-    }
-    private string ScanViewMappings(IEnumerable<ClassDeclarationSyntax> classes)
-    {
-        var sb = new StringBuilder();
-        foreach (var cls in classes.Where(c => HasAttr(c, "ViewMap")))
-        {
-            var vType = GetAttrArg(cls, "ViewMap");
-            sb.AppendLine($"        yield return new KeyValuePair<Type, ViewFactory>(typeof({cls.Identifier.Text}), () => new {vType}());");
+            var iconNameProp = d.IconName != null ? $", MenuIconName = {d.IconName}" : "";
+            sb.AppendLine($@"            allItems.Add(({d.Parent ?? "null"}, new MenuItemViewModel {{ MenuHeader = {d.Header}, Key = {d.Key}{iconNameProp}, Status = {d.Status ?? "null"}, Order = {d.Order} }}, {d.Order}));");
         }
         return sb.ToString();
     }
 
-    private string ScanNavMappings(IEnumerable<ClassDeclarationSyntax> classes)
-    {
-        var sb = new StringBuilder();
-        foreach (var cls in classes.Where(c => HasAttr(c, "NavigationItem")))
-        {
-            var key = GetAttrArg(cls, "NavigationItem");
-            sb.AppendLine($"        {{ {key}, () => new {cls.Identifier.Text}() }},");
-        }
-        return sb.ToString();
-    }
-
-    private bool HasAttr(ClassDeclarationSyntax c, string name) =>
-        c.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().Contains(name));
-
-    private string GetAttrArg(ClassDeclarationSyntax cls, string name)
-    {
-        var attr = cls.AttributeLists.SelectMany(al => al.Attributes).First(a => a.Name.ToString().Contains(name));
-        var arg = attr.ArgumentList?.Arguments.FirstOrDefault()?.Expression;
-        if (arg is TypeOfExpressionSyntax t) return t.Type.ToString();
-        return arg?.ToString() ?? "null";
-    }
-
-    private string GetNamespace(ClassDeclarationSyntax cls) =>
-        (cls.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault()?.Name.ToString()) ?? "Global";
-    private bool TryGetAttr(ClassDeclarationSyntax cls, string attrName, out AttributeSyntax? attr)
+    private static bool TryGetAttr(ClassDeclarationSyntax cls, string attrName, out AttributeSyntax? attr)
     {
         attr = cls.AttributeLists
             .SelectMany(al => al.Attributes)
@@ -182,29 +142,42 @@ foreach (var entry in allItems)
 
         return attr != null;
     }
-    private string GetArg(AttributeSyntax attr, int index)
+
+    private static string GetArg(AttributeSyntax attr, int index)
     {
         if (attr.ArgumentList == null || attr.ArgumentList.Arguments.Count <= index)
             return "null";
 
         var arg = attr.ArgumentList.Arguments[index].Expression;
 
-        // 如果是 typeof(MyView)，提取出 "MyView"
         if (arg is TypeOfExpressionSyntax typeofExp)
-        {
             return typeofExp.Type.ToString();
-        }
 
-        // 如果是字符串 "MyKey" 或数字，直接返回其字符串形式
         return arg.ToString();
     }
-    private (string Header, string Key, string? Parent, string? Status, int Order, string VMType)
-    ParseMenu(AttributeSyntax attr, string vmType)
+
+    private static string GetNamespace(ClassDeclarationSyntax cls) =>
+        (cls.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault()?.Name.ToString()) ?? "Global";
+
+    private static string GetFullTypeName(string shortName, List<ClassDeclarationSyntax> allClasses)
     {
-        // 初始化默认值
+        foreach (var cls in allClasses)
+        {
+            if (cls.Identifier.Text == shortName)
+            {
+                return $"{GetNamespace(cls)}.{shortName}";
+            }
+        }
+        return shortName;
+    }
+
+    private static (string Header, string Key, string? Parent, string? IconName, string? Status, int Order)
+    ParseMenu(AttributeSyntax attr)
+    {
         string header = "null";
         string key = "null";
         string? parent = "null";
+        string? iconName = null;
         string? status = "null";
         int order = 100;
 
@@ -212,7 +185,6 @@ foreach (var entry in allItems)
         {
             var args = attr.ArgumentList.Arguments;
 
-            // 1. 解析位置参数 (基于构造函数顺序: header, key, parentHeader)
             if (args.Count >= 1 && args[0].NameEquals == null)
                 header = args[0].Expression.ToString();
 
@@ -222,7 +194,6 @@ foreach (var entry in allItems)
             if (args.Count >= 3 && args[2].NameEquals == null)
                 parent = args[2].Expression.ToString();
 
-            // 2. 解析命名参数 (例如 Status = "New", Order = 1)
             foreach (var arg in args.Where(a => a.NameEquals != null))
             {
                 var name = arg.NameEquals!.Name.Identifier.Text;
@@ -233,6 +204,7 @@ foreach (var entry in allItems)
                     case "Header": header = expression; break;
                     case "Key": key = expression; break;
                     case "ParentKey": parent = expression; break;
+                    case "IconName": iconName = expression; break;
                     case "Status": status = expression; break;
                     case "Order":
                         if (!int.TryParse(expression, out order)) order = 100;
@@ -241,6 +213,6 @@ foreach (var entry in allItems)
             }
         }
 
-        return (header, key, parent, status, order, vmType);
+        return (header, key, parent, iconName, status, order);
     }
 }

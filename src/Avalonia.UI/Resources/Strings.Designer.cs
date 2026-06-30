@@ -61,7 +61,6 @@ public static class Strings
     public static string NAV_Settings => ResourceManager.GetString(nameof(NAV_Settings), Culture)!;
     public static string NAV_Plugins => ResourceManager.GetString(nameof(NAV_Plugins), Culture)!;
     public static string NAV_PluginManagement => ResourceManager.GetString(nameof(NAV_PluginManagement), Culture)!;
-    public static string NAV_AboutUs => ResourceManager.GetString(nameof(NAV_AboutUs), Culture)!;
     public static string PLUGIN_MANAGEMENT_TITLE => ResourceManager.GetString(nameof(PLUGIN_MANAGEMENT_TITLE), Culture)!;
     public static string PLUGIN_MANAGEMENT_DESC => ResourceManager.GetString(nameof(PLUGIN_MANAGEMENT_DESC), Culture)!;
     public static string INSTALL_PLUGIN => ResourceManager.GetString(nameof(INSTALL_PLUGIN), Culture)!;
@@ -105,21 +104,6 @@ public static class Strings
     public static string SETTING_USER_NAME_DESC => ResourceManager.GetString(nameof(SETTING_USER_NAME_DESC), Culture)!;
     public static string GROUP_APPEARANCE => ResourceManager.GetString(nameof(GROUP_APPEARANCE), Culture)!;
     public static string GROUP_GENERAL => ResourceManager.GetString(nameof(GROUP_GENERAL), Culture)!;
-    public static string COMPANY_NAME_CN => ResourceManager.GetString(nameof(COMPANY_NAME_CN), Culture)!;
-    public static string COMPANY_NAME_EN => ResourceManager.GetString(nameof(COMPANY_NAME_EN), Culture)!;
-    public static string SLOGAN_CN => ResourceManager.GetString(nameof(SLOGAN_CN), Culture)!;
-    public static string SLOGAN_EN => ResourceManager.GetString(nameof(SLOGAN_EN), Culture)!;
-    public static string SEMI_DESC_CN => ResourceManager.GetString(nameof(SEMI_DESC_CN), Culture)!;
-    public static string SEMI_DESC_EN => ResourceManager.GetString(nameof(SEMI_DESC_EN), Culture)!;
-    public static string URSA_DESC_CN => ResourceManager.GetString(nameof(URSA_DESC_CN), Culture)!;
-    public static string URSA_DESC_EN => ResourceManager.GetString(nameof(URSA_DESC_EN), Culture)!;
-    public static string MANTRA_DESC_CN => ResourceManager.GetString(nameof(MANTRA_DESC_CN), Culture)!;
-    public static string MANTRA_DESC_EN => ResourceManager.GetString(nameof(MANTRA_DESC_EN), Culture)!;
-    public static string HUSKA_DESC_CN => ResourceManager.GetString(nameof(HUSKA_DESC_CN), Culture)!;
-    public static string HUSKA_DESC_EN => ResourceManager.GetString(nameof(HUSKA_DESC_EN), Culture)!;
-    public static string OPEN_SOURCE => ResourceManager.GetString(nameof(OPEN_SOURCE), Culture)!;
-    public static string COMMERCIAL => ResourceManager.GetString(nameof(COMMERCIAL), Culture)!;
-    public static string HOMEPAGE => ResourceManager.GetString(nameof(HOMEPAGE), Culture)!;
     public static string TOOLTIP_SETTINGS => ResourceManager.GetString(nameof(TOOLTIP_SETTINGS), Culture)!;
     public static string TOOLTIP_PLUGIN_MANAGEMENT => ResourceManager.GetString(nameof(TOOLTIP_PLUGIN_MANAGEMENT), Culture)!;
     public static string TOOLTIP_TOGGLE_SIDEBAR => ResourceManager.GetString(nameof(TOOLTIP_TOGGLE_SIDEBAR), Culture)!;
@@ -130,7 +114,6 @@ public static class Strings
     public static string SPLASH_WELCOME => ResourceManager.GetString(nameof(SPLASH_WELCOME), Culture)!;
     public static string WELCOME_IRIHI => ResourceManager.GetString(nameof(WELCOME_IRIHI), Culture)!;
     public static string LOADING_MODULES => ResourceManager.GetString(nameof(LOADING_MODULES), Culture)!;
-    public static string MENU_ABOUT_US => ResourceManager.GetString(nameof(MENU_ABOUT_US), Culture)!;
     public static string EXIT_CONFIRM_MESSAGE => ResourceManager.GetString(nameof(EXIT_CONFIRM_MESSAGE), Culture)!;
     public static string EXIT_CONFIRM_TITLE => ResourceManager.GetString(nameof(EXIT_CONFIRM_TITLE), Culture)!;
     public static string RESTART_REQUIRED => ResourceManager.GetString(nameof(RESTART_REQUIRED), Culture)!;

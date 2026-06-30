@@ -5,37 +5,122 @@ namespace Avalonia.UI.Services;
 
 internal class PluginLoadContext : AssemblyLoadContext
 {
-    private static readonly string[] ExcludedPrefixes =
+    /// <summary>
+    /// Default must-share patterns used when shared-assemblies.txt is not present.
+    /// Kept in sync with Avalonia.Plugin.Shared.props PluginExcludeAssembly items.
+    /// </summary>
+    private static readonly string[] DefaultSharedPatterns =
     [
-        "System.",
-        "Microsoft.",
-        "Avalonia.",
-        "CommunityToolkit.",
-        "Irihi.",
-        "SQLitePCLRaw.",
-    ];
-
-    private static readonly HashSet<string> ExcludedExactNames = new(StringComparer.OrdinalIgnoreCase)
-    {
+        "System.*",
+        "System.Private.Uri",
+        "System.Reactive",
+        "Microsoft.Bcl.AsyncInterfaces",
         "Avalonia",
+        "Avalonia.*",
+        "SkiaSharp",
+        "SkiaSharp.*",
+        "HarfBuzzSharp",
+        "HarfBuzzSharp.*",
+        "MicroCom.Runtime",
+        "Avalonia.Plugin.Shared",
+        "CommunityToolkit.*",
+        "Microsoft.Extensions.DependencyInjection",
+        "Microsoft.Extensions.DependencyInjection.Abstractions",
+        "Microsoft.Extensions.Options",
+        "Microsoft.Extensions.Primitives",
+        "Microsoft.Extensions.Logging.Abstractions",
+        "Irihi.*",
         "Ursa",
         "Semi.Avalonia",
-        "Microsoft.Data.Sqlite",
-        "MicroCom.Runtime",
-        "System.Reactive",
-        "System.Private.Uri",
-        "Microsoft.Bcl.AsyncInterfaces",
-        "SQLite",
-        "Avalonia.Plugin.Shared",
-    };
+    ];
 
     private readonly AssemblyDependencyResolver _resolver;
     private readonly string _pluginDirectory;
+    private readonly Dictionary<string, string> _assemblyPathCache;
+    private readonly List<string> _sharedPrefixes;
+    private readonly HashSet<string> _sharedExactNames;
 
-    public PluginLoadContext(string pluginPath) : base(isCollectible: true)
+    public PluginLoadContext(string pluginPath, IEnumerable<string>? additionalSharedAssemblies = null)
+        : base(isCollectible: true)
     {
         _pluginDirectory = Path.GetDirectoryName(pluginPath) ?? pluginPath;
         _resolver = new AssemblyDependencyResolver(pluginPath);
+        _assemblyPathCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        _sharedPrefixes = new List<string>();
+        _sharedExactNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        LoadSharedAssembliesList();
+
+        // Merge additional shared assemblies declared in the plugin manifest
+        if (additionalSharedAssemblies is not null)
+        {
+            foreach (var pattern in additionalSharedAssemblies)
+            {
+                AddSharedPattern(pattern);
+            }
+        }
+
+        BuildAssemblyCache();
+    }
+
+    /// <summary>
+    /// Reads shared-assemblies.txt from the plugin directory. Each line is either:
+    /// - An exact assembly name (e.g., "Avalonia.Plugin.Shared")
+    /// - A prefix pattern ending with '*' (e.g., "System.*")
+    /// Lines starting with '#' or empty lines are ignored.
+    /// </summary>
+    private void LoadSharedAssembliesList()
+    {
+        var listPath = Path.Combine(_pluginDirectory, "shared-assemblies.txt");
+        if (File.Exists(listPath))
+        {
+            foreach (var rawLine in File.ReadAllLines(listPath))
+            {
+                var pattern = rawLine.Trim();
+                if (string.IsNullOrEmpty(pattern) || pattern.StartsWith('#'))
+                    continue;
+                AddSharedPattern(pattern);
+            }
+        }
+        else
+        {
+            // Fallback: use default must-share set for plugins built before this change
+            foreach (var pattern in DefaultSharedPatterns)
+            {
+                AddSharedPattern(pattern);
+            }
+        }
+    }
+
+    private void AddSharedPattern(string pattern)
+    {
+        if (pattern.EndsWith('*'))
+        {
+            // Strip the trailing '*' to get the prefix
+            _sharedPrefixes.Add(pattern[..^1]);
+        }
+        else
+        {
+            _sharedExactNames.Add(pattern);
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the assembly should be forwarded to the host's default ALC
+    /// (i.e., it's in the must-share set).
+    /// </summary>
+    private bool IsShared(string name)
+    {
+        if (_sharedExactNames.Contains(name))
+            return true;
+
+        foreach (var prefix in _sharedPrefixes)
+        {
+            if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     protected override Assembly? Load(AssemblyName assemblyName)
@@ -47,11 +132,25 @@ internal class PluginLoadContext : AssemblyLoadContext
             return LoadSatelliteAssembly(assemblyName);
         }
 
-        if (IsExcluded(name))
+        // Shared assemblies: forward to host's default ALC so all plugins and the host
+        // share the same type identity for contract/framework assemblies.
+        if (IsShared(name))
         {
-            return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
+            try
+            {
+                return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
+            }
+            catch (FileNotFoundException)
+            {
+                // 修复：原代码 fallthrough 到插件本地探测，会导致同一程序集
+                // 同时存在于 Default ALC 与 Plugin ALC（如未来宿主补齐依赖后），
+                // 类型标识不一致引发 InvalidCastException / DependencyContext 冲突。
+                // 共享程序集必须由宿主提供；缺失即宿主配置错误，直接抛出。
+                throw;
+            }
         }
 
+        // Plugin-local: prefer the plugin's own DLL so each plugin can use its own versions.
         var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
         if (assemblyPath != null)
         {
@@ -64,6 +163,7 @@ internal class PluginLoadContext : AssemblyLoadContext
             return LoadFromAssemblyPath(assemblyPath);
         }
 
+        // Last resort: let the default ALC try (e.g., BCL assemblies not in the shared list)
         return null;
     }
 
@@ -95,40 +195,40 @@ internal class PluginLoadContext : AssemblyLoadContext
         return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
     }
 
-    private static bool IsExcluded(string name)
-    {
-        if (ExcludedExactNames.Contains(name))
-            return true;
-
-        foreach (var prefix in ExcludedPrefixes)
-        {
-            if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-
-        return false;
-    }
-
     private string? ProbePluginDirectory(AssemblyName assemblyName)
     {
-        var dllName = $"{assemblyName.Name}.dll";
+        var name = assemblyName.Name;
+        if (string.IsNullOrEmpty(name)) return null;
 
-        foreach (var dllPath in Directory.GetFiles(_pluginDirectory, dllName, SearchOption.AllDirectories))
+        if (_assemblyPathCache.TryGetValue(name, out var cachedPath))
+        {
+            if (File.Exists(cachedPath))
+                return cachedPath;
+            _assemblyPathCache.Remove(name);
+        }
+
+        return null;
+    }
+
+    private void BuildAssemblyCache()
+    {
+        if (!Directory.Exists(_pluginDirectory)) return;
+
+        foreach (var dllPath in Directory.GetFiles(_pluginDirectory, "*.dll", SearchOption.AllDirectories))
         {
             try
             {
                 var foundName = AssemblyName.GetAssemblyName(dllPath);
-                if (string.Equals(foundName.Name, assemblyName.Name, StringComparison.OrdinalIgnoreCase))
+                if (foundName.Name is not null && !_assemblyPathCache.ContainsKey(foundName.Name))
                 {
-                    return dllPath;
+                    _assemblyPathCache[foundName.Name] = dllPath;
                 }
             }
             catch
             {
+                // Skip files that are not valid .NET assemblies
             }
         }
-
-        return null;
     }
 
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Plugin.Shared;
 using Avalonia.Plugin.Shared.Models;
 using Avalonia.Plugin.Shared.Services;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -30,6 +31,7 @@ public partial class PluginManagementViewModel : ViewModelBase
 
         _installationManager.PluginInstalled += OnPluginInstalled;
         _installationManager.PluginUninstalled += OnPluginUninstalled;
+        _installationManager.PluginUpgradeScheduled += OnPluginUpgradeScheduled;
         _pluginLoader.PluginStateChanged += OnPluginStateChanged;
 
         RefreshPlugins();
@@ -45,7 +47,8 @@ public partial class PluginManagementViewModel : ViewModelBase
             Plugins.Add(new PluginItemViewModel(plugin, _localizationService));
         }
 
-        NeedsRestart = installedPlugins.Any(p => p.State == PluginState.PendingUninstall);
+        NeedsRestart = installedPlugins.Any(p =>
+            p.State == PluginState.PendingUninstall || p.State == PluginState.PendingUpgrade);
     }
 
     [RelayCommand]
@@ -84,7 +87,21 @@ public partial class PluginManagementViewModel : ViewModelBase
 
         if (result.Success)
         {
-            StatusMessage = _localizationService.GetString("PLUGIN_INSTALLED_RESTART", "Plugin '{0}' installed, restart to activate", result.PluginInfo?.Name ?? "");
+            // 区分新安装与升级调度两种场景的提示文案
+            if (result.PluginInfo?.State == PluginState.PendingUpgrade)
+            {
+                StatusMessage = _localizationService.GetString(
+                    "PLUGIN_UPGRADE_SCHEDULED",
+                    "Plugin '{0}' upgrade scheduled, restart to apply",
+                    result.PluginInfo?.Name ?? "");
+            }
+            else
+            {
+                StatusMessage = _localizationService.GetString(
+                    "PLUGIN_INSTALLED_RESTART",
+                    "Plugin '{0}' installed, restart to activate",
+                    result.PluginInfo?.Name ?? "");
+            }
             NeedsRestart = true;
         }
         else
@@ -101,9 +118,34 @@ public partial class PluginManagementViewModel : ViewModelBase
         var success = await _installationManager.UninstallAsync(pluginItem.PluginId);
         if (success)
         {
-            pluginItem.UpdateFrom(_pluginLoader.GetPlugin(pluginItem.PluginId) ?? new PluginInfo { PluginId = pluginItem.PluginId, State = PluginState.PendingUninstall }, _localizationService);
+            pluginItem.UpdateFrom(_pluginLoader.GetPlugin(pluginItem.PluginId) ?? new PluginInfo { PluginId = pluginItem.PluginId, Name = pluginItem.Name, State = PluginState.PendingUninstall }, _localizationService);
             StatusMessage = _localizationService.GetString("PLUGIN_UNINSTALL_AFTER_RESTART", "Plugin '{0}' will be uninstalled after restart", pluginItem.Name);
             NeedsRestart = true;
+        }
+    }
+
+    [RelayCommand]
+    private async Task CancelUpgradeAsync(PluginItemViewModel? pluginItem)
+    {
+        if (pluginItem == null) return;
+
+        var success = await _installationManager.CancelUpgradeAsync(pluginItem.PluginId);
+        if (success)
+        {
+            var updated = _pluginLoader.GetPlugin(pluginItem.PluginId);
+            if (updated != null)
+            {
+                pluginItem.UpdateFrom(updated, _localizationService);
+            }
+            StatusMessage = _localizationService.GetString(
+                "PLUGIN_UPGRADE_CANCELLED",
+                "Plugin '{0}' upgrade cancelled",
+                pluginItem.Name);
+
+            // 取消后可能不再需要重启
+            var installed = _pluginLoader.GetInstalledPlugins();
+            NeedsRestart = installed.Any(p =>
+                p.State == PluginState.PendingUninstall || p.State == PluginState.PendingUpgrade);
         }
     }
 
@@ -127,42 +169,73 @@ public partial class PluginManagementViewModel : ViewModelBase
 
     private void OnPluginInstalled(object? sender, PluginInfo e)
     {
-        var existing = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
-        if (existing != null)
+        Dispatcher.UIThread.Post(() =>
         {
-            existing.UpdateFrom(e, _localizationService);
-        }
-        else
-        {
-            Plugins.Add(new PluginItemViewModel(e, _localizationService));
-        }
+            var existing = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
+            if (existing != null)
+            {
+                existing.UpdateFrom(e, _localizationService);
+            }
+            else
+            {
+                Plugins.Add(new PluginItemViewModel(e, _localizationService));
+            }
+        });
     }
 
     private void OnPluginUninstalled(object? sender, PluginInfo e)
     {
-        var item = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
-        if (item != null)
+        Dispatcher.UIThread.Post(() =>
         {
-            var updatedInfo = _pluginLoader.GetPlugin(e.PluginId);
-            if (updatedInfo != null)
+            var item = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
+            if (item != null)
             {
-                item.UpdateFrom(updatedInfo, _localizationService);
+                var updatedInfo = _pluginLoader.GetPlugin(e.PluginId);
+                if (updatedInfo != null)
+                {
+                    item.UpdateFrom(updatedInfo, _localizationService);
+                }
             }
-        }
-        NeedsRestart = true;
+            NeedsRestart = true;
+        });
     }
 
     private void OnPluginStateChanged(object? sender, PluginInfo e)
     {
-        var item = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
-        if (item != null)
+        Dispatcher.UIThread.Post(() =>
         {
-            item.UpdateFrom(e, _localizationService);
-        }
-        else
+            var item = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
+            if (item != null)
+            {
+                item.UpdateFrom(e, _localizationService);
+            }
+            else
+            {
+                Plugins.Add(new PluginItemViewModel(e, _localizationService));
+            }
+        });
+    }
+
+    private void OnPluginUpgradeScheduled(object? sender, PluginInfo e)
+    {
+        Dispatcher.UIThread.Post(() =>
         {
-            Plugins.Add(new PluginItemViewModel(e, _localizationService));
-        }
+            var item = Plugins.FirstOrDefault(p => p.PluginId == e.PluginId);
+            if (item != null)
+            {
+                item.UpdateFrom(e, _localizationService);
+            }
+            NeedsRestart = true;
+        });
+    }
+
+    public override void Dispose()
+    {
+        _installationManager.PluginInstalled -= OnPluginInstalled;
+        _installationManager.PluginUninstalled -= OnPluginUninstalled;
+        _installationManager.PluginUpgradeScheduled -= OnPluginUpgradeScheduled;
+        _pluginLoader.PluginStateChanged -= OnPluginStateChanged;
+        base.Dispose();
     }
 }
 
@@ -181,6 +254,8 @@ public partial class PluginItemViewModel : ViewModelBase
     [ObservableProperty] private bool _canEnable;
     [ObservableProperty] private bool _canDisable;
     [ObservableProperty] private bool _canUninstall;
+    [ObservableProperty] private bool _canCancelUpgrade;
+    [ObservableProperty] private string? _pendingUpgradeVersion;
 
     private ILocalizationService? _localizationService;
 
@@ -210,12 +285,19 @@ public partial class PluginItemViewModel : ViewModelBase
             PluginState.Installed => (_localizationService?.GetString("STATE_INSTALLED", "Installed (restart to load)") ?? "Installed (restart to load)", "#2196F3"),
             PluginState.Disabled => (_localizationService?.GetString("STATE_DISABLED", "Disabled") ?? "Disabled", "#FF9800"),
             PluginState.PendingUninstall => (_localizationService?.GetString("STATE_PENDING_UNINSTALL", "Pending Uninstall") ?? "Pending Uninstall", "#9C27B0"),
+            PluginState.PendingUpgrade => (_localizationService?.GetString("STATE_PENDING_UPGRADE", "Pending Upgrade") ?? "Pending Upgrade", "#00BCD4"),
             PluginState.Error => (_localizationService?.GetString("STATE_ERROR", "Error") ?? "Error", "#F44336"),
             _ => (_localizationService?.GetString("STATE_NOT_INSTALLED", "Not Installed") ?? "Not Installed", "#808080")
         };
 
         CanEnable = info.State == PluginState.Disabled;
         CanDisable = info.State == PluginState.Loaded || info.State == PluginState.Installed;
-        CanUninstall = !info.IsBuiltIn && info.State != PluginState.PendingUninstall;
+        CanUninstall = !info.IsBuiltIn &&
+                       info.State != PluginState.PendingUninstall &&
+                       info.State != PluginState.PendingUpgrade;
+        CanCancelUpgrade = info.State == PluginState.PendingUpgrade;
+        PendingUpgradeVersion = info.State == PluginState.PendingUpgrade
+            ? info.PendingUpgradeVersion
+            : null;
     }
 }

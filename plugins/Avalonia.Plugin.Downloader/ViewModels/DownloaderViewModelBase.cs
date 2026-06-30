@@ -1,11 +1,14 @@
 using System.Collections.ObjectModel;
 using Avalonia.Input.Platform;
 using Avalonia.Plugin.Downloader.Models;
+using Avalonia.Plugin.Downloader.Resources;
 using Avalonia.Plugin.Downloader.Services;
 using Avalonia.Plugin.Shared;
+using Avalonia.Plugin.Shared.Services;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Avalonia.Plugin.Downloader.ViewModels;
 
@@ -16,7 +19,8 @@ public abstract partial class DownloaderViewModelBase : ViewModelBase
     [ObservableProperty] private ObservableCollection<ScriptParameter> _parameters = [];
     [ObservableProperty] private ObservableCollection<LogEntry> _logEntries = [];
     [ObservableProperty] private bool _isRunning;
-    [ObservableProperty] private string _statusText = "就绪";
+    [ObservableProperty] private string _statusText = Strings.Get("STATUS_Ready");
+    [ObservableProperty] private double _logMaxHeight = 400;
 
     private CancellationTokenSource? _cts;
 
@@ -26,6 +30,13 @@ public abstract partial class DownloaderViewModelBase : ViewModelBase
         {
             Parameters.Add(param);
         }
+
+        WeakReferenceMessenger.Default.Register<DownloaderViewModelBase, WindowSizeChangedMessage>(this, OnWindowSizeChanged);
+    }
+
+    private void OnWindowSizeChanged(object recipient, WindowSizeChangedMessage message)
+    {
+        LogMaxHeight = Math.Max(200, message.Value.Height * 0.5);
     }
 
     [RelayCommand]
@@ -53,29 +64,35 @@ public abstract partial class DownloaderViewModelBase : ViewModelBase
         if (IsRunning) return;
 
         IsRunning = true;
-        StatusText = $"正在执行: {Script.Name}...";
+        StatusText = Strings.Get("STATUS_Running", Script.Name);
         _cts = new CancellationTokenSource();
+
+        // 注册到 TaskRegistry，主程序退出时可检测
+        var taskScope = new TaskScope(Script.Name, "B2C3D4E5-F6A7-8901-BCDE-DOWNLOADER001");
+        // 将 TaskScope 的取消令牌链接到本地 CTS
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, taskScope.Token.CancellationTokenSource.Token);
 
         try
         {
             var paramValues = BuildParameterValues();
-            await ExecuteCoreAsync(paramValues, _cts.Token);
-            StatusText = "执行完成";
+            await ExecuteCoreAsync(paramValues, linkedCts.Token);
+            StatusText = Strings.Get("STATUS_Completed");
         }
         catch (OperationCanceledException)
         {
-            StatusText = "已取消";
+            StatusText = Strings.Get("STATUS_Cancelled");
         }
         catch (Exception ex)
         {
-            AddLogEntry(new LogEntry { Message = $"执行失败: {ex.Message}" });
-            StatusText = "执行失败";
+            AddLogEntry(new LogEntry { Message = Strings.Get("FMT_ExecuteFailed", ex.Message) });
+            StatusText = Strings.Get("STATUS_Failed");
         }
         finally
         {
             IsRunning = false;
             _cts?.Dispose();
             _cts = null;
+            taskScope.Dispose();
         }
     }
 
@@ -83,7 +100,7 @@ public abstract partial class DownloaderViewModelBase : ViewModelBase
     private void CancelExecution()
     {
         _cts?.Cancel();
-        StatusText = "正在取消...";
+        StatusText = Strings.Get("STATUS_Cancelling");
     }
 
     protected abstract Task ExecuteCoreAsync(Dictionary<string, string> paramValues, CancellationToken ct);

@@ -24,10 +24,10 @@ public partial class SettingsPageViewModel : ViewModelBase
     {
     }
 
-    public SettingsPageViewModel(ISettingsService settingsService)
+    public SettingsPageViewModel(ISettingsService settingsService, ILocalizationService? localizationService = null)
     {
         _settingsService = settingsService;
-        _localizationService = ServiceLocator.GetService<ILocalizationService>();
+        _localizationService = localizationService;
         LoadSettings();
     }
 
@@ -105,7 +105,9 @@ public partial class SettingsPageViewModel : ViewModelBase
         {
             try
             {
-                var culture = new CultureInfo(locale);
+                var culture = locale == "Default"
+                    ? CultureInfo.CurrentUICulture
+                    : new CultureInfo(locale);
                 if (_localizationService is not null)
                 {
                     _localizationService.SetCulture(culture);
@@ -168,14 +170,14 @@ public partial class SettingsPageViewModel : ViewModelBase
         return setting;
     }
 
-    private static SettingEntryViewModel CreateEntry(SettingItem setting, ISettingsService settingsService, SettingsPageViewModel parent)
+    private SettingEntryViewModel CreateEntry(SettingItem setting, ISettingsService settingsService, SettingsPageViewModel parent)
     {
         return setting.SettingType switch
         {
             SettingType.Text => new TextSettingEntryViewModel(setting, settingsService, parent),
             SettingType.Switch => new SwitchSettingEntryViewModel(setting, settingsService, parent),
             SettingType.Dropdown => new DropdownSettingEntryViewModel(setting, settingsService, parent),
-            SettingType.Path => new PathSettingEntryViewModel(setting, settingsService, parent),
+            SettingType.Path => new PathSettingEntryViewModel(setting, settingsService, parent, _localizationService),
             _ => new TextSettingEntryViewModel(setting, settingsService, parent)
         };
     }
@@ -319,15 +321,17 @@ public partial class PathSettingEntryViewModel : SettingEntryViewModel
 {
     private readonly ILocalizationService? _localizationService;
 
-    public string PlaceholderText => Setting.PlaceholderText ?? _localizationService?.GetString("SELECT_FILE_PATH", "选择文件路径...") ?? "选择文件路径...";
+    public string PlaceholderText => Setting.IsFolder
+        ? (_localizationService?.GetString("SELECT_FOLDER_PATH", "选择文件夹路径...") ?? "选择文件夹路径...")
+        : (Setting.PlaceholderText ?? _localizationService?.GetString("SELECT_FILE_PATH", "选择文件路径...") ?? "选择文件路径...");
 
     [ObservableProperty] private string _pathValue;
     private string _savedValue;
 
-    public PathSettingEntryViewModel(SettingItem setting, ISettingsService settingsService, SettingsPageViewModel parent)
+    public PathSettingEntryViewModel(SettingItem setting, ISettingsService settingsService, SettingsPageViewModel parent, ILocalizationService? localizationService = null)
         : base(setting, settingsService, parent)
     {
-        _localizationService = ServiceLocator.GetService<ILocalizationService>();
+        _localizationService = localizationService;
         _pathValue = setting.RawValue;
         _savedValue = setting.RawValue;
     }
@@ -360,15 +364,32 @@ public partial class PathSettingEntryViewModel : SettingEntryViewModel
         var storageProvider = topLevel.StorageProvider;
 
         var title = _localizationService?.GetString("BROWSE", "浏览") ?? "浏览";
-        var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = $"{title}{DisplayName}",
-            AllowMultiple = false
-        });
 
-        if (result.Count > 0)
+        if (Setting.IsFolder)
         {
-            PathValue = result[0].TryGetLocalPath() ?? result[0].Path.ToString();
+            var folderResult = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = $"{title}{DisplayName}",
+                AllowMultiple = false
+            });
+
+            if (folderResult.Count > 0)
+            {
+                PathValue = folderResult[0].TryGetLocalPath() ?? folderResult[0].Path.ToString();
+            }
+        }
+        else
+        {
+            var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = $"{title}{DisplayName}",
+                AllowMultiple = false
+            });
+
+            if (result.Count > 0)
+            {
+                PathValue = result[0].TryGetLocalPath() ?? result[0].Path.ToString();
+            }
         }
     }
 }

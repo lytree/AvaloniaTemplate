@@ -1,0 +1,17 @@
+<Project>
+    <!--
+        仓库级版本真相源：宿主与 SDK 共用同一版本号
+        HostVersion       宿主业务版本 + 插件 SDK 契约版本（同一值，统一发版）
+        插件版本           各插件 csproj 内 PluginVersion 自行声明，不在此处统一
+
+        宿主（Launcher / UI / Platforms.*）与 SDK 项目（Generators / Shared）共同 bump，
+        确保运行时 PluginSdkContract.CurrentVersion 与宿主程序集版本严格一致。
+        build.ps1 仍可传 host-version / plugin-version 参数临时覆盖。
+    -->
+    <PropertyGroup>
+        <HostVersion>2.1.0</HostVersion>
+        <!-- 向后兼容别名：旧脚本/插件 csproj 仍可用 $(PluginSdkVersion)，
+             等价于 $(HostVersion)。不再单独 bump。 -->
+        <PluginSdkVersion>$(HostVersion)</PluginSdkVersion>
+    </PropertyGroup>
+</Project>
