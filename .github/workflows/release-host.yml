@@ -25,56 +25,6 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
 
 jobs:
-  pack-sdk:
-    name: Pack SDK NuGet
-    runs-on: ubuntu-latest
-    env:
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-    outputs:
-      version: ${{ steps.ver.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Resolve version
-        id: ver
-        run: |
-          if [ -n "${{ inputs.version }}" ]; then
-            V="${{ inputs.version }}"
-          else
-            V="${GITHUB_REF_NAME#v}"
-          fi
-          echo "version=$V" >> "$GITHUB_OUTPUT"
-          echo "Resolved version: $V"
-
-      - name: Build SDK + pack NuGet
-        run: |
-          dotnet build/build.cs \
-            --build=bin \
-            --host-version=${{ steps.ver.outputs.version }}
-
-      - name: Upload SDK NuGet artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdk-nuget
-          path: bin/nuget/*.nupkg
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Push NuGet packages (optional)
-        if: env.NUGET_API_KEY != ''
-        run: |
-          for pkg in bin/nuget/*.nupkg; do
-            echo "Pushing $pkg"
-            dotnet nuget push "$pkg" \
-              --api-key "$NUGET_API_KEY" \
-              --source https://api.nuget.org/v3/index.json \
-              --skip-duplicate
-          done
-
   publish-host:
     name: Publish Launcher (${{ matrix.rid }})
     needs: pack-sdk
