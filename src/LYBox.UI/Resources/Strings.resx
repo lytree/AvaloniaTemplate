@@ -266,13 +266,13 @@
     <value>About</value>
   </data>
   <data name="APP_TITLE" xml:space="preserve">
-    <value>Avalonia UI Template</value>
+    <value>LYBox</value>
   </data>
   <data name="APP_VERSION" xml:space="preserve">
     <value>Version 1.0.0</value>
   </data>
   <data name="APP_DESCRIPTION" xml:space="preserve">
-    <value>A modern UI template built with Avalonia and Ursa controls.</value>
+    <value>A modern toolbox built with Avalonia and Ursa controls.</value>
   </data>
   <data name="BROWSE" xml:space="preserve">
     <value>Browse</value>
@@ -306,6 +306,24 @@
   </data>
   <data name="SETTING_USER_NAME_DESC" xml:space="preserve">
     <value>Set your display name</value>
+  </data>
+  <data name="SETTING_APP_THEME" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="SETTING_APP_THEME_DESC" xml:space="preserve">
+    <value>Select a theme for the application</value>
+  </data>
+  <data name="SETTING_APP_LOCALE" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="SETTING_APP_LOCALE_DESC" xml:space="preserve">
+    <value>Select display language (restart required for full effect)</value>
+  </data>
+  <data name="SETTING_APP_SIDEBARCOLLAPSED" xml:space="preserve">
+    <value>Collapse Sidebar</value>
+  </data>
+  <data name="SETTING_APP_SIDEBARCOLLAPSED_DESC" xml:space="preserve">
+    <value>Collapse the sidebar navigation</value>
   </data>
   <data name="GROUP_APPEARANCE" xml:space="preserve">
     <value>Appearance</value>
