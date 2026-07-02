@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using LYBox.Plugin.Shared;
 using LYBox.Plugin.Shared.Models;
@@ -34,9 +33,10 @@ public partial class IntroductionDemoViewModel : ObservableObject
     private List<ToolGroup> _allGroups = [];
 
     /// <summary>
-    /// 按目录分组的工具列表（已过滤）
+    /// 按目录分组的工具列表（已过滤），替换整组引用触发单次 PropertyChanged 通知，
+    /// 避免 ObservableCollection 逐项 Add 导致的多次布局刷新。
     /// </summary>
-    public ObservableCollection<ToolGroup> FilteredGroups { get; } = new();
+    [ObservableProperty] private IReadOnlyList<ToolGroup> _filteredGroups = [];
 
     [ObservableProperty] private string? _searchText;
     [ObservableProperty] private bool _hasNoResults;
@@ -107,54 +107,51 @@ public partial class IntroductionDemoViewModel : ObservableObject
 
     private void ApplyFilter(string? search)
     {
-        FilteredGroups.Clear();
+        List<ToolGroup> result;
         if (string.IsNullOrWhiteSpace(search))
         {
-            // 无搜索词：直接复用原始分组引用，避免不必要的对象分配
-            foreach (var g in _allGroups)
-                FilteredGroups.Add(g);
-            HasNoResults = FilteredGroups.Count == 0;
-            return;
+            result = _allGroups;
         }
-
-        var keyword = search.Trim();
-        foreach (var group in _allGroups)
+        else
         {
-            // 匹配分组（目录）名称：命中则整组保留
-            var groupMatched = group.GroupName.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                                || group.GroupKey.Contains(keyword, StringComparison.OrdinalIgnoreCase);
-
-            if (groupMatched)
+            var keyword = search.Trim();
+            result = new List<ToolGroup>();
+            foreach (var group in _allGroups)
             {
-                // 整组命中：直接复用原分组引用，避免克隆整个 Items 集合
-                FilteredGroups.Add(group);
-                continue;
-            }
+                var groupMatched = group.GroupName.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+                                    || group.GroupKey.Contains(keyword, StringComparison.OrdinalIgnoreCase);
 
-            // 仅匹配工具项：使用 ArrayPool/复用减少分配，仅在确有匹配时创建新分组
-            List<ToolItem>? matched = null;
-            foreach (var item in group.Items)
-            {
-                if (item.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                    || item.Key.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                if (groupMatched)
                 {
-                    (matched ??= new List<ToolItem>()).Add(item);
+                    result.Add(group);
+                    continue;
+                }
+
+                List<ToolItem>? matched = null;
+                foreach (var item in group.Items)
+                {
+                    if (item.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
+                        || item.Key.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                    {
+                        (matched ??= new List<ToolItem>()).Add(item);
+                    }
+                }
+
+                if (matched is { Count: > 0 })
+                {
+                    var filteredGroup = new ToolGroup
+                    {
+                        GroupName = group.GroupName,
+                        GroupKey = group.GroupKey
+                    };
+                    foreach (var m in matched)
+                        filteredGroup.Items.Add(m);
+                    result.Add(filteredGroup);
                 }
             }
-
-            if (matched is { Count: > 0 })
-            {
-                var filteredGroup = new ToolGroup
-                {
-                    GroupName = group.GroupName,
-                    GroupKey = group.GroupKey
-                };
-                foreach (var m in matched)
-                    filteredGroup.Items.Add(m);
-                FilteredGroups.Add(filteredGroup);
-            }
         }
-        HasNoResults = FilteredGroups.Count == 0;
+        FilteredGroups = result;
+        HasNoResults = result.Count == 0;
     }
 
     [RelayCommand]

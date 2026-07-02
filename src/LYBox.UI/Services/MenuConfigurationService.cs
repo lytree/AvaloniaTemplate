@@ -138,4 +138,10 @@ public class MenuConfigurationService : IMenuConfigurationService
     {
         return _menuItemsMap.Keys;
     }
+
+    public MenuItemViewModel? GetMenuItemByKey(string key)
+    {
+        _menuItemsMap.TryGetValue(key, out var item);
+        return item;
+    }
 }

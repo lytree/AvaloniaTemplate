@@ -37,4 +37,9 @@ public interface IMenuConfigurationService
     /// </summary>
     /// <returns>菜单项键集合</returns>
     IEnumerable<string> GetMenuItemKeys();
+
+    /// <summary>
+    /// 根据 Key 快速查找菜单项（O(1) 索引查找）
+    /// </summary>
+    MenuItemViewModel? GetMenuItemByKey(string key);
 }

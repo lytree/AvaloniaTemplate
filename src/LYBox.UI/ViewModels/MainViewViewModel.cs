@@ -5,6 +5,7 @@ using LYBox.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Avalonia.Threading;
 using WindowNotificationManager = Ursa.Controls.WindowNotificationManager;
 
 namespace LYBox.UI.ViewModels;
@@ -25,8 +26,22 @@ public partial class MainViewViewModel : ViewModelBase
     [ObservableProperty] private string? _searchText;
     [ObservableProperty] private MenuItemViewModel? _selectedMenuItem;
 
+    // 搜索防抖：避免每次击键都触发导航和过滤
+    private DispatcherTimer? _searchDebounceTimer;
+
     partial void OnSearchTextChanged(string? value)
     {
+        // 重启防抖计时器（300ms），仅当计时器到期后才执行搜索
+        _searchDebounceTimer?.Stop();
+        _searchDebounceTimer ??= new DispatcherTimer(TimeSpan.FromMilliseconds(300),
+            DispatcherPriority.Background, OnSearchDebounce);
+        _searchDebounceTimer.Start();
+    }
+
+    private void OnSearchDebounce(object? sender, EventArgs e)
+    {
+        _searchDebounceTimer!.Stop();
+        var value = SearchText;
         // 搜索时自动跳转到首页，确保首页已创建并注册消息接收器
         if (!string.IsNullOrWhiteSpace(value) && Content is not IntroductionDemoViewModel)
         {
@@ -100,29 +115,8 @@ public partial class MainViewViewModel : ViewModelBase
             _disposableContent = null;
         }
         Content = _navigationService.CreateViewModel(s);
-        // 同步左侧导航栏选中项
-        SelectedMenuItem = FindMenuItemByKey(Menus.MenuItems, s);
-    }
-
-    /// <summary>
-    /// 递归查找指定 Key 对应的菜单项
-    /// </summary>
-    private static MenuItemViewModel? FindMenuItemByKey(
-        System.Collections.Generic.IEnumerable<MenuItemViewModel> items, string key)
-    {
-        foreach (var item in items)
-        {
-            if (!item.IsSeparator && string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase))
-                return item;
-
-            if (item.Children.Count > 0)
-            {
-                var found = FindMenuItemByKey(item.Children, key);
-                if (found is not null)
-                    return found;
-            }
-        }
-        return null;
+        // 使用扁平索引 O(1) 查找菜单项，替代递归遍历
+        SelectedMenuItem = _menuConfigurationService.GetMenuItemByKey(s);
     }
 
     partial void OnIsCollapsedChanged(bool value)
@@ -133,6 +127,8 @@ public partial class MainViewViewModel : ViewModelBase
 
     public override void Dispose()
     {
+        _searchDebounceTimer?.Stop();
+        _searchDebounceTimer = null;
         WeakReferenceMessenger.Default.Unregister<string, string>(this, "JumpTo");
         if (_localizationService is not null)
             _localizationService.CultureChanged -= OnCultureChanged;

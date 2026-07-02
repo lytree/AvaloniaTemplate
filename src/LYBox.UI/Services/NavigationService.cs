@@ -9,10 +9,19 @@ namespace LYBox.UI.Services;
 
 public class NavigationService : INavigationService
 {
+    private const int MaxCacheSize = 5;
+
     private readonly Dictionary<string, ViewModelFactory> _viewModelFactories = [];
-    // 使用 WeakReference 缓存 ViewModel，当 ViewModel 仅被缓存引用时允许 GC 回收，
-    // 避免导航历史中所有 ViewModel 永久驻留内存。
-    private readonly Dictionary<string, WeakReference<object>> _viewModelCache = [];
+    // 强引用 LRU 缓存：保留最近访问的 ViewModel，避免来回切换时反复重建。
+    // LinkedListNode 同时作为 Dictionary 的 Value，实现 O(1) 的插入/删除/访问。
+    private readonly Dictionary<string, LinkedListNode<CacheEntry>> _viewModelCache = [];
+    private readonly LinkedList<CacheEntry> _lruList = new();
+
+    private sealed class CacheEntry(string key, object viewModel)
+    {
+        public string Key { get; } = key;
+        public object ViewModel { get; } = viewModel;
+    }
 
     public NavigationService()
     {
@@ -59,50 +68,53 @@ public class NavigationService : INavigationService
 
     public object CreateViewModel(string key)
     {
-        // 尝试从弱引用缓存命中
-        if (_viewModelCache.TryGetValue(key, out var weakRef))
+        // LRU 命中：移到链表头部（最近使用）
+        if (_viewModelCache.TryGetValue(key, out var node))
         {
-            if (weakRef.TryGetTarget(out var cached) && cached is not null)
-            {
-                return cached;
-            }
-            // 目标已被 GC 回收，清理失效条目
-            _viewModelCache.Remove(key);
+            _lruList.Remove(node);
+            _lruList.AddFirst(node);
+            return node.Value.ViewModel;
         }
 
-        if (_viewModelFactories.TryGetValue(key, out var factory))
+        if (!_viewModelFactories.TryGetValue(key, out var factory))
+            throw new System.ArgumentOutOfRangeException(nameof(key), key, null);
+
+        var viewModel = factory();
+
+        // 淘汰最久未使用的条目
+        if (_lruList.Count >= MaxCacheSize)
         {
-            var viewModel = factory();
-            _viewModelCache[key] = new WeakReference<object>(viewModel);
-            return viewModel;
+            var lru = _lruList.Last!;
+            _lruList.RemoveLast();
+            _viewModelCache.Remove(lru.Value.Key);
+            ViewLocator.InvalidateViewCache(lru.Value.ViewModel);
+            (lru.Value.ViewModel as IDisposable)?.Dispose();
         }
 
-        throw new System.ArgumentOutOfRangeException(nameof(key), key, null);
+        var newNode = _lruList.AddFirst(new CacheEntry(key, viewModel));
+        _viewModelCache[key] = newNode;
+        return viewModel;
     }
 
     public void InvalidateCache(string key)
     {
-        if (_viewModelCache.TryGetValue(key, out var weakRef))
+        if (_viewModelCache.TryGetValue(key, out var node))
         {
-            if (weakRef.TryGetTarget(out var viewModel))
-            {
-                ViewLocator.InvalidateViewCache(viewModel);
-                (viewModel as IDisposable)?.Dispose();
-            }
+            _lruList.Remove(node);
             _viewModelCache.Remove(key);
+            ViewLocator.InvalidateViewCache(node.Value.ViewModel);
+            (node.Value.ViewModel as IDisposable)?.Dispose();
         }
     }
 
     public void InvalidateAllCache()
     {
-        foreach (var weakRef in _viewModelCache.Values)
+        foreach (var node in _lruList)
         {
-            if (weakRef.TryGetTarget(out var viewModel))
-            {
-                ViewLocator.InvalidateViewCache(viewModel);
-                (viewModel as IDisposable)?.Dispose();
-            }
+            ViewLocator.InvalidateViewCache(node.ViewModel);
+            (node.ViewModel as IDisposable)?.Dispose();
         }
+        _lruList.Clear();
         _viewModelCache.Clear();
     }
 
