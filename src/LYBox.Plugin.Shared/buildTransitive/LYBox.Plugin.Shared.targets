@@ -15,6 +15,7 @@
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('HarfBuzzSharp.'))" />
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('CommunityToolkit.'))" />
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('Irihi.'))" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.EntityFrameworkCore.'))" />
 
       <!-- Exact matches: remove these specific assemblies -->
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'Avalonia'" />
@@ -30,6 +31,8 @@
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'Microsoft.Extensions.Logging.Abstractions'" />
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'Ursa'" />
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'Semi.Avalonia'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'Microsoft.EntityFrameworkCore'" />
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'ProDataGrid'" />
     </ItemGroup>
   </Target>
 
@@ -52,6 +55,7 @@
       <_ExcludedPublished Include="@(_PublishedFiles)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('HarfBuzzSharp.'))" />
       <_ExcludedPublished Include="@(_PublishedFiles)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('CommunityToolkit.'))" />
       <_ExcludedPublished Include="@(_PublishedFiles)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('Irihi.'))" />
+      <_ExcludedPublished Include="@(_PublishedFiles)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.EntityFrameworkCore.'))" />
 
       <!-- Exact matches -->
       <_ExcludedPublished Include="@(_PublishedFiles)" Condition="'%(Filename)' == 'Avalonia'" />
@@ -67,6 +71,8 @@
       <_ExcludedPublished Include="@(_PublishedFiles)" Condition="'%(Filename)' == 'Microsoft.Extensions.Logging.Abstractions'" />
       <_ExcludedPublished Include="@(_PublishedFiles)" Condition="'%(Filename)' == 'Ursa'" />
       <_ExcludedPublished Include="@(_PublishedFiles)" Condition="'%(Filename)' == 'Semi.Avalonia'" />
+      <_ExcludedPublished Include="@(_PublishedFiles)" Condition="'%(Filename)' == 'Microsoft.EntityFrameworkCore'" />
+      <_ExcludedPublished Include="@(_PublishedFiles)" Condition="'%(Filename)' == 'ProDataGrid'" />
 
       <!-- Native libraries shared process-wide -->
       <_ExcludedNativePublished Include="@(_PublishedNativeFiles)" Condition="'%(Filename)' == 'e_sqlite3'" />

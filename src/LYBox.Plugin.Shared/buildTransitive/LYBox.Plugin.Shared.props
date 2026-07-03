@@ -45,6 +45,9 @@ Microsoft.Extensions.Primitives
 Microsoft.Extensions.Logging.Abstractions
 Irihi.*
 Ursa
-Semi.Avalonia</_SharedAssembliesPatterns>
+Semi.Avalonia
+Microsoft.EntityFrameworkCore
+Microsoft.EntityFrameworkCore.*
+ProDataGrid</_SharedAssembliesPatterns>
   </PropertyGroup>
 </Project>
