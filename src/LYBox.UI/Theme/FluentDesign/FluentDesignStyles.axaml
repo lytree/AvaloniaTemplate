@@ -956,44 +956,4 @@
         <Setter Property="BorderThickness" Value="0,1,0,0" />
     </Style>
 
-    <!-- ===== FluentCaptionButton（WinUI 窗口 Caption 按钮：最小化/最大化/关闭） ===== -->
-    <!-- 用法：仅当窗口启用 ExtendClientAreaToDecorationsHint=True 时使用
-         <Button Classes="FluentCaptionButton" Click="OnMinimize">
-             <PathIcon Data="{DynamicResource FluentArrowMinimize16Regular}" Width="10" Height="10" />
-         </Button>
-         <Button Classes="FluentCaptionButton FluentCaptionButtonMaximize">...</Button>
-         <Button Classes="FluentCaptionButton FluentCaptionButtonClose">...</Button> -->
-    <Style Selector="Button.FluentCaptionButton">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Width" Value="46" />
-        <Setter Property="Height" Value="32" />
-        <Setter Property="HorizontalContentAlignment" Value="Center" />
-        <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="Transitions">
-            <Setter.Value>
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.05" />
-                </Transitions>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    <Style Selector="Button.FluentCaptionButton:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource FluentSubtleHoverBrush}" />
-    </Style>
-    <Style Selector="Button.FluentCaptionButton:pressed /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource FluentSubtlePressedBrush}" />
-    </Style>
-    <!-- 关闭按钮：hover 红色背景（WinUI 标准） -->
-    <Style Selector="Button.FluentCaptionButton.FluentCaptionButtonClose:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#C42B1C" />
-        <Setter Property="TextBlock.Foreground" Value="White" />
-    </Style>
-    <Style Selector="Button.FluentCaptionButton.FluentCaptionButtonClose:pressed /template/ ContentPresenter">
-        <Setter Property="Background" Value="#B3271E" />
-        <Setter Property="TextBlock.Foreground" Value="White" />
-    </Style>
-
 </Styles>

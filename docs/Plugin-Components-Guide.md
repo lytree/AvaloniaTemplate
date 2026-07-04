@@ -241,32 +241,6 @@ WinUI SettingsExpander 风格 - 折叠式设置卡片。
 
 ---
 
-#### FluentCaptionButton（P3）
-
-WinUI 窗口 Caption 按钮（最小化/最大化/关闭）。
-
-```xml
-<!-- 仅在 ExtendClientAreaToDecorationsHint=True 的窗口使用 -->
-<StackPanel Orientation="Horizontal">
-    <Button Classes="FluentCaptionButton" Click="OnMinimize">
-        <PathIcon Data="{DynamicResource FluentArrowMinimize16Regular}" Width="10" Height="10" />
-    </Button>
-    <Button Classes="FluentCaptionButton" Click="OnMaximize">
-        <PathIcon Data="{DynamicResource FluentMaximize16Regular}" Width="10" Height="10" />
-    </Button>
-    <Button Classes="FluentCaptionButton FluentCaptionButtonClose" Click="OnClose">
-        <PathIcon Data="{DynamicResource FluentDismiss16Regular}" Width="10" Height="10" />
-    </Button>
-</StackPanel>
-```
-
-| 修饰类 | 行为 |
-|--------|------|
-| （无） | hover 灰色背景 |
-| `FluentCaptionButtonClose` | hover 红色背景（#C42B1C）+ 白色前景 |
-
----
-
 ### 4.2 卡片 / 容器样式
 
 | 类名 | 控件 | 用途 |
