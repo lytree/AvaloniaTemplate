@@ -2,8 +2,8 @@ name: Release Plugins
 
 # 插件发布工作流（与主体分开构建）
 # 触发标签：
-#   plugin-V*                      例如 plugin-V1.0.0  → 打包全部插件，并使用标签版本覆盖插件版本
-#   plugin-<ProjectName>-V*         例如 plugin-LYBox.Plugin.DateTime-V1.2.0 → 仅打包指定插件并覆盖其版本
+#   plugin-V*                      例如 plugin-V1.0.0、plugin-V1.0.0-preview.1、plugin-V1.0.0-beta.1  → 打包全部插件，并使用标签版本覆盖插件版本
+#   plugin-<ProjectName>-V*         例如 plugin-LYBox.Plugin.DateTime-V1.2.0、plugin-LYBox.Plugin.DateTime-V1.2.0-beta.1 → 仅打包指定插件并覆盖其版本
 # 产物：
 #   - 插件 SDK NuGet 包（LYBox.Plugin.Generators / LYBox.Plugin.Shared，用于插件 restore）
 #   - 各插件 zip 包（含 plugin.json 清单，剥离 .pdb/.xml/.deps.json/.runtimeconfig.json）
@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '插件版本号（例如 1.2.3；手动触发必填）'
+        description: '插件版本号（例如 1.2.3、1.2.3-preview.1、1.2.3-beta.1；手动触发必填）'
         required: true
         type: string
       plugin_filter:
@@ -65,22 +65,22 @@ jobs:
             fi
           else
             TAG="${GITHUB_REF_NAME}"
-            if [[ "$TAG" =~ ^plugin-V([0-9]+\.[0-9]+\.[0-9]+([-.+][0-9A-Za-z.-]+)?)$ ]]; then
+            if [[ "$TAG" =~ ^plugin-V([0-9]+\.[0-9]+\.[0-9]+(-(preview|beta|bate)(\.[0-9]+)?)?)$ ]]; then
               FILTER=""
               VERSION="${BASH_REMATCH[1]}"
               NAME="Plugins V${VERSION}"
-            elif [[ "$TAG" =~ ^plugin-(.+)-V([0-9]+\.[0-9]+\.[0-9]+([-.+][0-9A-Za-z.-]+)?)$ ]]; then
+            elif [[ "$TAG" =~ ^plugin-(.+)-V([0-9]+\.[0-9]+\.[0-9]+(-(preview|beta|bate)(\.[0-9]+)?)?)$ ]]; then
               FILTER="${BASH_REMATCH[1]}"
               VERSION="${BASH_REMATCH[2]}"
               NAME="Plugin ${FILTER} V${VERSION}"
             else
-              echo "::error::无法识别的插件标签格式: $TAG。请使用 plugin-Vx.y.z 或 plugin-<ProjectName>-Vx.y.z"
+              echo "::error::无法识别的插件标签格式: $TAG。请使用 plugin-Vx.y.z、plugin-Vx.y.z-preview.N、plugin-Vx.y.z-beta.N 或 plugin-<ProjectName>-Vx.y.z(-preview.N|-beta.N)"
               exit 1
             fi
           fi
 
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.+][0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::版本号格式无效: $VERSION。请使用 x.y.z，例如 1.2.3"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-(preview|beta|bate)(\.[0-9]+)?)?$ ]]; then
+            echo "::error::版本号格式无效: $VERSION。请使用 x.y.z、x.y.z-preview.N 或 x.y.z-beta.N，例如 1.2.3-preview.1"
             exit 1
           fi
 

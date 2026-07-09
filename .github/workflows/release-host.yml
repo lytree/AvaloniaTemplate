@@ -1,7 +1,7 @@
 name: Release Main
 
 # 主体（Launcher + 主体 SDK NuGet）发布工作流
-# 触发标签：main-V*           例如 main-V1.2.3
+# 触发标签：main-V*           例如 main-V1.2.3、main-V1.2.3-preview.1、main-V1.2.3-beta.1
 # 产物：
 #   - 主体 SDK NuGet 包（LYBox.Plugin.Generators / LYBox.Plugin.Shared）
 #   - Launcher 自包含发布包（win-x64 / win-arm64 / linux-x64 / linux-arm64）
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '主体版本号（例如 1.2.3；手动触发必填，会发布到 main-V<version>）'
+        description: '主体版本号（例如 1.2.3、1.2.3-preview.1、1.2.3-beta.1；手动触发必填，会发布到 main-V<version>）'
         required: true
         type: string
 
@@ -48,15 +48,15 @@ jobs:
             TAG="main-V${VERSION}"
           else
             TAG="${GITHUB_REF_NAME}"
-            if [[ ! "$TAG" =~ ^main-V([0-9]+\.[0-9]+\.[0-9]+([-.+][0-9A-Za-z.-]+)?)$ ]]; then
-              echo "::error::无法识别的主体标签格式: $TAG。请使用 main-Vx.y.z，例如 main-V1.2.3"
+            if [[ ! "$TAG" =~ ^main-V([0-9]+\.[0-9]+\.[0-9]+(-(preview|beta|bate)(\.[0-9]+)?)?)$ ]]; then
+              echo "::error::无法识别的主体标签格式: $TAG。请使用 main-Vx.y.z、main-Vx.y.z-preview.N 或 main-Vx.y.z-beta.N，例如 main-V1.2.3-preview.1"
               exit 1
             fi
             VERSION="${BASH_REMATCH[1]}"
           fi
 
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.+][0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::版本号格式无效: $VERSION。请使用 x.y.z，例如 1.2.3"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-(preview|beta|bate)(\.[0-9]+)?)?$ ]]; then
+            echo "::error::版本号格式无效: $VERSION。请使用 x.y.z、x.y.z-preview.N 或 x.y.z-beta.N，例如 1.2.3-preview.1"
             exit 1
           fi
 
