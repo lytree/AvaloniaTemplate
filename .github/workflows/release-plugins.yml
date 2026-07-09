@@ -38,7 +38,7 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
 
 jobs:
-  resolve-context:
+  resolve_context:
     name: Resolve Plugin Release Context
     runs-on: ubuntu-latest
     outputs:
@@ -90,9 +90,9 @@ jobs:
           echo "release_name=$NAME" >> "$GITHUB_OUTPUT"
           echo "Resolved plugin release: tag=$TAG filter='$FILTER' version=$VERSION"
 
-  pack-plugin-sdk:
+  pack_plugin_sdk:
     name: Pack Plugin SDK NuGet
-    needs: resolve-context
+    needs: resolve_context
     runs-on: ubuntu-latest
     env:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
@@ -107,7 +107,7 @@ jobs:
         run: |
           dotnet build/build.cs \
             --build=bin \
-            --host-version=${{ needs.resolve-context.outputs.plugin_version }}
+            --host-version=${{ needs.resolve_context.outputs.plugin_version }}
 
       - name: Upload plugin SDK NuGet artifacts
         uses: actions/upload-artifact@v4
@@ -128,9 +128,9 @@ jobs:
               --skip-duplicate
           done
 
-  build-plugins:
+  build_plugins:
     name: Build Plugins
-    needs: [resolve-context, pack-plugin-sdk]
+    needs: [resolve_context, pack_plugin_sdk]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -152,9 +152,9 @@ jobs:
 
       - name: Build & pack plugins
         run: |
-          ARGS="--build=plugin --plugin-version=${{ needs.resolve-context.outputs.plugin_version }}"
-          if [ -n "${{ needs.resolve-context.outputs.plugin_filter }}" ]; then
-            ARGS="$ARGS --plugin=${{ needs.resolve-context.outputs.plugin_filter }}"
+          ARGS="--build=plugin --plugin-version=${{ needs.resolve_context.outputs.plugin_version }}"
+          if [ -n "${{ needs.resolve_context.outputs.plugin_filter }}" ]; then
+            ARGS="$ARGS --plugin=${{ needs.resolve_context.outputs.plugin_filter }}"
           fi
           echo "Running: dotnet build/build.cs $ARGS"
           dotnet build/build.cs $ARGS
@@ -174,7 +174,7 @@ jobs:
 
   release:
     name: GitHub Release
-    needs: [resolve-context, pack-plugin-sdk, build-plugins]
+    needs: [resolve_context, pack_plugin_sdk, build_plugins]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -187,8 +187,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag "${{ needs.resolve-context.outputs.tag_name }}"
-          git push origin "${{ needs.resolve-context.outputs.tag_name }}"
+          git tag "${{ needs.resolve_context.outputs.tag_name }}"
+          git push origin "${{ needs.resolve_context.outputs.tag_name }}"
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -201,8 +201,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.resolve-context.outputs.tag_name }}
-          name: ${{ needs.resolve-context.outputs.release_name }}
+          tag_name: ${{ needs.resolve_context.outputs.tag_name }}
+          name: ${{ needs.resolve_context.outputs.release_name }}
           generate_release_notes: true
           files: |
             artifacts/plugin-sdk-nuget/*.nupkg
