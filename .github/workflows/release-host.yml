@@ -28,6 +28,7 @@ concurrency:
 env:
   DOTNET_NOLOGO: 'true'
   DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  MAIN_PROJECT_NAME: 'LYBox.Launcher.Desktop'
 
 jobs:
   resolve-context:
@@ -133,18 +134,18 @@ jobs:
       - name: Zip published output
         shell: pwsh
         run: |
-          Compress-Archive -Path 'bin/bin/${{ matrix.rid }}/*' -DestinationPath 'main-${{ matrix.rid }}.zip' -Force
+          Compress-Archive -Path 'bin/bin/${{ matrix.rid }}/*' -DestinationPath '${{ env.MAIN_PROJECT_NAME }}-${{ matrix.rid }}-${{ needs.resolve-context.outputs.version }}.zip' -Force
 
       - name: Verify zip
         shell: pwsh
         run: |
-          Get-Item "main-${{ matrix.rid }}.zip" | Format-List Name, Length, LastWriteTime
+          Get-Item "${{ env.MAIN_PROJECT_NAME }}-${{ matrix.rid }}-${{ needs.resolve-context.outputs.version }}.zip" | Format-List Name, Length, LastWriteTime
 
       - name: Upload main artifact
         uses: actions/upload-artifact@v4
         with:
-          name: main-${{ matrix.rid }}
-          path: main-${{ matrix.rid }}.zip
+          name: ${{ env.MAIN_PROJECT_NAME }}-${{ matrix.rid }}
+          path: ${{ env.MAIN_PROJECT_NAME }}-${{ matrix.rid }}-${{ needs.resolve-context.outputs.version }}.zip
           if-no-files-found: error
           retention-days: 7
 
@@ -182,7 +183,7 @@ jobs:
           generate_release_notes: true
           files: |
             artifacts/main-sdk-nuget/*.nupkg
-            artifacts/main-win-x64/*.zip
-            artifacts/main-win-arm64/*.zip
-            artifacts/main-linux-x64/*.zip
-            artifacts/main-linux-arm64/*.zip
+            artifacts/${{ env.MAIN_PROJECT_NAME }}-win-x64/*.zip
+            artifacts/${{ env.MAIN_PROJECT_NAME }}-win-arm64/*.zip
+            artifacts/${{ env.MAIN_PROJECT_NAME }}-linux-x64/*.zip
+            artifacts/${{ env.MAIN_PROJECT_NAME }}-linux-arm64/*.zip
