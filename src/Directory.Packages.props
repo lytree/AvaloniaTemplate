@@ -10,7 +10,7 @@
         运行时通过 SDK buildTransitive 的 _SharedAssembliesPatterns 由宿主提供共享程序集。
     -->
     <PropertyGroup>
-        <AvaloniaVersion>12.0.5</AvaloniaVersion>
+        <AvaloniaVersion>12.1.0</AvaloniaVersion>
         <IrihiUrsaVersion>2.1.*</IrihiUrsaVersion>
         <CommunityToolkit>8.4.2</CommunityToolkit>
         <MicrosoftExtensionsDI>10.0.9</MicrosoftExtensionsDI>
@@ -23,11 +23,17 @@
         <!-- SkiaSharp 锁定 3.x：Avalonia 12.x 与 ScottPlot 5.1.x 均依赖 3.x；
              4.x 是破坏性主版本升级，需待上游兼容后再评估。 -->
         <SkiaSharpVersion>3.119.4</SkiaSharpVersion>
-        <!-- Tmds.DBus 锁定 0.21.x：0.94+ 是破坏性 API 重构，需要 Linux 平台代码迁移。 -->
-        <TmdsDBusVersion>0.21.2</TmdsDBusVersion>
+        <!-- Tmds.DBus.Protocol 0.94.2：现代 D-Bus 协议库（NativeAOT/trimming 友好）。
+             Tmds.DBus.Generator 0.94.2：Roslyn 源生成器，从 D-Bus 接口 XML 生成强类型代理。
+             原 Tmds.DBus 0.21.x 已切换为 Protocol + Generator 组合。
+             Generator 与 Protocol 版本同步升级到 0.94.2（0.91.1 → 0.94.2）。 -->
+        <TmdsDBusProtocolVersion>0.94.2</TmdsDBusProtocolVersion>
+        <TmdsDBusGeneratorVersion>0.94.2</TmdsDBusGeneratorVersion>
+        <!-- Roslyn 源生成器 SDK：LYBox.Plugin.Generators 依赖，跟随最新 5.6.x -->
+        <MicrosoftCodeAnalysisVersion>5.6.0</MicrosoftCodeAnalysisVersion>
         <!-- Avalonia 递归依赖（版本跟随 Avalonia 12.x 发布） -->
-        <HarfBuzzSharpVersion>8.3.1.6</HarfBuzzSharpVersion>
-        
+        <HarfBuzzSharpVersion>14.2.1</HarfBuzzSharpVersion>
+
         <!-- Ursa 递归依赖（版本跟随 Irihi.Ursa 2.1.x 发布） -->
         <IrihiAvaloniaSharedVersion>0.4.0</IrihiAvaloniaSharedVersion>
     </PropertyGroup>

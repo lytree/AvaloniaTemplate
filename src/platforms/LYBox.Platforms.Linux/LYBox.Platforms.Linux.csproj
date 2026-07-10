@@ -5,6 +5,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <!-- 将源生成器生成的文件写入 obj/GeneratedFiles 以便调试 -->
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,7 +15,20 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Tmds.DBus" Version="0.21.2" />
+      <!-- Tmds.DBus.Protocol: 现代 D-Bus 协议库（替代旧的 Tmds.DBus 0.21.x） -->
+      <PackageReference Include="Tmds.DBus.Protocol" Version="$(TmdsDBusProtocolVersion)" />
+      <!-- Tmds.DBus.Generator: 源生成器，从 dbus-xml/*.xml 生成强类型代理 -->
+      <PackageReference Include="Tmds.DBus.Generator" Version="$(TmdsDBusGeneratorVersion)"
+                        OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- D-Bus 接口定义文件，由 Tmds.DBus.Generator 0.94.2 源生成器消费生成代理类。
+           0.94.2 引入 DBusGeneratorMode（Proxy=消费端代理 / Handler=服务端实现），
+           取代 0.91.1 的 GenerateDBusTypes="true" 遗留开关。 -->
+      <AdditionalFiles Include="dbus-xml\org.freedesktop.Notifications.xml"
+                       Namespace="LYBox.Platforms.Linux.DBus"
+                       DBusGeneratorMode="Proxy" />
     </ItemGroup>
 
 </Project>
