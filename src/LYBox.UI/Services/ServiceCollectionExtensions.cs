@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ZLogger;
+using ZLogger.Formatters;
 using ZLogger.Providers;
 
 namespace LYBox.UI.Services;
@@ -13,6 +14,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAvaloniaServices(this IServiceCollection services)
     {
         var logPath = Path.Combine(AppContext.BaseDirectory, "logs");
+        Directory.CreateDirectory(logPath);
 
         services.AddLogging(builder =>
         {
@@ -21,13 +23,20 @@ public static class ServiceCollectionExtensions
             builder.AddFilter("Microsoft", LogLevel.Warning);
             builder.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
 
-            builder.AddZLoggerConsole();
+            // 控制台与文件使用相同的纯文本前缀格式：
+            //   [2026-07-10 15:39:43.123] [INFO] [LYBox.UI.Services.NavigationService] 消息内容
+            // 异常信息由 PlainTextZLoggerFormatter 默认行为追加到消息末尾（换行 + 异常类型:消息 + 堆栈）。
+            builder.AddZLoggerConsole(options =>
+            {
+                ConfigurePlainTextFormatter(options);
+            });
             builder.AddZLoggerRollingFile(options =>
             {
                 options.FilePathSelector = (dt, seq) =>
                     Path.Combine(logPath, $"app-{dt:yyyy-MM-dd}_{seq:000}.log");
                 options.RollingInterval = RollingInterval.Day;
                 options.RollingSizeKB = 10240; // 10MB
+                ConfigurePlainTextFormatter(options);
             });
         });
 
@@ -54,5 +63,29 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITaskRegistry, TaskRegistry>();
 
         return services;
+    }
+
+    /// <summary>
+    /// 配置纯文本日志格式器，统一控制台与文件的输出格式。
+    /// 输出示例：[2026-07-10 15:39:43.123] [Information] [LYBox.UI.Services.NavigationService] 消息内容
+    /// 异常信息自动追加到消息末尾（换行 + 异常类型:消息 + 堆栈 + 内部异常链）。
+    /// </summary>
+    private static void ConfigurePlainTextFormatter(ZLoggerOptions options)
+    {
+        options.IncludeScopes = true;
+        options.UsePlainTextFormatter(formatter =>
+        {
+            formatter.SetPrefixFormatter(
+                $"[{0:yyyy-MM-dd HH:mm:ss.fff}] [{1}] [{2}] ",
+                static (in MessageTemplate template, in LogInfo info) =>
+                {
+                    template.Format(
+                        info.Timestamp.Utc,
+                        info.LogLevel,
+                        info.Category.Name
+                    );
+                }
+            );
+        });
     }
 }
