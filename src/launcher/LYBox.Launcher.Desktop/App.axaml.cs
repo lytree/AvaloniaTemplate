@@ -183,15 +183,6 @@ public partial class App : Application
             // 退出时检测是否有正在运行的任务
             desktop.ShutdownRequested += OnShutdownRequested;
         }
-        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
-        {
-            var navigationService = ServiceProvider?.GetRequiredService<INavigationService>();
-            var menuConfigurationService = ServiceProvider?.GetRequiredService<IMenuConfigurationService>();
-            singleView.MainView = new SingleView()
-            {
-                DataContext = new MainViewViewModel(navigationService!, menuConfigurationService!),
-            };
-        }
 
         base.OnFrameworkInitializationCompleted();
     }
