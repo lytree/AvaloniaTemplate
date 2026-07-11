@@ -7,35 +7,44 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LYBox.UI.Services;
 
-public class SettingsService : ISettingsService
+public sealed class SettingsService : ISettingsService
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly ILocalizationService? _localizationService;
     private ConcurrentDictionary<string, SettingItem>? _settingsCache;
     private bool _cacheInitialized;
+    private readonly object _cacheLock = new();
 
     public SettingsService(IDbContextFactory<AppDbContext> dbFactory)
     {
         _dbFactory = dbFactory;
-        _localizationService = ServiceLocator.GetService<ILocalizationService>();
+        ServiceLocator.TryGetService(out _localizationService);
     }
 
     private ConcurrentDictionary<string, SettingItem> EnsureCache()
     {
         if (_cacheInitialized) return _settingsCache!;
 
-        using var db = _dbFactory.CreateDbContext();
-        var items = db.Settings.OrderBy(s => s.GroupOrder).ThenBy(s => s.ItemOrder).ToList();
-        _settingsCache = new ConcurrentDictionary<string, SettingItem>(
-            items.Select(i => new KeyValuePair<string, SettingItem>(i.Key, i)));
-        _cacheInitialized = true;
-        return _settingsCache;
+        lock (_cacheLock)
+        {
+            if (_cacheInitialized) return _settingsCache!;
+
+            using var db = _dbFactory.CreateDbContext();
+            var items = db.Settings.OrderBy(s => s.GroupOrder).ThenBy(s => s.ItemOrder).ToList();
+            _settingsCache = new ConcurrentDictionary<string, SettingItem>(
+                items.Select(i => new KeyValuePair<string, SettingItem>(i.Key, i)));
+            _cacheInitialized = true;
+            return _settingsCache;
+        }
     }
 
     private void InvalidateCache()
     {
-        _cacheInitialized = false;
-        _settingsCache = null;
+        lock (_cacheLock)
+        {
+            _cacheInitialized = false;
+            _settingsCache = null;
+        }
     }
 
     public void RegisterSetting(SettingDefinition definition)

@@ -3,7 +3,7 @@ using LYBox.Plugin.Shared.Services;
 
 namespace LYBox.UI.Services;
 
-public class TaskRegistry : ITaskRegistry
+public sealed class TaskRegistry : ITaskRegistry
 {
     private readonly ConcurrentDictionary<string, TaskToken> _tasks = new();
 

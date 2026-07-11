@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 
 namespace LYBox.UI.Services;
 
-public class WindowInfoService : IWindowInfoService
+public sealed class WindowInfoService : IWindowInfoService
 {
     private Window? _window;
 

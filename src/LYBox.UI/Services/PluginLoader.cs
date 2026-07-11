@@ -10,15 +10,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace LYBox.UI.Services;
 
-public class PluginLoader : IPluginLoader, IDisposable
+public sealed class PluginLoader : IPluginLoader, IDisposable
 {
     public const string ExtraPluginEnvironmentVariableName = "AVALONIA_EXTRA_PLUGINS_PATH";
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
 
     private readonly Dictionary<string, PluginEntry> _entries = [];
     private readonly string _pluginsDirectory;
@@ -645,7 +639,7 @@ public class PluginLoader : IPluginLoader, IDisposable
     private void ProcessSinglePendingUpgrade(string upgradeJsonPath, string pendingDir)
     {
         var json = File.ReadAllText(upgradeJsonPath);
-        var info = JsonSerializer.Deserialize<PendingUpgradeInfo>(json, JsonOptions);
+        var info = JsonSerializer.Deserialize<PendingUpgradeInfo>(json, PluginUtilities.JsonOptions);
         if (info == null || string.IsNullOrEmpty(info.PluginId))
         {
             _logger.LogError("[PluginUpgrade] Invalid upgrade json '{UpgradeJsonPath}', deleting.", upgradeJsonPath);
@@ -690,7 +684,7 @@ public class PluginLoader : IPluginLoader, IDisposable
         // 步骤 1：复制 .pending/{PluginId}.new/ → plugins/{PluginId}.new/
         try
         {
-            CopyDirectory(newVersionDir, stagingDir);
+            PluginUtilities.CopyDirectory(newVersionDir, stagingDir);
         }
         catch (Exception ex)
         {
@@ -794,7 +788,7 @@ public class PluginLoader : IPluginLoader, IDisposable
         }
 
         var json = File.ReadAllText(manifestPath);
-        manifest = JsonSerializer.Deserialize<PluginManifest>(json, JsonOptions);
+        manifest = JsonSerializer.Deserialize<PluginManifest>(json, PluginUtilities.JsonOptions);
         if (manifest == null)
         {
             error = "plugin.json is invalid";
@@ -842,7 +836,7 @@ public class PluginLoader : IPluginLoader, IDisposable
         newManifest.InstallTime ??= info.ScheduledAt;
 
         var manifestPath = Path.Combine(targetDir, "plugin.json");
-        var json = JsonSerializer.Serialize(newManifest, JsonOptions);
+        var json = JsonSerializer.Serialize(newManifest, PluginUtilities.JsonOptions);
         File.WriteAllText(manifestPath, json);
     }
 
@@ -863,7 +857,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             try
             {
                 var json = File.ReadAllText(upgradeJson);
-                var info = JsonSerializer.Deserialize<PendingUpgradeInfo>(json, JsonOptions);
+                var info = JsonSerializer.Deserialize<PendingUpgradeInfo>(json, PluginUtilities.JsonOptions);
                 if (info == null || string.IsNullOrEmpty(info.PluginId)) continue;
 
                 lock (_sync)
@@ -896,19 +890,6 @@ public class PluginLoader : IPluginLoader, IDisposable
     {
         try { if (Directory.Exists(path)) Directory.Delete(path, true); }
         catch (Exception ex) { _logger.LogError(ex, "[PluginUpgrade] Failed to delete directory '{Path}'", path); }
-    }
-
-    private static void CopyDirectory(string sourceDir, string destDir)
-    {
-        Directory.CreateDirectory(destDir);
-        foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
-        {
-            var relative = Path.GetRelativePath(sourceDir, file);
-            var dest = Path.GetFullPath(Path.Combine(destDir, relative));
-            var dir = Path.GetDirectoryName(dest);
-            if (dir != null) Directory.CreateDirectory(dir);
-            File.Copy(file, dest, overwrite: true);
-        }
     }
 
     public void MarkPendingUpgrade(string pluginId, PendingUpgradeInfo info)
@@ -1001,7 +982,7 @@ public class PluginLoader : IPluginLoader, IDisposable
         try
         {
             var json = File.ReadAllText(upgradeJson);
-            return JsonSerializer.Deserialize<PendingUpgradeInfo>(json, JsonOptions);
+            return JsonSerializer.Deserialize<PendingUpgradeInfo>(json, PluginUtilities.JsonOptions);
         }
         catch
         {
@@ -1021,7 +1002,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             try
             {
                 var json = File.ReadAllText(manifestPath);
-                var manifest = JsonSerializer.Deserialize<PluginManifest>(json, JsonOptions);
+                var manifest = JsonSerializer.Deserialize<PluginManifest>(json, PluginUtilities.JsonOptions);
                 if (manifest == null) continue;
 
                 if (manifest.State == nameof(PluginState.PendingUninstall))
@@ -1055,7 +1036,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             try
             {
                 var json = File.ReadAllText(manifestPath);
-                var manifest = JsonSerializer.Deserialize<PluginManifest>(json, JsonOptions);
+                var manifest = JsonSerializer.Deserialize<PluginManifest>(json, PluginUtilities.JsonOptions);
                 if (manifest == null) continue;
 
                 var pluginInfo = ManifestToPluginInfo(manifest, pluginDir);
@@ -1134,7 +1115,7 @@ public class PluginLoader : IPluginLoader, IDisposable
             };
 
             var manifestPath = Path.Combine(pluginDir, "plugin.json");
-            var json = JsonSerializer.Serialize(manifest, JsonOptions);
+            var json = JsonSerializer.Serialize(manifest, PluginUtilities.JsonOptions);
             File.WriteAllText(manifestPath, json);
         }
         catch (Exception ex)
@@ -1272,11 +1253,11 @@ public class PluginLoader : IPluginLoader, IDisposable
         if (string.IsNullOrWhiteSpace(version)) return false;
 
         // 取 '-' 之前的稳定版本部分
-        var stable = version.IndexOf('-');
+        var stable = version.IndexOf('-', StringComparison.Ordinal);
         var core = stable >= 0 ? version.Substring(0, stable) : version;
 
         var parts = core.Split('.');
-        if (parts.Length == 0) return false;
+        if (parts.Length is < 1 or > 3) return false;
 
         return int.TryParse(parts[0], out major)
             && (parts.Length < 2 || int.TryParse(parts[1], out minor))

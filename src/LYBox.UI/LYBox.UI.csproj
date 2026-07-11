@@ -37,4 +37,8 @@
 	  </Compile>
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="LYBox.Tests" />
+	</ItemGroup>
+
 </Project>

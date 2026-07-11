@@ -7,7 +7,7 @@ using LYBox.UI.ViewModels;
 
 namespace LYBox.UI.Services;
 
-public class NavigationService : INavigationService
+public sealed class NavigationService : INavigationService
 {
     private const int MaxCacheSize = 5;
 

@@ -6,7 +6,7 @@ using LYBox.UI.ViewModels;
 
 namespace LYBox.UI.Services;
 
-public class MenuConfigurationService : IMenuConfigurationService
+public sealed class MenuConfigurationService : IMenuConfigurationService
 {
     private readonly MenuViewModel _menuViewModel;
     private readonly ConcurrentDictionary<string, MenuItemViewModel> _menuItemsMap = new();

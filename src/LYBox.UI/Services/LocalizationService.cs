@@ -9,7 +9,7 @@ using LYBox.UI.Theme;
 
 namespace LYBox.UI.Services;
 
-public class LocalizationService : ILocalizationService
+public sealed class LocalizationService : ILocalizationService
 {
     private readonly ConcurrentDictionary<string, (string? LookupPrefix, ResourceManager Manager)> _resourceManagers = new();
     private CultureInfo _currentCulture = new("zh-CN");

@@ -7,13 +7,8 @@ using LYBox.Plugin.Shared.Services;
 
 namespace LYBox.UI.Services;
 
-public class PluginInstallationManager : IPluginInstallationManager
+public sealed class PluginInstallationManager : IPluginInstallationManager
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
     private readonly IPluginLoader _pluginLoader;
     private readonly string _pluginsDirectory;
 
@@ -276,7 +271,7 @@ public class PluginInstallationManager : IPluginInstallationManager
             // 跨卷场景 Move 可能失败，回退到复制+删除
             try
             {
-                CopyDirectoryRecursive(tempDir, newVersionDir);
+                PluginUtilities.CopyDirectory(tempDir, newVersionDir);
             }
             catch (Exception copyEx)
             {
@@ -305,7 +300,7 @@ public class PluginInstallationManager : IPluginInstallationManager
 
         try
         {
-            var json = JsonSerializer.Serialize(upgradeInfo, JsonOptions);
+            var json = JsonSerializer.Serialize(upgradeInfo, PluginUtilities.JsonOptions);
             await File.WriteAllTextAsync(upgradeJsonPath, json);
         }
         catch (Exception ex)
@@ -335,19 +330,6 @@ public class PluginInstallationManager : IPluginInstallationManager
         };
     }
 
-    private static void CopyDirectoryRecursive(string sourceDir, string destDir)
-    {
-        Directory.CreateDirectory(destDir);
-        foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
-        {
-            var relative = Path.GetRelativePath(sourceDir, file);
-            var dest = Path.GetFullPath(Path.Combine(destDir, relative));
-            var dir = Path.GetDirectoryName(dest);
-            if (dir != null) Directory.CreateDirectory(dir);
-            File.Copy(file, dest, overwrite: true);
-        }
-    }
-
     public Task<bool> EnablePluginAsync(string pluginId)
     {
         _pluginLoader.EnablePlugin(pluginId);
@@ -366,7 +348,7 @@ public class PluginInstallationManager : IPluginInstallationManager
         if (File.Exists(manifestFile))
         {
             var json = await File.ReadAllTextAsync(manifestFile);
-            var manifest = JsonSerializer.Deserialize<PluginManifest>(json, JsonOptions);
+            var manifest = JsonSerializer.Deserialize<PluginManifest>(json, PluginUtilities.JsonOptions);
             if (manifest != null)
             {
                 return new PluginInfo

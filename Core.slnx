@@ -10,4 +10,7 @@
     <Folder Name="/src/platforms/">
         <Project Path="src/LYBox.Platforms.Abstractions/LYBox.Platforms.Abstractions.csproj" />
     </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/LYBox.Tests/LYBox.Tests.csproj" />
+    </Folder>
 </Solution>
