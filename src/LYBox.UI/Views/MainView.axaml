@@ -28,9 +28,9 @@
 				<Setter Property="Effect" Value="blur(10)" />
 			</Style>
 		</Panel.Styles>
-		<Grid Classes.Blur="{Binding $parent[u:UrsaWindow].(u:OverlayDialogHost.IsInModalStatus)}" RowDefinitions="Auto, *">
-			<!-- ===== Row 0: Fluent Full-Width Title Bar (top-bottom structure) ===== -->
-			<Border Classes="FluentTitleBar">
+		<Grid Classes.Blur="{Binding $parent[u:UrsaWindow].(u:OverlayDialogHost.IsInModalStatus)}" Margin="0,40,0,0" RowDefinitions="Auto, *">
+			<!-- ===== Row 0: Fluent Toolbar (hamburger + search + actions, below custom title bar) ===== -->
+			<Border Classes="FluentToolbar">
 				<Grid ColumnDefinitions="Auto, *, Auto">
 					<!-- Col 0: Hamburger Toggle Button (Fluent GlobalNavButton icon) -->
 					<Button

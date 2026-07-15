@@ -18,6 +18,10 @@
     MinHeight="480"
     Icon="/Assets/lybox.ico"
     Background="{DynamicResource FluentColorBackground0}"
+    ExtendClientAreaToDecorationsHint="True"
+    ExtendClientAreaTitleBarHeightHint="-1"
+    IsTitleBarVisible="False"
+    WindowDecorations="Full"
     mc:Ignorable="d">
     <views:MainView />
 </u:UrsaWindow>
