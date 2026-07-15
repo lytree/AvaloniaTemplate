@@ -18,10 +18,12 @@
     MinHeight="480"
     Icon="/Assets/lybox.ico"
     Background="{DynamicResource FluentColorBackground0}"
-    ExtendClientAreaToDecorationsHint="True"
-    ExtendClientAreaTitleBarHeightHint="-1"
     IsTitleBarVisible="False"
-    WindowDecorations="Full"
     mc:Ignorable="d">
+    <!--
+        Chrome 策略由 PlatformServices.WindowChromeService.ApplyChrome 在代码后置中统一设置：
+        所有平台 WindowDecorations.BorderOnly（移除原生标题栏与系统按钮，保留 WM/OS 原生 resize frame）。
+        标题栏职责（Title、caption 按钮、拖动）由 MainView 工具栏自绘承担。
+    -->
     <views:MainView />
 </u:UrsaWindow>
