@@ -18,7 +18,7 @@ public partial class MainViewViewModel : ViewModelBase
     private ILocalizationService? _localizationService;
 
     public WindowNotificationManager? NotificationManager { get; set; }
-    public MenuViewModel Menus { get; }
+    public MenuViewModel Menus { get; private set; }
     [ObservableProperty] private string? _settingText;
     [ObservableProperty] private string? _pluginText;
     [ObservableProperty] private object? _content;
@@ -74,7 +74,9 @@ public partial class MainViewViewModel : ViewModelBase
     {
         _navigationService = navigationService;
         _menuConfigurationService = menuConfigurationService;
-        Menus = _menuConfigurationService.GetMenuStructure();
+        Menus = new MenuViewModel();
+        foreach (var item in _menuConfigurationService.GetMenuStructure())
+            Menus.MenuItems.Add(item);
 
         _localizationService = ServiceLocator.GetService<ILocalizationService>();
         if (_localizationService is not null)

@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Ursa.Controls;
 using LYBox.Plugin.Shared;
+using LYBox.Plugin.Shared.Services;
 using LYBox.Layout.Ursa.ViewModels;
 using LYBox.Layout.Core.Services;
 using LYBox.Layout.Ursa.Services;

@@ -69,7 +69,7 @@ public partial class IntroductionDemoViewModel : ObservableObject
         _allGroups.Clear();
         var navCmd = NavigateCommand;
 
-        foreach (var parent in menu.MenuItems)
+        foreach (var parent in menu)
         {
             if (parent.IsSeparator || string.IsNullOrEmpty(parent.Key)) continue;
 

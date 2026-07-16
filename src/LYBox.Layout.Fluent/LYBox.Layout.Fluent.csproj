@@ -28,5 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LYBox.Layout.Core\LYBox.Layout.Core.csproj" />
+    <ProjectReference Include="..\LYBox.Plugin.Shared\LYBox.Plugin.Shared.csproj" />
   </ItemGroup>
 </Project>

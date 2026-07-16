@@ -12,6 +12,8 @@ namespace LYBox.Layout.Fluent;
 public class ViewLocator : IDataTemplate
 {
     private readonly Dictionary<Type, Func<Control>> _factory = new();
+    // 委托到 Plugin.Shared.ViewLocator 处理插件注册的 ViewModel→View 映射
+    private static readonly LYBox.Plugin.Shared.ViewLocator _pluginViewLocator = new();
 
     public ViewLocator()
     {
@@ -82,16 +84,17 @@ public class ViewLocator : IDataTemplate
 
         var vmType = param.GetType();
 
-        return _factory.TryGetValue(vmType, out var creator)
-            ? creator()
-            : new TextBlock
-            {
-                Text = $"View not registered: {vmType.Name}"
-            };
+        // 优先在 Fluent 内置工厂中查找（Gallery 页面）
+        if (_factory.TryGetValue(vmType, out var creator))
+            return creator();
+
+        // 回退到 Plugin.Shared.ViewLocator（插件注册的 ViewModel→View 映射）
+        return _pluginViewLocator.Build(param);
     }
 
     public bool Match(object? data)
     {
-        return data is ViewModelBase;
+        // 匹配所有非 null 数据：内置 VM 由本工厂处理，插件 VM 由 Plugin.Shared 回退处理
+        return data is not null;
     }
 }

@@ -1,17 +1,16 @@
 using System.Collections.Generic;
-using LYBox.Plugin.Shared;
+using System.Collections.ObjectModel;
 using LYBox.Plugin.Shared.ViewModels;
-using LYBox.Layout.Ursa.ViewModels;
 
-namespace LYBox.Layout.Ursa.Services;
+namespace LYBox.Plugin.Shared.Services;
 
 public interface IMenuConfigurationService
 {
     /// <summary>
     /// 获取完整的菜单结构
     /// </summary>
-    /// <returns>菜单结构</returns>
-    MenuViewModel GetMenuStructure();
+    /// <returns>菜单项集合</returns>
+    ObservableCollection<MenuItemViewModel> GetMenuStructure();
 
     /// <summary>
     /// 注册菜单项

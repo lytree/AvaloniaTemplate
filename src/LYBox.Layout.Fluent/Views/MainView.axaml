@@ -3,7 +3,10 @@
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:fui="clr-namespace:AvaloniaFluentUI.Controls;assembly=LYBox.Layout.Fluent"
+  xmlns:plugin="using:LYBox.Plugin.Shared"
+  xmlns:pluginVm="using:LYBox.Plugin.Shared.ViewModels"
   xmlns:vm="using:LYBox.Layout.Fluent.ViewModels"
+  xmlns:fluent="using:LYBox.Layout.Fluent"
   x:DataType="vm:MainWindowViewModel"
   Background="{DynamicResource SystemBrush}">
 
@@ -30,6 +33,14 @@
       IsSettingsVisible="True"
       PaneDisplayMode="Auto"
       SelectedItem="{Binding NavigationViewSelectedItem, Mode=TwoWay}">
+      <fui:NavigationView.MenuItemTemplate>
+        <DataTemplate x:DataType="pluginVm:MenuItemViewModel">
+          <fui:NavigationViewItem
+            Content="{Binding MenuHeader}"
+            Tag="{Binding Key}"
+            SelectsOnInvoked="True"/>
+        </DataTemplate>
+      </fui:NavigationView.MenuItemTemplate>
       <fui:NavigationView.MenuItems>
         <fui:NavigationViewItem
           Content="{Binding Home}"
@@ -80,9 +91,21 @@
           Content="{Binding DateTime}"
           IconSource="M11.35 27.733q0.283 0.567 0.608 1.1t0.708 1.033h-6.4q-1.25 0-2.392-0.508t-2-1.367-1.367-2-0.508-2.392v-17.333q0-1.25 0.508-2.392t1.367-2 2-1.367 2.392-0.508h17.333q1.25 0 2.392 0.508t2 1.367 1.367 2 0.508 2.392v6.4q-0.5-0.383-1.033-0.708t-1.1-0.608v-2.817h-25.6v15.017q0 0.867 0.35 1.625t0.933 1.325 1.358 0.9 1.625 0.333h4.95zM6.317 2.133q-0.85 0-1.617 0.35t-1.333 0.933-0.9 1.358-0.333 1.625h25.6v-0.083q0-0.833-0.342-1.592t-0.917-1.333-1.333-0.917-1.592-0.342h-17.233zM32 22.4q0 1.983-0.758 3.733t-2.058 3.050-3.050 2.058-3.733 0.758q-2 0-3.75-0.75t-3.050-2.050-2.050-3.050-0.75-3.75q0-1.983 0.758-3.733t2.058-3.050 3.050-2.058 3.733-0.758q1.317 0 2.542 0.342t2.292 0.967 1.95 1.508 1.508 1.95 0.967 2.292 0.342 2.542zM25.6 23.467q0.433 0 0.75-0.317t0.317-0.75-0.317-0.75-0.75-0.317h-2.133v-3.2q0-0.433-0.317-0.75t-0.75-0.317-0.75 0.317-0.317 0.75v4.267q0 0.433 0.317 0.75t0.75 0.317h3.2z"
           Tag="DateTime"/>
+        <!-- 插件提供的菜单项（数据绑定，使用 MenuItemsSource 而非 ItemsSource） -->
+        <fui:NavigationViewItemSeparator IsVisible="{Binding PluginMenus.Count}"/>
+        <fui:NavigationViewItem
+          Content="插件"
+          IconSource="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"
+          IsExpanded="True"
+          MenuItemsSource="{Binding PluginMenus}"
+          SelectsOnInvoked="False"/>
       </fui:NavigationView.MenuItems>
       <fui:NavigationView.Content>
-        <TransitioningContentControl Content="{Binding CurrentViewModel}"/>
+        <TransitioningContentControl Content="{Binding CurrentViewModel}">
+          <TransitioningContentControl.ContentTemplate>
+            <fluent:ViewLocator />
+          </TransitioningContentControl.ContentTemplate>
+        </TransitioningContentControl>
       </fui:NavigationView.Content>
     </fui:NavigationView>
   </Grid>

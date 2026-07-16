@@ -1,20 +1,28 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using LYBox.Plugin.Shared.Services;
 using LYBox.Plugin.Shared.ViewModels;
-using LYBox.Layout.Ursa.ViewModels;
 
 namespace LYBox.Layout.Ursa.Services;
 
 public sealed class MenuConfigurationService : IMenuConfigurationService
 {
-    private readonly MenuViewModel _menuViewModel;
+    private readonly LYBox.Plugin.Shared.ViewModels.MenuViewModel _menuViewModel;
     private readonly ConcurrentDictionary<string, MenuItemViewModel> _menuItemsMap = new();
     private bool _mapBuilt;
 
     public MenuConfigurationService()
     {
-        _menuViewModel = new MenuViewModel();
+        _menuViewModel = new LYBox.Plugin.Shared.ViewModels.MenuViewModel();
+        // Ursa 默认菜单项：Introduction 首页
+        _menuViewModel.MenuItems.Add(new MenuItemViewModel
+        {
+            MenuHeader = "NAV_Introduction",
+            Key = "Introduction",
+            IsSeparator = false
+        });
     }
 
     private void BuildMenuItemsMap(IEnumerable<MenuItemViewModel> menuItems)
@@ -33,14 +41,14 @@ public sealed class MenuConfigurationService : IMenuConfigurationService
         }
     }
 
-    public MenuViewModel GetMenuStructure()
+    public ObservableCollection<MenuItemViewModel> GetMenuStructure()
     {
         if (!_mapBuilt)
         {
             BuildMenuItemsMap(_menuViewModel.MenuItems);
             _mapBuilt = true;
         }
-        return _menuViewModel;
+        return _menuViewModel.MenuItems;
     }
 
     public void RegisterMenuItem(MenuItemViewModel menuItem, string? parentKey = null)
