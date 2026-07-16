@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
@@ -230,7 +230,7 @@ public partial class FluentWindow : Window
     /// Gets the interface for custom platform-specific features through the AppWindow class
     /// NOTE: Only implemented on Windows right now
     /// </summary>
-    public IAppWindowPlatformFeatures PlatformFeatures { get; private set; }
+    public IAppWindowPlatformFeatures? PlatformFeatures { get; private set; }
 
     protected internal bool IsWindows11 { get; internal set; }
 
