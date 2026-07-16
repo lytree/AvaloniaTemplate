@@ -221,8 +221,9 @@
     <StaticResource x:Key="WindowMaximizeGlyph" ResourceKey="FluentIconMaximize2" />
     <StaticResource x:Key="WindowRestoreGlyph" ResourceKey="FluentIconRestore" />
 
-    <StaticResource x:Key="CaptionButtonCornerRadius" ResourceKey="FluentBorderRadiusSmall" />
-    <StaticResource x:Key="CaptionButtonWidth" ResourceKey="FluentSpacingExtraLoose" />
-    <StaticResource x:Key="CaptionButtonHeight" ResourceKey="FluentSpacingExtraLoose" />
-    <StaticResource x:Key="CaptionButtonPadding" ResourceKey="FluentThicknessTight" />
+    <!-- WinUI 3 风格 caption buttons：无圆角、固定宽度、高度匹配标题栏 -->
+    <CornerRadius x:Key="CaptionButtonCornerRadius">0</CornerRadius>
+    <x:Double x:Key="CaptionButtonWidth">46</x:Double>
+    <x:Double x:Key="CaptionButtonHeight">48</x:Double>
+    <Thickness x:Key="CaptionButtonPadding">0</Thickness>
 </ResourceDictionary>
