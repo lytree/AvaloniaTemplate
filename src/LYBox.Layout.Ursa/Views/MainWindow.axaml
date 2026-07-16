@@ -13,14 +13,15 @@
     d:DesignWidth="800"
     x:CompileBindings="True"
     ExtendClientAreaToDecorationsHint="True"
+    IsTitleBarVisible="False"
     x:DataType="viewModels:MainWindowViewModel"
     WindowStartupLocation="CenterScreen"
+    MinWidth="640"
+    MinHeight="480"
     Icon="/Assets/lybox.ico"
     IsFullScreenButtonVisible="{OnPlatform {x:True}, macOS={x:False}}"
     IsManagedResizerVisible="{OnPlatform {x:False}, Linux={x:True}}"
+    Background="{DynamicResource FluentColorBackground0}"
     mc:Ignorable="d">
-    <u:UrsaWindow.RightContent>
-        <views:TitleBarRightContent />
-    </u:UrsaWindow.RightContent>
     <views:MainView />
 </u:UrsaWindow>

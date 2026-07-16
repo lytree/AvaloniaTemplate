@@ -1,5 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StaticResource x:Key="WindowBorderShadow" ResourceKey="FluentShadowElevated" />
+    <StaticResource x:Key="WindowBackground" ResourceKey="FluentColorBackground0" />
+    <StaticResource x:Key="WindowBorderBrush" ResourceKey="FluentCardStrokeBrush" />
     <StaticResource x:Key="TitleBarBackground" ResourceKey="FluentColorBackground0" />
 
     <StaticResource x:Key="CaptionButtonPointeroverBackground" ResourceKey="FluentColorFill1" />
