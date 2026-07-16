@@ -60,13 +60,13 @@
                         </TextBox.InnerLeftContent>
                     </TextBox>
 
-                    <!-- Col 2: Action Buttons (右侧留出 caption buttons 避让空间: 4 buttons × 46px = 184px) -->
+                    <!-- Col 2: Action Buttons (右侧留出 caption buttons 避让空间: 3 buttons × 46px = 138px + 边框) -->
                     <StackPanel
                         Grid.Column="2"
                         Orientation="Horizontal"
                         Spacing="4"
                         VerticalAlignment="Center"
-                        Margin="0,0,190,0">
+                        Margin="0,0,150,0">
                         <u:IconButton
                             Theme="{StaticResource BorderlessIconButton}"
                             Icon="{StaticResource FluentIconGithubLogo}"
