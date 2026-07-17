@@ -16,7 +16,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\LYBox.Layout.Ursa\LYBox.Layout.Ursa.csproj" />
+    <!-- 现有测试（SettingsService/PluginUtilities/PluginLoader）仅依赖 Layout.Core，
+         不需要 Layout.Ursa（其 ApplicationViewModel 引用了不存在的 LYBox.UI 命名空间，
+         是仓库预存的构建问题）。故直接引用 Layout.Core 以解耦。 -->
+    <ProjectReference Include="..\..\src\LYBox.Layout.Core\LYBox.Layout.Core.csproj" />
+    <ProjectReference Include="..\..\src\LYBox.WebView.Ipc\LYBox.WebView.Ipc.csproj" />
+    <ProjectReference Include="..\..\src\LYBox.Plugin.Shared\LYBox.Plugin.Shared.csproj" />
   </ItemGroup>
 
 </Project>

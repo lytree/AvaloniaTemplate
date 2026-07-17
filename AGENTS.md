@@ -229,16 +229,17 @@ Program.cs → App.Initialize()
 ## 包与框架版本
 
 所有版本以 MSBuild 属性形式集中管理于 `src/Directory.Packages.props`：
-- Avalonia: `12.0.3` (`$(AvaloniaVersion)`)
-- Irihi.Ursa: `2.0.*` (`$(IrihiUrsaVersion)`)
+- Avalonia: `12.1.0` (`$(AvaloniaVersion)`)
+- Irihi.Ursa: `2.1.*` (`$(IrihiUrsaVersion)`)
 - CommunityToolkit.Mvvm: `8.4.2` (`$(CommunityToolkit)`)
-- EF Core: `10.0.8` (`$(EfCoreVersion)`)
-- Microsoft.Extensions.DI: `10.0.8` (`$(MicrosoftExtensionsDI)`)
-- Microsoft.Extensions.Localization: `10.0.8`
-- AvaloniaUI.DiagnosticsSupport: `2.2.1`
-- ProDataGrid: `12.0.0`
-- ScottPlot: `5.1.58`
-- ZLogger: `2.1.0`
+- EF Core: `10.0.9` (`$(EfCoreVersion)`)
+- Microsoft.Extensions.DI: `10.0.9` (`$(MicrosoftExtensionsDI)`)
+- Microsoft.Extensions.Localization: `10.0.9`
+- AvaloniaUI.DiagnosticsSupport: `2.2.3`
+- ProDataGrid: `12.0.4`
+- ScottPlot: `5.1.59`
+- ZLogger: `2.5.10`
+- SkiaSharp: `3.119.4`（锁定 3.x，Avalonia 12.x 与 ScottPlot 5.1.x 均依赖）
 - 插件 NuGet 包：`LYBox.Plugin.Generators` + `LYBox.Plugin.Shared`，版本 `1.0.0`，本地构建到 `bin/nuget/`
 
 ## NuGet 配置
@@ -286,6 +287,73 @@ Program.cs → App.Initialize()
   </ItemGroup>
 </Project>
 ```
+
+## WebView IPC 调研结论（特性分支 `feat-avalonia-webview-ipc`）
+
+针对"Avalonia.Controls.WebView 能否实现 Wails 风格 IPC"的调研结论，作为后续实现阶段的强制约束。
+
+### 结论
+**可行——核心双向通道完备，需自建 RPC 层；host object 注入与虚拟主机映射在跨平台抽象层缺失；Linux 嵌入式 WebView 不可用。**
+
+### 控件身份
+- 使用 **官方包** `Avalonia.Controls.WebView`（NuGet `avaloniaui` 所有者，Prefix Reserved，MIT，仓库 [AvaloniaUI/Avalonia.Controls.WebView](https://github.com/AvaloniaUI/Avalonia.Controls.WebView)）。
+- **禁止**引入已废弃的社区库 `Avalonia.WebView`（ChisterWu/Jianfenghuaite，仅匹配 Avalonia 11.x）。
+- 当前稳定版 `12.0.1`，依赖 `Avalonia >= 12.0.0`，与本项目 12.1.0 兼容。
+
+### IPC 原语（仅这两个低级通道，跨平台一致）
+| 方向 | API |
+|------|-----|
+| C# → JS | `await webView.InvokeScript(jsExpr:string):Task<string?>`（任意 JS 表达式，返回值 JSON 字符串） |
+| JS → C# | JS 调全局 `invokeCSharpAction(body:string)` → C# 订阅 `WebMessageReceived` 事件，`e.Body:string?` |
+
+**关键约束**：
+- JS→C# 是 **fire-and-forget**：`invokeCSharpAction` 不返回值给 JS。要实现 Promise 模型，必须复刻 Wails `calls.js` 的 callback-ID 表 + C# 侧 `InvokeScript("window.__rpc.resolve(id,json)")` 回推。
+- 序列化全部走 **string**（双向 `JSON.stringify` 自理），无 binary 通道。
+- 抽象层**不提供** `AddHostObjectToScript`、`SetVirtualHostNameToFolderMapping`、`WebMessageAsJson`。需这些能力只能经 `webView.TryGetPlatformHandle()` 拿平台 COM 指针自行实现（不可移植）。
+
+### 平台支持矩阵
+| 平台 | 后端 | `NativeWebView`（嵌入） | `NativeWebDialog`（独立窗口） |
+|------|------|-------------------------|------------------------------|
+| Windows | WebView2 | ✔ | ✔ |
+| macOS | WKWebView | ✔ | ✔ |
+| Linux | **WPE WebKit**（v12.0 新增） | ⚠️ 实验性（EGL 支持未完成，issue #14 open） | ✔ |
+| iOS/Android | 系统 WebView | ✔ | ✖ |
+
+- **Linux 后端选型：WPE WebKit**（`WpeWebView`）。v12.0 新增的 WPE 后端是 AvaloniaUI 团队为弥补 WebKitGTK 不能嵌入主窗口的缺口而引入的实验性方案，目标是让 Linux 上 `NativeWebView` 可嵌入式使用。
+- **WPE 当前为实验性**：EGL 支持仍未完成（issue #14 open），生产环境使用需评估稳定性。在 WPE 后端成熟前，Linux 上若需稳定 WebView，仍可降级用 `NativeWebDialog` 独立窗口（WebKitGTK 后端）。
+- **`WebKitGTK` 后端不支持嵌入式 `NativeWebView`**（官方 FAQ 明确，Wayland 下原生控件嵌入不可靠），故 Linux 嵌入式场景**不使用** WebKitGTK。
+- macOS/Linux **无离屏渲染**（airspace 问题，issue #3 open）。
+- Windows WebView2 Runtime 需随安装包分发（Win10 不预装）。
+
+### 与 Wails v2 传输模型对照
+| 通道 | Wails v2 | Avalonia 等价 |
+|------|---------|---------------|
+| JS→后端消息 | `window.WailsInvoke(str)` → 平台 postMessage | `invokeCSharpAction(str)` → `WebMessageReceived` |
+| 后端→JS 执行 | `Frontend.ExecJS(js)` | `webView.InvokeScript(js)` |
+| 回传 Promise 结果 | `window.wails.Callback(json)` | 需自建：`InvokeScript("window.__rpc.resolve(...)")` |
+| 事件系统 | 内置 `EventsOn/Emit` + `EE`/`EX` 信封 | **未提供**，需自建 dispatcher |
+| 绑定生成 | `wails generate` 产出 `wailsjs/go/**` + TS | **无**，可基于 `LYBox.Plugin.Generators` Roslyn 源生成器自建 |
+
+### 实现路径（复刻 Wails v2 四件套）
+1. **引导 JS**：把 Wails `ipc.js` 中 `window.WailsInvoke` 替换为 `invokeCSharpAction`；保留 `'C'`/`'EE'`/`'EX'` 前缀信封。
+2. **C# Dispatcher**：在 `WebMessageReceived` 按 Wails `dispatcher.go` 前缀分发（`C`=调用、`EE`=emit、`EX`=off）。
+3. **回调用 `InvokeScript`**：复刻 `window.wails.Callback` / `EventsNotify`。
+4. **绑定生成**：复用项目现有 `LYBox.Plugin.Generators`（Roslyn 增量源生成器）基础设施，对标记的 RPC 服务类生成 JS 胶水 + TS 声明。
+5. **握手**：复刻 `runtime:ready` 时序，C# 在 `NavigationCompleted` + 运行时就绪后再下发绑定。
+6. **Origin 白名单**：复刻 Wails `originvalidator`，防 iframe 攻击。
+
+### 已知风险
+| 风险 | 等级 | 说明 |
+|------|------|------|
+| Linux WPE 后端实验性 | **高** | EGL 支持未完成（issue #14 open），生产前需 PoC 验证稳定性；不稳定则降级 `NativeWebDialog`（WebKitGTK 独立窗口） |
+| Go→JS 高频推送堆积 | 中 | 需像 Wails 一样做 batch 合并，避免 `InvokeScript` 队列饱和 |
+| macOS airspace / 离屏渲染 | 中 | 影响透明叠加、弹层混合 |
+| `WebResourceRequested` 不可 cancel | 中 | issue #53 open，拦截 URL 请求能力受限 |
+
+### 后续步骤
+1. 先在 Windows 做 PoC：`InvokeScript` + `WebMessageReceived` 跑通"JS 调 C# 返回 Promise"最小闭环。
+2. Linux 上 PoC WPE WebKit 嵌入式 `NativeWebView` 的稳定性（issue #14 EGL 完成度）；不可用则验证 `NativeWebDialog`（WebKitGTK）降级路径。
+3. 基于 `LYBox.Plugin.Generators` 做绑定代码生成，与插件系统统一。
 
 ## 注意事项
 

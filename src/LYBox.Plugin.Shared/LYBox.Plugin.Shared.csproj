@@ -75,6 +75,16 @@
 	</ItemGroup>
 
 	<!--
+		Channel<T> 的构造函数为 internal（强制通过 IRpcHost.CreateChannel<T> 创建）。
+		LYBox.WebView.Ipc 的 WebViewIpcHost 实现 IRpcHost 并需直接构造 Channel<T>，
+		故向其暴露内部成员。测试项目通过 WebViewIpcHost 的公共 API 使用通道，无需此声明。
+	-->
+	<ItemGroup>
+		<InternalsVisibleTo Include="LYBox.WebView.Ipc" />
+		<InternalsVisibleTo Include="LYBox.Tests" />
+	</ItemGroup>
+
+	<!--
 		生成 PluginSdkContract.g.cs：编译时把 SDK 契约版本（即 HostVersion）嵌入程序集。
 		宿主与 SDK 共用 HostVersion，因此 PluginSdkVersion 在根 Directory.Build.props 中已是 $(HostVersion) 的别名。
 		主体程序通过 ProjectReference 引用本程序集，运行时读 PluginSdkContract.CurrentVersion
