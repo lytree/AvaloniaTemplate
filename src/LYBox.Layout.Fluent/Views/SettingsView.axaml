@@ -150,6 +150,40 @@
           <ToggleSwitch IsChecked="{Binding IsEnabledBackgroundImage}"/>
         </fui:SettingCard>
 
+        <!--  插件目录  -->
+        <fui:SettingCard
+          Description="{Binding PluginsDirectory}"
+          Header="插件目录"
+          IconSource="M3 4h6v6H3V4zm8 0h6v6h-6V4zm8 0h6v6h-6V4zM3 12h6v6H3v-6zm8 0h6v6h-6v-6zm8 0h6v6h-6v-6zM3 20h6v6H3v-6zm8 0h6v6h-6v-6zm8 0h6v6h-6v-6z">
+          <Button
+            Content="打开目录"
+            Command="{Binding OpenPluginDirectoryCommand}"
+            ToolTip.Tip="{Binding PluginsDirectory}"/>
+        </fui:SettingCard>
+
+        <!--  关于  -->
+        <fui:SettingsExpander
+          Description="{Binding OsDescription}"
+          Header="关于"
+          IconSource="M16 0q1.063 0 2.063 0.281t1.875 0.797 1.594 1.242 1.242 1.594 0.797 1.875 0.281 2.063-0.281 2.063-0.797 1.875-1.242 1.594-1.594 1.242-1.875 0.797-2.063 0.281-2.063-0.281-1.875-0.797-1.594-1.242-1.242-1.594-0.797-1.875-0.281-2.063 0.281-2.063 0.797-1.875 1.242-1.594 1.594-1.242 1.875-0.797 2.063-0.281zM16 4q-0.828 0-1.414 0.586t-0.586 1.414 0.586 1.414 1.414 0.586 1.414-0.586 0.586-1.414-0.586-1.414-1.414-0.586zM16 12q-1.063 0-2.063 0.281t-1.875 0.797-1.594 1.242-1.242 1.594-0.797 1.875-0.281 2.063 0.281 2.063 0.797 1.875 1.242 1.594 1.594 1.242 1.875 0.797 2.063 0.281 2.063-0.281 1.875-0.797 1.594-1.242 1.242-1.594 0.797-1.875 0.281-2.063-0.281-2.063-0.797-1.875-1.242-1.594-1.594-1.242-1.875-0.797-2.063-0.281z">
+          <fui:SettingsExpanderItem Margin="-24,0,0,0">
+            <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,4">
+              <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,12,4" Classes="Content" Text="宿主版本:"/>
+              <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,4" Classes="Content" Text="{Binding HostVersion}"/>
+              <TextBlock Grid.Row="0" Grid.Column="2" Margin="24,0,12,4" Classes="Content" Text="SDK 版本:"/>
+              <TextBlock Grid.Row="0" Grid.Column="3" Margin="0,0,0,4" Classes="Content" Text="{Binding SdkVersion}"/>
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,12,4" Classes="Content" Text="已装插件:"/>
+              <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,0,0,4" Classes="Content" Text="{Binding InstalledPluginCount}"/>
+              <TextBlock Grid.Row="1" Grid.Column="2" Margin="24,0,12,4" Classes="Content" Text="运行时:"/>
+              <TextBlock Grid.Row="1" Grid.Column="3" Margin="0,0,0,4" Classes="Content" Text="{Binding RuntimeVersion}"/>
+
+              <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,12,0" Classes="Content" Text="操作系统:"/>
+              <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,0,0,0" Classes="Content" Text="{Binding OsDescription}" TextWrapping="Wrap"/>
+            </Grid>
+          </fui:SettingsExpanderItem>
+        </fui:SettingsExpander>
+
       </StackPanel>
     </fui:SmoothScrollViewer>
   </Grid>

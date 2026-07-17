@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using AvaloniaFluentUI.Locale;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LYBox.Layout.Fluent.Models;
 using LYBox.Layout.Fluent.Services;
 
 namespace LYBox.Layout.Fluent.ViewModels;
@@ -28,6 +29,14 @@ public abstract partial class ViewModelBase : ObservableObject
         if (value is Button button)
         {
             JumpService.GotoControl(button);
+        }
+        else if (value is ButtonItemModel model)
+        {
+            JumpService.InvokeJumpEvent(new JumpModel
+            {
+                Page = model.Page,
+                ControlName = null
+            });
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -45,7 +46,14 @@ public partial class MainWindow : FluentWindow
     public MainWindow()
     {
         Application.Current.Resources["NavigationViewContentMargin"] = new Thickness(0, 55, 0, 0);
-        SplashScreen = new MainWindowSplashScreen();
+        // 支持 --no-splash 命令行参数：跳过闪屏，避免 Avalonia 12.x 动画系统在某些场景下
+        // 导致闪屏淡出动画 RunAsync 永久挂起的问题
+        var args = Environment.GetCommandLineArgs();
+        var noSplash = args.Any(a => string.Equals(a, "--no-splash", StringComparison.OrdinalIgnoreCase));
+        if (!noSplash)
+        {
+            SplashScreen = new MainWindowSplashScreen();
+        }
         InitializeComponent();
         
         RegisterMessages();
@@ -201,7 +209,7 @@ public partial class MainWindow : FluentWindow
 
             if (visible)
             {
-                _backgroundImage = LoadImageResource(); 
+                _backgroundImage = LoadImageResource();
                 BackgroundImage.Source = _backgroundImage;
             }
         }

@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:LYBox.Layout.Ursa.ViewModels"
+             xmlns:coreVm="clr-namespace:LYBox.Layout.Core.ViewModels;assembly=LYBox.Layout.Core"
              x:Class="LYBox.Layout.Ursa.Pages.PluginManagementPage"
              x:DataType="viewModels:PluginManagementViewModel"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600">
@@ -46,7 +47,7 @@
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="viewModels:PluginItemViewModel">
+                        <DataTemplate x:DataType="coreVm:PluginItemViewModel">
                             <Border Classes="FluentCard" Margin="0 0 0 4">
                                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
 
@@ -109,7 +110,7 @@
             </ScrollViewer>
 
             <!-- Empty State Card overlay -->
-            <Border IsVisible="{Binding Plugins.Count, Converter={x:Static viewModels:PluginStateConverters.IsEmpty}}"
+            <Border IsVisible="{Binding Plugins.Count, Converter={x:Static coreVm:PluginStateConverters.IsEmpty}}"
                     Classes="FluentCard" Padding="32"
                     HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 40 0 0">
                 <StackPanel HorizontalAlignment="Center" Spacing="8">

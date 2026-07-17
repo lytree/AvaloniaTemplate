@@ -8,7 +8,6 @@ using Avalonia.Markup.Xaml;
 using AvaloniaFluentUI.Controls;
 using AvaloniaFluentUI.Locale;
 using AvaloniaFluentUI.Styling;
-using LYBox.Layout.Fluent.Pages;
 using LYBox.Layout.Fluent.Services;
 using LYBox.Layout.Fluent.ViewModels;
 using LYBox.Layout.Fluent.Views;
@@ -82,11 +81,6 @@ public class App : Application
             {
                 Console.Error.WriteLine($"Unhandled ApplicationLifetime type: {ApplicationLifetime?.GetType()}");
             }
-
-            Frame.RegisterPage<FramePage1>();
-            Frame.RegisterPage<FramePage2>();
-            Frame.RegisterPage<FramePage3>();
-            Frame.RegisterPage<FramePage4>();
         }
         catch (Exception ex)
         {

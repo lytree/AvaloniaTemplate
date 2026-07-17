@@ -1326,6 +1326,7 @@ public partial class NavigationView : HeaderedContentControl
     private Control _nextIndicator;
     private Control _activeIndicator;
     private object _lastSelectedItemPendingAnimationInTopNav;
+    private int _selectionAnimationRetryCount;
 
     //private IControl _togglePaneTopPadding;
     //private IControl _contentPaneTopPadding;
@@ -4733,7 +4734,21 @@ public partial class NavigationView : HeaderedContentControl
         // so this is a temporary fix until I get around to comparing the code
         if (_activeIndicator == null && nextItem != null && nextIndicator == null)
         {
-            Dispatcher.UIThread.Post(() => AnimateSelectionChanged(nextItem));
+            // 仅当容器已生成但指示器尚未就绪时才重试，并限制重试次数。
+            // 若容器为 null（如闪屏期间内容未完全加载）或重试超限，立即停止以避免 Dispatcher 死循环。
+            if (NavigationViewItemOrSettingsContentFromData(nextItem) != null && _selectionAnimationRetryCount < 10)
+            {
+                _selectionAnimationRetryCount++;
+                Dispatcher.UIThread.Post(() => AnimateSelectionChanged(nextItem));
+            }
+            else
+            {
+                _selectionAnimationRetryCount = 0;
+            }
+        }
+        else
+        {
+            _selectionAnimationRetryCount = 0;
         }
 
         bool haveValidAnimation = false;

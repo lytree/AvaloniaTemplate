@@ -1,4 +1,8 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using LYBox.Plugin.Shared;
 using LYBox.Plugin.Shared.Models;
 using LYBox.Plugin.Shared.Services;
@@ -6,11 +10,18 @@ using LYBox.Layout.Core.ViewModels;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Ursa.Controls;
 
-namespace LYBox.Layout.Ursa.ViewModels;
+namespace LYBox.Layout.Fluent.ViewModels;
 
-public partial class PluginManagementViewModel : ViewModelBase
+/// <summary>
+/// Fluent 布局的插件管理 ViewModel。
+/// 与 Ursa 布局的 PluginManagementViewModel 逻辑一致，但移除了对 Ursa.Controls.OverlayMessageBox 的依赖，
+/// 安装失败时仅通过 StatusMessage 展示错误信息（Fluent 布局未引入 Irihi.Ursa 包）。
+/// 共享的 PluginItemViewModel 已提取到 LYBox.Layout.Core.ViewModels。
+/// 注意：此处显式继承 LYBox.Plugin.Shared.ViewModelBase（实现 IDisposable），
+/// 而非 Fluent 自身的 ViewModelBase（无 IDisposable，且含 Title/LocalizationService 约定）。
+/// </summary>
+public partial class PluginManagementViewModel : LYBox.Plugin.Shared.ViewModelBase
 {
     private readonly IPluginLoader _pluginLoader;
     private readonly IPluginInstallationManager _installationManager;
@@ -53,6 +64,39 @@ public partial class PluginManagementViewModel : ViewModelBase
             p.State == PluginState.PendingUninstall ||
             p.State == PluginState.PendingUpgrade ||
             p.State == PluginState.Installed);
+    }
+
+    /// <summary>
+    /// 当前插件安装目录的绝对路径（用于 UI 展示）。
+    /// </summary>
+    public string PluginsDirectory => _installationManager.GetPluginInstallDirectory();
+
+    /// <summary>
+    /// 在系统文件管理器中打开插件目录。失败时通过 StatusMessage 展示错误。
+    /// </summary>
+    [RelayCommand]
+    private void OpenPluginDirectory()
+    {
+        try
+        {
+            var dir = _installationManager.GetPluginInstallDirectory();
+            if (!System.IO.Directory.Exists(dir))
+            {
+                System.IO.Directory.CreateDirectory(dir);
+            }
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = dir,
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = _localizationService.GetString(
+                "OPEN_DIR_FAILED",
+                "打开目录失败：{0}",
+                ex.Message);
+        }
     }
 
     [RelayCommand]
@@ -110,12 +154,9 @@ public partial class PluginManagementViewModel : ViewModelBase
         }
         else
         {
-            // 显示安装失败提示对话框，展示具体原因
+            // Fluent 布局未引入 Irihi.Ursa，安装失败仅通过 StatusMessage 展示错误原因
             var reason = result.ErrorMessage ?? "";
             StatusMessage = _localizationService.GetString("INSTALLATION_FAILED", reason);
-            var title = _localizationService.GetString("INSTALLATION_FAILED_TITLE", "Installation Failed");
-            await OverlayMessageBox.ShowAsync(StatusMessage, title,
-                icon: MessageBoxIcon.Error, button: MessageBoxButton.OK);
         }
     }
 

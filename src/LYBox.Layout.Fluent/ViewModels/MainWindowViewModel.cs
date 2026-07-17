@@ -17,6 +17,7 @@ using LYBox.Plugin.Shared;
 using LYBox.Plugin.Shared.Services;
 using LYBox.Plugin.Shared.ViewModels;
 using LYBox.Layout.Core.Services;
+using LYBox.Layout.Core.ViewModels;
 
 namespace LYBox.Layout.Fluent.ViewModels;
 
@@ -25,17 +26,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public override string Title => "Avalonia Fluent UI LYBox.Layout.Fluent";
 
     public string Home => LocalizationService.Instance.GetString("Home");
-    public string Icon => LocalizationService.Instance.GetString("Icon");
-    public string BasicInput => LocalizationService.Instance.GetString("BasicInput");
-    public string DialogAndPopup => LocalizationService.Instance.GetString("DialogAndPopup");
-    public string Layout => LocalizationService.Instance.GetString("Layout");
-    public string Navigation => LocalizationService.Instance.GetString("Navigation");
-    public string Text => LocalizationService.Instance.GetString("Text");
-    public string View => LocalizationService.Instance.GetString("View");
-    public string Scroll => LocalizationService.Instance.GetString("Scroll");
-    public string StatusAndInformation => LocalizationService.Instance.GetString("StatusAndInformation");
-    public string MenuAndToolBar => LocalizationService.Instance.GetString("MenuAndToolBar");
-    public string DateTime => LocalizationService.Instance.GetString("DateTime");
     public string SearchWatermark => LocalizationService.Instance.GetString("MV_SearchWatermark");
 
     private readonly List<string> _history = new();
@@ -97,53 +87,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _viewModelFactories = new Dictionary<string, Func<ViewModelBase>>
         {
-            { "Icons", () => new IconsViewModel() },
-
-            { "BasicInput", () => new BasicInputViewModel() },
-            { "Button", () => new ButtonPageViewModel() },
-            { "ComboBox", () => new ComboBoxPageViewModel() },
-            { "Slider", () => new SlierPageViewModel() },
-
-            { "DialogBoxAndPopup", () => new DialogBoxAndPopupViewModel() },
-            { "Dialog", () => new DialogPageViewModel() },
-            { "Flyout", () => new FlyoutPageViewModel() },
-            { "ShortcutKeyPanel", () => new ShortcutKeyPickerPageViewModel() },
-
-            { "Layout", () => new LayoutViewModel() },
-            { "Border", () => new BorderPageViewModel() },
-            { "Panel", () => new PanelPageViewModel() },
-
-            { "Navigation", () => new NavigationViewModel() },
-            { "NavigationView", () => new NavigationViewPageViewModel() },
-            { "Tabs", () => new TabsPageViewModel() },
-            { "SegmentedView", () => new SegmentedViewPageViewModel() },
-            { "FrameView", () => new FrameViewPageViewModel() },
-            { "BreadcrumbBar", () => new BreadcrumbBarPageViewModel() },
-
-            { "Text", () => new TextViewModel() },
-            { "TextBlock", () => new TextBlockPageViewModel() },
-            { "TextBox",  () => new TextBoxPageViewModel() },
-            { "NumberBox", () => new SpinBoxPageViewModel()},
-
-            { "View", () => new ViewModel() },
-            { "List", () => new ListPageViewModel() },
-            { "TreeView", () => new TreeViewPageViewModel() },
-            { "CarouselView", () => new CarouselViewPageViewModel() },
-            { "Card", () => new CardPageViewModel() },
-            { "AvatarView", () => new AvatarViewPageViewModel() },
-            { "FileDropPicker", () => new FilesDropPickerPageViewModel() },
-
-            { "Scroll", () => new ScrollViewModel() },
-
-            { "StatusAndInformation", () => new StatusAndInformationViewModel() },
-
-            { "MenuAndToolBar", () => new MenuAndToolBarViewModel() },
-            { "Menu", () => new MenuPageViewModel() },
-            { "ContextMenu", () => new ContextMenuViewModel() },
-            { "CommandBar", () => new CommandBarViewPageViewModel() },
-
-            { "DateTime", () => new DateTimeViewModel() },
-
             { "Settings", () => new SettingsViewModel(config) },
         };
 
@@ -199,17 +142,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnPropertyChanged(nameof(Home));
-        OnPropertyChanged(nameof(Icon));
-        OnPropertyChanged(nameof(BasicInput));
-        OnPropertyChanged(nameof(DialogAndPopup));
-        OnPropertyChanged(nameof(Layout));
-        OnPropertyChanged(nameof(Navigation));
-        OnPropertyChanged(nameof(Text));
-        OnPropertyChanged(nameof(View));
-        OnPropertyChanged(nameof(Scroll));
-        OnPropertyChanged(nameof(StatusAndInformation));
-        OnPropertyChanged(nameof(MenuAndToolBar));
-        OnPropertyChanged(nameof(DateTime));
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(SearchWatermark));
     }
@@ -262,6 +194,27 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void TogglePage(string page)
     {
+        // Introduction（工具箱）使用 Core 共享的 IntroductionDemoViewModel，
+        // PluginManagement（插件管理）使用 Fluent 自有的 PluginManagementViewModel 副本。
+        // 这两个 VM 均继承 LYBox.Plugin.Shared.ViewModelBase 而非 Fluent 的 ViewModelBase，
+        // 因此无法放入 _viewModelFactories（类型为 Dictionary<string, Func<ViewModelBase>>），走独立创建路径。
+        if (page == "Introduction")
+        {
+            CurrentViewModel = new IntroductionDemoViewModel();
+            return;
+        }
+
+        if (page == "PluginManagement")
+        {
+            var pluginLoader = ServiceLocator.GetService<IPluginLoader>();
+            var installationManager = ServiceLocator.GetService<IPluginInstallationManager>();
+            if (pluginLoader is not null && installationManager is not null)
+            {
+                CurrentViewModel = new PluginManagementViewModel(pluginLoader, installationManager);
+            }
+            return;
+        }
+
         ViewModelBase? target;
         try
         {
@@ -287,11 +240,6 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         if (target == CurrentViewModel) return;
-
-        if (CurrentViewModel is HomeViewModel homeVm && CurrentViewModel != target)
-        {
-            homeVm.ReleaseImages();
-        }
 
         if (CurrentViewModel != null)
         {

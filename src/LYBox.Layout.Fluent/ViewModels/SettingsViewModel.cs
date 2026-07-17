@@ -1,5 +1,7 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Media;
@@ -12,6 +14,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using LYBox.Layout.Fluent.Messages.MainWindowMessages;
 using LYBox.Layout.Fluent.Models;
 using LYBox.Layout.Fluent.Services;
+using LYBox.Plugin.Shared;
+using LYBox.Plugin.Shared.Services;
 
 namespace LYBox.Layout.Fluent.ViewModels;
 
@@ -21,10 +25,12 @@ public partial class SettingsViewModel : ViewModelBase
     
     public SettingsViewModel(AppConfig? config)
     {
+        Console.WriteLine("[DIAG] SettingsViewModel ctor START");
         AvaloniaFluentTheme.Instance.ThemeChanged += OnThemeChanged;
         LocalizationService.Instance.PropertyChanged += OnLanguageChanged;
-        
+
         LoadSetting(config);
+        Console.WriteLine("[DIAG] SettingsViewModel ctor END");
     }
 
     private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
@@ -208,4 +214,79 @@ public partial class SettingsViewModel : ViewModelBase
         }
         WeakReferenceMessenger.Default.Send(new EnabledBackgroundImageMessage(value));
     }
+
+    // ============== 插件目录设置 ==============
+
+    /// <summary>
+    /// 当前插件安装目录的绝对路径（只读展示）。
+    /// 通过 ServiceLocator 在运行时从 IPluginInstallationManager 获取；
+    /// 若插件系统未接入则为空字符串。
+    /// </summary>
+    public string PluginsDirectory
+    {
+        get
+        {
+            var mgr = ServiceLocator.GetService<IPluginInstallationManager>();
+            return mgr?.GetPluginInstallDirectory() ?? string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 在系统文件管理器中打开插件目录。
+    /// </summary>
+    [RelayCommand]
+    private void OpenPluginDirectory()
+    {
+        try
+        {
+            var mgr = ServiceLocator.GetService<IPluginInstallationManager>();
+            if (mgr is null) return;
+            var dir = mgr.GetPluginInstallDirectory();
+            if (!System.IO.Directory.Exists(dir))
+            {
+                System.IO.Directory.CreateDirectory(dir);
+            }
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = dir,
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"OpenPluginDirectory failed: {ex.Message}");
+        }
+    }
+
+    // ============== 关于信息 ==============
+
+    /// <summary>宿主应用版本（来自程序集 FileVersion）。</summary>
+    public string HostVersion
+    {
+        get
+        {
+            var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            var ver = asm.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+            return ver ?? "0.0.0";
+        }
+    }
+
+    /// <summary>Plugin SDK 契约版本（编译时由 HostVersion 注入）。</summary>
+    public string SdkVersion => PluginSdkContract.CurrentVersion;
+
+    /// <summary>当前已安装的插件数量。</summary>
+    public int InstalledPluginCount
+    {
+        get
+        {
+            var loader = ServiceLocator.GetService<IPluginLoader>();
+            return loader?.GetInstalledPlugins().Count ?? 0;
+        }
+    }
+
+    /// <summary>应用运行时版本（.NET CLR）。</summary>
+    public string RuntimeVersion => Environment.Version.ToString();
+
+    /// <summary>操作系统描述。</summary>
+    public string OsDescription => RuntimeInformation.OSDescription;
 }

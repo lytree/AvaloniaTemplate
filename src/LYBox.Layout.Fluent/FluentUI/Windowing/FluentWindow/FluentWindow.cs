@@ -12,6 +12,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaFluentUI.Controls;
 using AvaloniaFluentUI.Core;
@@ -437,26 +438,37 @@ public partial class FluentWindow : Window
         }
     }
 
-    protected override async void OnOpened(EventArgs e)
+    protected override void OnOpened(EventArgs e)
     {
+        base.OnOpened(e);
+
         if (_splashContext != null && !_splashContext.HasShownSplashScreen && !Design.IsDesignMode)
         {
             PseudoClasses.Set(":splashOpen", true);
-            var time = DateTime.Now;
-
-            // n00b async/await mistake - need to await here, thansk to GH taj-ny for finding and fixing this
-            await _splashContext.RunJobs();
-
-            var delta = DateTime.Now - time;
-            if (delta.TotalMilliseconds < _splashContext.SplashScreen.MinimumShowTime)
+            // 关键：不能在 OnOpened 调用栈中使用 async/await，否则 Avalonia 12.x 的
+            // Dispatcher 会在 await 挂起期间处理 OnLoaded，触发 InvokeAsyncImpl 循环导致卡死。
+            // 解决方案：将 splash 延时任务放到线程池执行，完成后通过 Dispatcher.Post 回到 UI 线程。
+            var minShowTime = _splashContext.SplashScreen.MinimumShowTime;
+            var startTime = DateTime.UtcNow;
+            Task.Run(async () =>
             {
-                await Task.Delay(Math.Max(1, _splashContext.SplashScreen.MinimumShowTime - (int)delta.TotalMilliseconds));
-            }
-
-            LoadApp();
+                try
+                {
+                    await _splashContext.RunJobs();
+                    var delta = DateTime.UtcNow - startTime;
+                    var remaining = minShowTime - (int)delta.TotalMilliseconds;
+                    if (remaining > 0)
+                    {
+                        await Task.Delay(remaining);
+                    }
+                }
+                catch
+                {
+                    // splash 任务失败不阻断启动
+                }
+                Dispatcher.UIThread.Post(LoadApp);
+            });
         }
-
-        base.OnOpened(e);
     }
 
     protected override void OnClosed(EventArgs e)
@@ -555,71 +567,16 @@ public partial class FluentWindow : Window
         }
     }
 
-    private async void LoadApp()
+    private void LoadApp()
     {
         if (Presenter is not ContentPresenter cp)
+        {
             return;
+        }
 
         cp.IsVisible = true;
-
-        // Taking this out, it's causing flickering of the content after the splash fade animation
-        // Another regression in the animation system for 11.0...
-        //using var disp = cp.SetValue(OpacityProperty, 0d, Avalonia.Data.BindingPriority.Animation);
-
-        var aniSplash = new Animation
-        {
-            Duration = TimeSpan.FromMilliseconds(250),
-            FillMode = FillMode.Forward,
-            Children =
-            {
-                new KeyFrame
-                {
-                    Cue = new Cue(0d),
-                    Setters =
-                    {
-                        new Setter(OpacityProperty, 1d)
-                    }
-                },
-                new KeyFrame
-                {
-                    Cue = new Cue(1d),
-                    Setters =
-                    {
-                        new Setter(OpacityProperty, 0d),
-                    },
-                    KeySpline = new KeySpline(0,0,0,1)
-                }
-            }
-        };
-
-        var aniCP = new Animation
-        {
-            Duration = TimeSpan.FromMilliseconds(167),
-            Children =
-            {
-                new KeyFrame
-                {
-                    Cue = new Cue(0d),
-                    Setters =
-                    {
-                        new Setter(OpacityProperty, 0d)
-                    }
-                },
-                new KeyFrame
-                {
-                    Cue = new Cue(1d),
-                    Setters =
-                    {
-                        new Setter(OpacityProperty, 1d),
-                    },
-                    KeySpline = new KeySpline(0,0,0,1)
-                }
-            }
-        };
-
-        await Task.WhenAll(aniSplash.RunAsync(_splashContext.Host),
-            aniCP.RunAsync((Animatable)Presenter));
-
+        _splashContext.Host.Opacity = 0;
+        cp.Opacity = 1;
         PseudoClasses.Set(":splashOpen", false);
         _splashContext.HasShownSplashScreen = true;
     }

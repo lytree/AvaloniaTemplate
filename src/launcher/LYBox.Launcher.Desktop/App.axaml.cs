@@ -221,12 +221,6 @@ public partial class App : Application
                 {
                     DataContext = fluentVm
                 };
-
-                // 注册 Frame 页面
-                AvaloniaFluentUI.Controls.Frame.RegisterPage<LYBox.Layout.Fluent.Pages.FramePage1>();
-                AvaloniaFluentUI.Controls.Frame.RegisterPage<LYBox.Layout.Fluent.Pages.FramePage2>();
-                AvaloniaFluentUI.Controls.Frame.RegisterPage<LYBox.Layout.Fluent.Pages.FramePage3>();
-                AvaloniaFluentUI.Controls.Frame.RegisterPage<LYBox.Layout.Fluent.Pages.FramePage4>();
             }
             else
             {

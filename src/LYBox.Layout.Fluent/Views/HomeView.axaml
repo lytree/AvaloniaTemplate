@@ -5,7 +5,6 @@
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:fi="clr-namespace:AvaloniaFluentUI.Icons;assembly=LYBox.Layout.Fluent"
   xmlns:fui="clr-namespace:AvaloniaFluentUI.Controls;assembly=LYBox.Layout.Fluent"
-  xmlns:model="clr-namespace:LYBox.Layout.Fluent.Models"
   xmlns:ui="clr-namespace:LYBox.Layout.Fluent.Controls"
   xmlns:viewModel="clr-namespace:LYBox.Layout.Fluent.ViewModels"
   d:DesignHeight="1080"
@@ -25,7 +24,8 @@
     VerticalAlignment="Stretch"
     HorizontalScrollBarVisibility="Disabled"
     Offset="{Binding ScrollViewerOffset, Mode=TwoWay}">
-    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto">
+    <Grid RowDefinitions="Auto, Auto, Auto">
+      <!--  欢迎头部  -->
       <Border Grid.Row="0" Padding="35">
         <Border.Background>
           <ImageBrush Source="avares://LYBox.Layout.Fluent/Assets/Images/header.png" Stretch="Fill"/>
@@ -69,113 +69,17 @@
         </Grid>
       </Border>
 
-      <!--  Button  -->
+      <!--  功能入口  -->
       <TextBlock
         Grid.Row="1"
-        Margin="35,0,0,8"
+        Margin="35,35,0,8"
         Classes="Title"
-        Text="{Binding SectionBasicInput}"/>
+        Text="{Binding SectionFeatures}"/>
       <ui:ButtonItemsPanel
         Grid.Row="2"
         Command="{Binding GotoCommand}"
-        ItemsSource="{Binding ButtonItemSource}"
-        Tag="BasicInput"/>
-
-      <!--  Date Time  -->
-      <TextBlock
-        Grid.Row="3"
-        Margin="35,35,0,8"
-        Classes="Title"
-        Text="{Binding SectionDateTime}"/>
-      <ui:ButtonItemsPanel
-        Grid.Row="4"
-        Command="{Binding GotoCommand}"
-        ItemsSource="{Binding DateTimeItemSource}"
-        Tag="DateTime"/>
-
-      <!--  Dialog  -->
-      <TextBlock
-        Grid.Row="5"
-        Margin="35,35,0,8"
-        Classes="Title"
-        Text="{Binding SectionDialog}"/>
-      <ui:ButtonItemsPanel
-        Grid.Row="6"
-        Command="{Binding GotoCommand}"
-        ItemsSource="{Binding DialogItemSource}"
-        Tag="DialogBoxAndPopup"/>
-
-      <!--  Layout  -->
-      <TextBlock
-        Grid.Row="7"
-        Margin="35,35,0,8"
-        Classes="Title"
-        Text="{Binding SectionLayout}"/>
-      <ui:ButtonItemsPanel
-        Grid.Row="8"
-        Command="{Binding GotoCommand}"
-        ItemsSource="{Binding LayoutItemSource}"
-        Tag="Layout"/>
-
-      <!--  Menu & ToolBar  -->
-      <TextBlock
-        Grid.Row="9"
-        Margin="35,35,0,8"
-        Classes="Title"
-        Text="{Binding SectionMenuAndToolBar}"/>
-      <ui:ButtonItemsPanel
-        Grid.Row="10"
-        Command="{Binding GotoCommand}"
-        ItemsSource="{Binding MenuAndToolBarItemSource}"
-        Tag="MenuAndToolBar"/>
-
-      <!--  Navigation View  -->
-      <TextBlock
-        Grid.Row="11"
-        Margin="35,35,0,8"
-        Classes="Title"
-        Text="{Binding SectionNavigationView}"/>
-      <ui:ButtonItemsPanel
-        Grid.Row="12"
-        Command="{Binding GotoCommand}"
-        ItemsSource="{Binding NavigationViewItemSource}"
-        Tag="Navigation"/>
-
-      <!--  Status and Information  -->
-      <TextBlock
-        Grid.Row="13"
-        Margin="35,35,0,8"
-        Classes="Title"
-        Text="{Binding SectionStatusAndInformation}"/>
-      <ui:ButtonItemsPanel
-        Grid.Row="14"
-        Command="{Binding GotoCommand}"
-        ItemsSource="{Binding StatusAndInformationItemSource}"
-        Tag="StatusAndInformation"/>
-
-      <!--  Text  -->
-      <TextBlock
-        Grid.Row="15"
-        Margin="35,35,0,8"
-        Classes="Title"
-        Text="{Binding SectionText}"/>
-      <ui:ButtonItemsPanel
-        Grid.Row="16"
-        Command="{Binding GotoCommand}"
-        ItemsSource="{Binding TextItemSource}"
-        Tag="Text"/>
-
-      <!--  View  -->
-      <TextBlock
-        Grid.Row="17"
-        Margin="35,35,0,8"
-        Classes="Title"
-        Text="{Binding SectionView}"/>
-      <ui:ButtonItemsPanel
-        Grid.Row="18"
-        Command="{Binding GotoCommand}"
-        ItemsSource="{Binding ViewItemSource}"
-        Tag="View"/>
+        ItemsSource="{Binding FeatureItemSource}"
+        Tag="Introduction"/>
     </Grid>
   </fui:SmoothScrollViewer>
 </UserControl>

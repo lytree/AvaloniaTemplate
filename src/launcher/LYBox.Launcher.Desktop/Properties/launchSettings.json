@@ -6,6 +6,20 @@
         "AVALONIA_EXTRA_PLUGINS_PATH": ""
       }
     },
+    "Launcher (Fluent Layout)": {
+      "commandName": "Project",
+      "commandLineArgs": "--layout=fluent --no-splash",
+      "environmentVariables": {
+        "AVALONIA_EXTRA_PLUGINS_PATH": ""
+      }
+    },
+    "Launcher (Fluent) + Template Plugin": {
+      "commandName": "Project",
+      "commandLineArgs": "--layout=fluent --no-splash",
+      "environmentVariables": {
+        "AVALONIA_EXTRA_PLUGINS_PATH": "$(SolutionDir)plugins/LYBox.Plugin.Template/bin/Debug/net10.0"
+      }
+    },
     "Launcher + Template Plugin": {
       "commandName": "Project",
       "environmentVariables": {

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using LYBox.Layout.Core.ViewModels;
 using LYBox.Layout.Fluent.Pages;
-using LYBox.Layout.Fluent.Pages.IconPage;
 using LYBox.Layout.Fluent.ViewModels;
 using LYBox.Layout.Fluent.Views;
 
@@ -22,59 +22,15 @@ public class ViewLocator : IDataTemplate
 
     private void Register()
     {
+        // Fluent 内置 Gallery 页面
         _factory[typeof(HomeViewModel)] = () => new HomeView();
-        
-        _factory[typeof(IconsViewModel)] = () => new IconsView();
-        _factory[typeof(FluentIconPageViewModel)] = () => new FluentIconPage();
-        _factory[typeof(FontIconPageViewModel)] = () => new FontIconPage();
-        _factory[typeof(SymbolIconPageViewModel)] = () => new SymbolIconPage();
-        
-        _factory[typeof(BasicInputViewModel)] = () => new BasicInputView();
-        _factory[typeof(ButtonPageViewModel)] = () => new ButtonPage();
-        _factory[typeof(ComboBoxPageViewModel)] = () => new ComboBoxPage();
-        _factory[typeof(SlierPageViewModel)] = () => new SliderPage();
-        
-        _factory[typeof(DialogBoxAndPopupViewModel)] = () => new DialogBoxAndPopupView();
-        _factory[typeof(DialogPageViewModel)] = () => new DialogPage();
-        _factory[typeof(FlyoutPageViewModel)] = () => new FlyoutPage();
-        _factory[typeof(ShortcutKeyPickerPageViewModel)] = () => new ShortcutKeyPickerPage();
-        
-        _factory[typeof(LayoutViewModel)] = () => new LayoutView();
-        _factory[typeof(BorderPageViewModel)] = () => new BorderPage();
-        _factory[typeof(PanelPageViewModel)] = () => new PanelPage();
-        
-        _factory[typeof(NavigationViewModel)] = () => new NavigationView();
-        _factory[typeof(NavigationViewPageViewModel)] = () => new NavigationViewPage();
-        _factory[typeof(TabsPageViewModel)] = () => new TabsPage();
-        _factory[typeof(SegmentedViewPageViewModel)] = () => new SegmentedViewPage();
-        _factory[typeof(FrameViewPageViewModel)] = () => new FrameViewPage();
-        _factory[typeof(BreadcrumbBarPageViewModel)] = () => new BreadcrumbBarPage();
-        
-        _factory[typeof(TextViewModel)] = () => new TextView();
-        _factory[typeof(TextBlockPageViewModel)] = () => new TextBlockPage();
-        _factory[typeof(TextBoxPageViewModel)] = () => new TextBoxPage();
-        _factory[typeof(SpinBoxPageViewModel)] = () => new SpinBoxPage();
-        
-        _factory[typeof(ViewModel)] = () => new View();
-        _factory[typeof(ListPageViewModel)] = () => new ListPage();
-        _factory[typeof(TreeViewPageViewModel)] = () => new TreeViewPage();
-        _factory[typeof(CarouselViewPageViewModel)] = () => new CarouselViewPage();
-        _factory[typeof(CardPageViewModel)] = () => new CardPage();
-        _factory[typeof(AvatarViewPageViewModel)] = () => new AvatarViewPage();
-        _factory[typeof(FilesDropPickerPageViewModel)] = () => new FilesDropPickerPage();
-        
-        _factory[typeof(ScrollViewModel)] = () => new ScrollView();
-        
-        _factory[typeof(StatusAndInformationViewModel)] = () => new StatusAndInformationView();
-        
-        _factory[typeof(MenuAndToolBarViewModel)] = () => new MenuAndToolBarView();
-        _factory[typeof(MenuPageViewModel)] = () => new MenuPage();
-        _factory[typeof(ContextMenuViewModel)] = () => new ContextMenuPage();
-        _factory[typeof(CommandBarViewPageViewModel)] = () => new CommandBarViewPage();
-        
-        _factory[typeof(DateTimeViewModel)] = () => new DateTimeView();
-        
         _factory[typeof(SettingsViewModel)] = () => new SettingsView();
+
+        // Core 业务 VM → Fluent 风格 View 映射
+        // IntroductionDemoViewModel 提取到 LYBox.Layout.Core.ViewModels，两个布局共享
+        _factory[typeof(IntroductionDemoViewModel)] = () => new IntroductionPage();
+        // PluginManagementViewModel 为 Fluent 布局独立副本（移除了 Ursa 包依赖），见 ViewModels/PluginManagementViewModel.cs
+        _factory[typeof(PluginManagementViewModel)] = () => new PluginManagementPage();
     }
 
     public Control? Build(object? param)

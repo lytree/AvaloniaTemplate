@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:LYBox.Plugin.Shared.Models"
     xmlns:u="https://irihi.tech/ursa"
-    xmlns:vm="using:LYBox.Layout.Ursa.ViewModels"
+    xmlns:vm="using:LYBox.Layout.Core.ViewModels"
     x:CompileBindings="True"
     x:DataType="vm:IntroductionDemoViewModel"
     d:DesignHeight="800"
