@@ -1,9 +1,8 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
-using LYBox.Plugin.Shared.Rpc;
 
-namespace LYBox.WebView.Ipc;
+namespace LYBox.Plugin.Shared.Rpc;
 
 /// <summary>
 /// IPC 运行时主机（transport-agnostic）。实现 <see cref="IRpcHost"/>，

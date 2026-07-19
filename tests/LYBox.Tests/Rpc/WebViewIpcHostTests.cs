@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using LYBox.Plugin.Shared.Rpc;
-using LYBox.WebView.Ipc;
 using Xunit;
 
 namespace LYBox.Tests.Rpc;

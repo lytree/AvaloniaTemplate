@@ -3,7 +3,7 @@
 LYBox WebView IPC 是一套基于 `Avalonia.Controls.WebView` 的双向通讯框架，采用 **Wails v2 模型为主干 + Tauri Channel 流式扩展** 的混合策略，让宿主 C# 代码与嵌入前端页面之间实现类型安全、可流式推送的 RPC 通讯。
 
 > **适用版本**：HostVersion 2.1.0+  
-> **依赖项目**：`LYBox.Plugin.Shared`、`LYBox.WebView.Ipc`、`LYBox.Plugin.Generators`  
+> **依赖项目**：`LYBox.Plugin.Shared`、`LYBox.Plugin.Generators`  
 > **测试覆盖**：30 个 xUnit 测试（`tests/LYBox.Tests/Rpc/WebViewIpcHostTests.cs`）
 
 ---
@@ -112,9 +112,8 @@ Avalonia WebView 抽象层仅提供两个低级通道：
 
 | 项目 | 职责 |
 |------|------|
-| `LYBox.Plugin.Shared` | 契约层：`[RpcCommand]`、`IRpcTransport`、`IRpcHost`、`IRpcBindingSource`、`Channel<T>`、`RpcEnvelope` |
+| `LYBox.Plugin.Shared` | 契约层 + IPC 运行时：`[RpcCommand]`、`IRpcTransport`、`IRpcHost`、`IRpcBindingSource`、`Channel<T>`、`RpcEnvelope`、`WebViewIpcHost`、嵌入式 `ipc.js` |
 | `LYBox.Plugin.Generators` | Roslyn 增量源生成器：扫描 `[RpcCommand]` 生成 `IRpcBindingSource` partial 实现 |
-| `LYBox.WebView.Ipc` | IPC 运行时：`WebViewIpcHost`（Dispatcher + Promise 回推 + Channel）+ 嵌入式 `ipc.js` |
 | 宿主项目 | 提供 `WebViewIpcTransport`（包装 `Avalonia.Controls.WebView`）+ 演示页面 |
 
 ---
@@ -157,7 +156,6 @@ public partial class CounterService
 在宿主代码中创建 `WebViewIpcHost`，注册命令，注入到 WebView：
 
 ```csharp
-using LYBox.WebView.Ipc;
 using LYBox.Plugin.Shared.Rpc;
 
 // transport 由宿主提供，包装 Avalonia.Controls.WebView
@@ -276,8 +274,8 @@ unsub();
 
 ### `WebViewIpcHost` 运行时
 
-**命名空间**：`LYBox.WebView.Ipc`  
-**文件**：[src/LYBox.WebView.Ipc/WebViewIpcHost.cs](../src/LYBox.WebView.Ipc/WebViewIpcHost.cs)
+**命名空间**：`LYBox.Plugin.Shared.Rpc`  
+**文件**：[src/LYBox.Plugin.Shared/Rpc/WebViewIpcHost.cs](../src/LYBox.Plugin.Shared/Rpc/WebViewIpcHost.cs)
 
 实现 `IRpcHost`，在 `IRpcTransport.MessageReceived` 上按 Wails v2 前缀信封分发。
 
@@ -388,7 +386,7 @@ const unsub = ch.on(progress => {
 
 ## 前端 JS API
 
-**文件**：[src/LYBox.WebView.Ipc/Assets/ipc.js](../src/LYBox.WebView.Ipc/Assets/ipc.js)
+**文件**：[src/LYBox.Plugin.Shared/Rpc/Assets/ipc.js](../src/LYBox.Plugin.Shared/Rpc/Assets/ipc.js)
 
 宿主通过 `InitializeAsync()` 注入 `ipc.js`，提供 `window.__lybox` 运行时。前端无需手动引入任何库。
 
@@ -697,7 +695,6 @@ dotnet test tests/LYBox.Tests/LYBox.Tests.csproj --filter "FullyQualifiedName~We
 
 ```csharp
 using LYBox.Plugin.Shared.Rpc;
-using LYBox.WebView.Ipc;
 
 var transport = new FakeTransport();
 var host = new WebViewIpcHost(transport);

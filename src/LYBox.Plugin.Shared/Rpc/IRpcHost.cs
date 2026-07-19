@@ -8,7 +8,7 @@ public delegate Task<object?> RpcCommandHandler(JsonElement[] args, Cancellation
 
 /// <summary>
 /// RPC 主机：管理命令注册、事件双向分发、流式通道。
-/// 由 <c>LYBox.WebView.Ipc.WebViewIpcHost</c> 实现；插件/宿主通过此接口注册命令。
+/// 由 <see cref="WebViewIpcHost"/> 实现；插件/宿主通过此接口注册命令。
 /// </summary>
 public interface IRpcHost
 {

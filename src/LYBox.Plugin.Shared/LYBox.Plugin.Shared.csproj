@@ -76,12 +76,19 @@
 
 	<!--
 		Channel<T> 的构造函数为 internal（强制通过 IRpcHost.CreateChannel<T> 创建）。
-		LYBox.WebView.Ipc 的 WebViewIpcHost 实现 IRpcHost 并需直接构造 Channel<T>，
-		故向其暴露内部成员。测试项目通过 WebViewIpcHost 的公共 API 使用通道，无需此声明。
+		WebViewIpcHost 与 Channel<T> 同程序集，可直接构造；测试项目通过 WebViewIpcHost
+		的公共 API 使用通道，但部分白盒测试需要访问内部类型，故向其暴露内部成员。
 	-->
 	<ItemGroup>
-		<InternalsVisibleTo Include="LYBox.WebView.Ipc" />
 		<InternalsVisibleTo Include="LYBox.Tests" />
+	</ItemGroup>
+
+	<!--
+		WebView IPC 引导脚本：作为嵌入资源打包，由 WebViewIpcHost.LoadBootstrap() 运行时读取
+		并经 IRpcTransport.ExecuteScriptAsync 注入页面。
+	-->
+	<ItemGroup>
+		<EmbeddedResource Include="Rpc\Assets\ipc.js" />
 	</ItemGroup>
 
 	<!--
