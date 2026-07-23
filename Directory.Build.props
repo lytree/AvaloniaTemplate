@@ -9,7 +9,7 @@
         build.ps1 仍可传 host-version / plugin-version 参数临时覆盖。
     -->
     <PropertyGroup>
-        <HostVersion>2.1.0</HostVersion>
+        <HostVersion>2.2.0</HostVersion>
         <!-- 向后兼容别名：旧脚本/插件 csproj 仍可用 $(PluginSdkVersion)，
              等价于 $(HostVersion)。不再单独 bump。 -->
         <PluginSdkVersion>$(HostVersion)</PluginSdkVersion>

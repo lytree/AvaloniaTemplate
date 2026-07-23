@@ -4,6 +4,7 @@ using System.Text.Json;
 using LYBox.Plugin.Shared;
 using LYBox.Plugin.Shared.Models;
 using LYBox.Plugin.Shared.Services;
+using LYBox.Plugin.Shared.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -521,6 +522,44 @@ public sealed class PluginLoader : IPluginLoader, IDisposable
         {
             return _entries.TryGetValue(pluginId, out var entry) ? entry.Metadata : null;
         }
+    }
+
+    /// <summary>
+    /// 扫描所有已加载插件，返回实现了 <see cref="IWebPlugin"/> 的插件的 wwwroot 目录映射。
+    /// 同时把 <see cref="PluginEntry.Info.InstallPath"/> 注入到 <see cref="IWebPlugin.PluginBaseDir"/>，
+    /// 供 <see cref="IWebPlugin.WwwrootPath"/> 计算使用。
+    /// 跳过 wwwroot 目录不存在的插件（记录警告），不影响其他插件。
+    /// </summary>
+    /// <returns>插件 ID → wwwroot 绝对路径的字典。无 Web 插件时返回空字典。</returns>
+    public Dictionary<string, string> GetWebPluginRoots()
+    {
+        var result = new Dictionary<string, string>();
+
+        List<PluginEntry> snapshot;
+        lock (_sync)
+        {
+            snapshot = _entries.Values
+                .Where(e => e.Plugin is IWebPlugin && e.Info.State == PluginState.Loaded)
+                .ToList();
+        }
+
+        foreach (var entry in snapshot)
+        {
+            var webPlugin = (IWebPlugin)entry.Plugin!;
+            webPlugin.PluginBaseDir = entry.Info.InstallPath;
+
+            var wwwroot = webPlugin.WwwrootPath;
+            if (string.IsNullOrEmpty(wwwroot) || !Directory.Exists(wwwroot))
+            {
+                _logger.LogWarning("Web 插件 {PluginId} 的 wwwroot 目录不存在: {Path}，跳过 HTTP 路由注册",
+                    entry.Info.PluginId, wwwroot);
+                continue;
+            }
+
+            result[entry.Info.PluginId] = wwwroot;
+        }
+
+        return result;
     }
 
     private PluginEntry GetOrCreateEntry(string pluginId)

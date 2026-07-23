@@ -36,5 +36,11 @@
 
         <!-- Ursa 递归依赖（版本跟随 Irihi.Ursa 2.1.x 发布） -->
         <IrihiAvaloniaSharedVersion>0.4.0</IrihiAvaloniaSharedVersion>
+
+        <!-- WebView + 嵌入式 HTTP 资源服务（P1 引入） -->
+        <!-- Avalonia.Controls.WebView 12.0.1：官方 WebView 控件，与 Avalonia 12.1.0 兼容（最新稳定版） -->
+        <AvaloniaControlsWebView>12.0.1</AvaloniaControlsWebView>
+        <!-- ASP.NET Core：通过 FrameworkReference 引用 Microsoft.AspNetCore.App 共享框架，
+             不再使用独立 NuGet 包（Kestrel/StaticFiles 自 .NET Core 3+ 起不再发布为独立包） -->
     </PropertyGroup>
 </Project>

@@ -48,6 +48,14 @@ Ursa
 Semi.Avalonia
 Microsoft.EntityFrameworkCore
 Microsoft.EntityFrameworkCore.*
-ProDataGrid</_SharedAssembliesPatterns>
+ProDataGrid
+Microsoft.AspNetCore
+Microsoft.AspNetCore.*
+Microsoft.Extensions.FileProviders.*
+Microsoft.Extensions.Hosting.Abstractions
+Microsoft.Extensions.Features
+System.IO.Pipelines
+System.Net.Http
+System.Security.Cryptography.*</_SharedAssembliesPatterns>
   </PropertyGroup>
 </Project>

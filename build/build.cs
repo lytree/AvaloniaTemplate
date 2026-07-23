@@ -56,8 +56,15 @@ Task("Clean")
 
     if (t.HasFlag(BuildTarget.FluentWindow))
     {
-        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "LYBox.FluentWindow", "bin"));
-        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "LYBox.FluentWindow", "obj"));
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "LYBox.Layout.Fluent", "bin"));
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "src", "LYBox.Layout.Fluent", "obj"));
+    }
+
+    if (t.HasFlag(BuildTarget.Tool))
+    {
+        CleanDirectoryIfExists(c, buildContext.ToolPackagesDir);
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "tools", "LYBox.MockServer", "bin"));
+        CleanDirectoryIfExists(c, Path.Combine(buildContext.RootDir, "tools", "LYBox.MockServer", "obj"));
     }
 
     if (t.HasFlag(BuildTarget.Plugin))
@@ -157,19 +164,50 @@ Task("Build")
         c.Log.Information("FluentWindow project built.");
     }
 
+    // Tool 独立 dotnet tool 项目构建（lybox-mock 前端调试 Mock 后端）
+    if (buildContext.Target.HasFlag(BuildTarget.Tool))
+    {
+        if (File.Exists(buildContext.ToolProject))
+        {
+            c.DotNetBuild(buildContext.ToolProject, new DotNetBuildSettings
+            {
+                Configuration = buildContext.BuildConfiguration,
+                MSBuildSettings = hostSettings
+            });
+            c.Log.Information("Tool project built.");
+        }
+        else
+        {
+            c.Log.Warning("Tool project not found at {0}, skipping", buildContext.ToolProject);
+        }
+    }
+
     // 插件层：各插件用自己的 PluginVersion（不再被 PackageVersion 覆盖）
     // 注：插件 restore 依赖 bin/nuget/ 本地 feed，必须等上面的 SDK pack 完成
     if (buildContext.Target.HasFlag(BuildTarget.Plugin))
     {
+        var buildFailedPlugins = new List<string>();
         foreach (var plugin in buildContext.PluginProjects)
         {
             var pluginMsBuild = buildContext.CreatePluginMSBuildSettings(plugin);
 
-            c.DotNetBuild(plugin.ProjectPath(buildContext.RootDir), new DotNetBuildSettings
+            try
             {
-                Configuration = buildContext.BuildConfiguration,
-                MSBuildSettings = pluginMsBuild
-            });
+                c.DotNetBuild(plugin.ProjectPath(buildContext.RootDir), new DotNetBuildSettings
+                {
+                    Configuration = buildContext.BuildConfiguration,
+                    MSBuildSettings = pluginMsBuild
+                });
+            }
+            catch (Exception ex)
+            {
+                c.Log.Error("插件 {0} 编译失败，跳过（不影响其他插件）: {1}", plugin.ProjectName, ex.Message);
+                buildFailedPlugins.Add(plugin.ProjectName);
+            }
+        }
+        if (buildFailedPlugins.Count > 0)
+        {
+            c.Log.Warning("以下 {0} 个插件编译失败: {1}", buildFailedPlugins.Count, string.Join(", ", buildFailedPlugins));
         }
     }
 
@@ -266,6 +304,7 @@ Task("PackPlugins")
 {
     c.EnsureDirectoryExists(buildContext.PluginPackagesDir);
 
+    var failedPlugins = new List<string>();
     foreach (var plugin in buildContext.PluginProjects)
     {
         var pluginOutputDir = Path.Combine(buildContext.PluginPackagesDir, plugin.ProjectName, "publish");
@@ -273,19 +312,66 @@ Task("PackPlugins")
 
         var pluginMsBuild = buildContext.CreatePluginMSBuildSettings(plugin);
 
-        c.DotNetPublish(plugin.ProjectPath(buildContext.RootDir), new DotNetPublishSettings
+        try
         {
-            Configuration = buildContext.BuildConfiguration,
-            OutputDirectory = pluginOutputDir,
-            MSBuildSettings = pluginMsBuild
-        });
+            c.DotNetPublish(plugin.ProjectPath(buildContext.RootDir), new DotNetPublishSettings
+            {
+                Configuration = buildContext.BuildConfiguration,
+                OutputDirectory = pluginOutputDir,
+                MSBuildSettings = pluginMsBuild
+            });
 
-        c.Log.Information("Plugin published: {0} -> {1}", plugin.ProjectName, pluginOutputDir);
+            // 复制插件 wwwroot/ 前端资源到发布目录（仅当源目录存在时）
+            CopyPluginWwwroot(c, buildContext, plugin, pluginOutputDir);
+
+            c.Log.Information("Plugin published: {0} -> {1}", plugin.ProjectName, pluginOutputDir);
+        }
+        catch (Exception ex)
+        {
+            c.Log.Error("插件 {0} 发布失败，跳过（不影响其他插件）: {1}", plugin.ProjectName, ex.Message);
+            failedPlugins.Add(plugin.ProjectName);
+        }
     }
 
     PackPluginZips(c, buildContext);
 
+    if (failedPlugins.Count > 0)
+    {
+        c.Log.Warning("以下 {0} 个插件发布失败: {1}", failedPlugins.Count, string.Join(", ", failedPlugins));
+    }
+
     c.Log.Information("All plugins published to: {0}", buildContext.PluginPackagesDir);
+
+    static void CopyPluginWwwroot(ICakeContext ctx, BuildContext bctx, PluginProjectInfo plugin, string publishDir)
+    {
+        var pluginSrcDir = Path.Combine(bctx.RootDir, "plugins", plugin.ProjectName);
+        var wwwrootSrc = Path.Combine(pluginSrcDir, "wwwroot");
+
+        if (!Directory.Exists(wwwrootSrc))
+        {
+            ctx.Log.Debug("插件 {0} 无 wwwroot 目录，跳过前端资源复制", plugin.ProjectName);
+            return;
+        }
+
+        var wwwrootDest = Path.Combine(publishDir, "wwwroot");
+        CopyDirectoryRecursive(wwwrootSrc, wwwrootDest);
+        ctx.Log.Information("插件 {0} wwwroot 已复制到 {1}", plugin.ProjectName, wwwrootDest);
+    }
+
+    static void CopyDirectoryRecursive(string sourceDir, string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+        foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.TopDirectoryOnly))
+        {
+            var destFile = Path.Combine(destDir, Path.GetFileName(file));
+            File.Copy(file, destFile, overwrite: true);
+        }
+        foreach (var subDir in Directory.GetDirectories(sourceDir, "*", SearchOption.TopDirectoryOnly))
+        {
+            var destSubDir = Path.Combine(destDir, Path.GetFileName(subDir));
+            CopyDirectoryRecursive(subDir, destSubDir);
+        }
+    }
 
     static void PackPluginZips(ICakeContext ctx, BuildContext bctx)
     {
@@ -419,10 +505,46 @@ Task("PackFluentWindow")
     c.Log.Information("FluentWindow published to: {0}", fwOutputDir);
 });
 
+Task("PackTool")
+    .IsDependentOn("Build")
+    .WithCriteria(c => buildContext.Target.HasFlag(BuildTarget.Tool), "Tool target not selected")
+    .Does(c =>
+{
+    if (!File.Exists(buildContext.ToolProject))
+    {
+        c.Log.Warning("Tool project not found at {0}, skipping PackTool", buildContext.ToolProject);
+        return;
+    }
+
+    c.EnsureDirectoryExists(buildContext.ToolPackagesDir);
+
+    var hostSettings = buildContext.CreateHostMSBuildSettings();
+
+    // PackAsTool 生成可安装的 nupkg（NoBuild=true 复用 Build 任务结果）
+    c.DotNetPack(buildContext.ToolProject, new DotNetPackSettings
+    {
+        Configuration = buildContext.BuildConfiguration,
+        OutputDirectory = buildContext.ToolPackagesDir,
+        NoRestore = true,
+        NoBuild = true,
+        MSBuildSettings = hostSettings
+    });
+
+    foreach (var pkg in c.GetFiles(Path.Combine(buildContext.ToolPackagesDir, "*.nupkg")))
+    {
+        c.Log.Information("  Tool NuGet: {0}", pkg.GetFilename());
+    }
+
+    c.Log.Information("LYBox.MockServer dotnet tool packed to: {0}", buildContext.ToolPackagesDir);
+    c.Log.Information("Install with: dotnet tool install --global --add-source {0} LYBox.MockServer", buildContext.ToolPackagesDir);
+    c.Log.Information("Then run: lybox-mock --help");
+});
+
 Task("Default")
     .IsDependentOn("PackBin")
     .IsDependentOn("PackFluentWindow")
-    .IsDependentOn("PackPlugins");
+    .IsDependentOn("PackPlugins")
+    .IsDependentOn("PackTool");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION
@@ -443,7 +565,9 @@ public enum BuildTarget
     // FluentWindow 独立布局项目（自定义边框窗口）
     FluentWindow = 2,
     Plugin = 4,
-    All = Bin | FluentWindow | Plugin
+    // Tool 独立 dotnet tool 项目（lybox-mock 前端调试 Mock 后端）
+    Tool = 8,
+    All = Bin | FluentWindow | Plugin | Tool
 }
 
 /// <summary>
@@ -483,11 +607,13 @@ public class BuildContext
     public string NuGetPackagesDir { get; }
     public string BinPackagesDir { get; }
     public string PluginPackagesDir { get; }
+    public string ToolPackagesDir { get; }
 
     public string GeneratorsProject { get; }
     public string SharedProject { get; }
     public string LauncherProject { get; }
     public string FluentWindowProject { get; }
+    public string ToolProject { get; }
     public IReadOnlyList<PluginProjectInfo> PluginProjects { get; }
 
     // 宿主+SDK 版本覆盖（优先级：--host-version > --package-version > csproj 真相源 HostVersion）
@@ -558,11 +684,13 @@ public class BuildContext
         NuGetPackagesDir = Path.Combine(PackagesDir, "nuget");
         BinPackagesDir = Path.Combine(PackagesDir, "bin");
         PluginPackagesDir = Path.Combine(PackagesDir, "plugins");
+        ToolPackagesDir = Path.Combine(PackagesDir, "tools");
 
         GeneratorsProject = Path.Combine(RootDir, "src", "LYBox.Plugin.Generators", "LYBox.Plugin.Generators.csproj");
         SharedProject = Path.Combine(RootDir, "src", "LYBox.Plugin.Shared", "LYBox.Plugin.Shared.csproj");
         LauncherProject = Path.Combine(RootDir, "src", "launcher", "LYBox.Launcher.Desktop", "LYBox.Launcher.Desktop.csproj");
-        FluentWindowProject = Path.Combine(RootDir, "src", "LYBox.FluentWindow", "LYBox.FluentWindow.csproj");
+        FluentWindowProject = Path.Combine(RootDir, "src", "LYBox.Layout.Fluent", "LYBox.Layout.Fluent.csproj");
+        ToolProject = Path.Combine(RootDir, "tools", "LYBox.MockServer", "LYBox.MockServer.csproj");
 
         PluginProjects = FilterPlugins(DiscoverPlugins(RootDir), PluginFilter);
     }
@@ -631,7 +759,8 @@ public class BuildContext
                 // 兼容：nuget 已与 bin 合并，等价映射
                 "nuget" => BuildTarget.Bin,
                 "plugin" => BuildTarget.Plugin,
-                _ => throw new ArgumentException($"Unknown build target: '{part}'. Valid values: all, bin, plugin")
+                "tool" => BuildTarget.Tool,
+                _ => throw new ArgumentException($"Unknown build target: '{part}'. Valid values: all, bin, fluent-window, plugin, tool")
             };
         }
         return result == BuildTarget.None ? BuildTarget.All : result;

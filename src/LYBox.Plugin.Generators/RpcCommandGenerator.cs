@@ -115,7 +115,9 @@ public class RpcCommandGenerator : IIncrementalGenerator
         sb.AppendLine("    {");
         foreach (var c in list)
         {
-            var id = $"{typeDisplay}.{c.Name}";
+            // 命令名用短名（如 GreetAsync），与前端 window.__lybox.rpc('GreetAsync', ...) 一致。
+            // 短名冲突时需在 [RpcCommand(Name="...")] 显式指定。
+            var id = c.Name;
             var target = c.Method.IsStatic ? fullName : "__instance";
             var isVoid = c.Method.ReturnsVoid;
             var awaitable = IsAwaitable(c.Method.ReturnType);

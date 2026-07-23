@@ -6,6 +6,7 @@ using Avalonia.Platform;
 using LYBox.Plugin.Shared;
 using LYBox.Plugin.Shared.Models;
 using LYBox.Plugin.Shared.Services;
+using LYBox.Plugin.Shared.Web;
 using LYBox.Layout.Core.Data;
 using LYBox.Layout.Core.Services;
 using LYBox.Layout.Ursa.Services;
@@ -104,6 +105,9 @@ public partial class App : Application
         services.AddSingleton<PluginLoader>(pluginLoader);
         services.AddSingleton<IPluginLoader>(pluginLoader);
 
+        // 注册嵌入式 HTTP 资源服务（单例，随 ServiceProvider.Dispose 自动停止）
+        services.AddSingleton<WebHostService>();
+
         ServiceProvider = services.BuildServiceProvider();
         ServiceLocator.Initialize(ServiceProvider);
 
@@ -132,6 +136,7 @@ public partial class App : Application
 
         // 阶段3：调用插件 RegisterAsync(IServiceProvider)，执行多语言注册等
         pluginLoader.RegisterAllPluginsAsync(ServiceProvider).GetAwaiter().GetResult();
+        InitializeWebHost(pluginLoader);
         RegisterPluginNavigationAndMenus(pluginLoader);
 
         DataContext = new ApplicationViewModel();
@@ -160,6 +165,40 @@ public partial class App : Application
 
         var settingsService = ServiceProvider?.GetRequiredService<ISettingsService>() as SettingsService;
         settingsService?.InitializeDefaults();
+    }
+
+    /// <summary>
+    /// 启动嵌入式 HTTP 资源服务并注册所有 Web 插件的 wwwroot 路由。
+    /// 在 <see cref="PluginLoader.RegisterAllPluginsAsync"/> 之后调用，确保插件实例已就绪；
+    /// 在 <see cref="RegisterPluginNavigationAndMenus"/> 之前调用，确保 Web 插件页面导航时 HTTP 服务已可用。
+    /// 启动失败不阻塞应用（Web 插件功能降级，传统插件不受影响）。
+    /// </summary>
+    private void InitializeWebHost(PluginLoader pluginLoader)
+    {
+        try
+        {
+            var webHost = ServiceProvider?.GetRequiredService<WebHostService>();
+            if (webHost is null) return;
+
+            var roots = pluginLoader.GetWebPluginRoots();
+            foreach (var (pluginId, wwwrootPath) in roots)
+            {
+                webHost.MapPluginRoot(pluginId, wwwrootPath);
+                var logger = ServiceProvider?.GetRequiredService<ILogger<App>>();
+                logger?.LogInformation("已注册 Web 插件路由: /{PluginId}/ → {Path}", pluginId, wwwrootPath);
+            }
+
+            // 启动 Kestrel（自动分配端口）
+            webHost.StartAsync().GetAwaiter().GetResult();
+            var bootLogger = ServiceProvider?.GetRequiredService<ILogger<App>>();
+            bootLogger?.LogInformation("WebHostService 已启动，监听 {BaseUrl}", webHost.BaseUrl);
+        }
+        catch (Exception ex)
+        {
+            var logger = ServiceProvider?.GetRequiredService<ILogger<App>>();
+            logger?.LogError(ex, "WebHostService 启动失败，Web 插件功能将不可用");
+            // 不重新抛出：HTTP 服务失败不应阻塞传统插件与宿主 UI
+        }
     }
 
     private void RegisterPluginNavigationAndMenus(IPluginLoader pluginLoader)

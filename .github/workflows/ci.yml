@@ -1,0 +1,89 @@
+name: CI
+
+# 持续集成：push / PR 时自动构建全部目标（bin + fluent-window + plugin + tool），
+# 仅验证编译通过，不发布产物、不推送 NuGet。
+# 发布请使用 release-host.yml / release-plugins.yml / release-tool.yml。
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '**.mdx'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '**.mdx'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+jobs:
+  build:
+    name: Build All Targets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build all (bin + fluent-window + plugin + tool)
+        run: |
+          dotnet build/build.cs \
+            --build=all \
+            --configuration=Release
+
+      - name: Verify artifacts
+        run: |
+          echo "=== SDK NuGet packages ==="
+          ls -lh bin/nuget/*.nupkg 2>/dev/null || echo "(none)"
+          echo "=== Plugin zips ==="
+          ls -lh bin/plugins/zip/*.zip 2>/dev/null || echo "(none)"
+          echo "=== Tool NuGet packages ==="
+          ls -lh bin/tools/*.nupkg 2>/dev/null || echo "(none)"
+          echo "=== FluentWindow publish ==="
+          ls -lh bin/fluent-window/ 2>/dev/null || echo "(none)"
+          echo "=== Launcher publish ==="
+          ls -lh bin/bin/ 2>/dev/null || echo "(none)"
+
+      - name: Upload SDK NuGet artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-sdk-nuget
+          path: bin/nuget/*.nupkg
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Upload plugin zip artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-plugin-zips
+          path: bin/plugins/zip/*.zip
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Upload tool NuGet artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-tool-nuget
+          path: bin/tools/*.nupkg
+          if-no-files-found: warn
+          retention-days: 3

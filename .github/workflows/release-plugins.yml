@@ -7,7 +7,10 @@ name: Release Plugins
 # 产物：
 #   - 插件 SDK NuGet 包（LYBox.Plugin.Generators / LYBox.Plugin.Shared，用于插件 restore）
 #   - 各插件 zip 包（含 plugin.json 清单，剥离 .pdb/.xml/.deps.json/.runtimeconfig.json）
-# 可选：配置 NUGET_API_KEY secret 后自动尝试推送插件 SDK 包到 nuget.org
+# NuGet 发布：使用 Trusted Publishing（OIDC 短期令牌），无需长期 API key。
+#   前置条件：
+#     1. nuget.org → 账户 → 受信任的发布 → 添加策略（Repository Owner=lytree, Repository=AvaloniaTemplate, Workflow File=release-plugins.yml, Environment=release）
+#     2. GitHub 仓库 → Settings → Environments → 新建 release 环境 → 添加 secret NUGET_USER=<nuget.org 用户名>
 
 on:
   push:
@@ -94,8 +97,10 @@ jobs:
     name: Pack Plugin SDK NuGet
     needs: resolve_context
     runs-on: ubuntu-latest
-    env:
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    environment: release  # GitHub 环境：承载 NUGET_USER secret 与审批门禁
+    permissions:
+      id-token: write     # OIDC 令牌颁发（NuGet 可信发布必需）
+      contents: read      # 仅读取代码，发布 GitHub Release 由 release 作业负责
     steps:
       - uses: actions/checkout@v4
 
@@ -117,13 +122,18 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Push plugin SDK NuGet packages (optional)
-        if: env.NUGET_API_KEY != ''
+      - name: NuGet login (OIDC → 短期 API key)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}  # nuget.org 用户名（profile name，非邮箱）
+
+      - name: Push plugin SDK NuGet packages
         run: |
           for pkg in bin/nuget/*.nupkg; do
             echo "Pushing $pkg"
             dotnet nuget push "$pkg" \
-              --api-key "$NUGET_API_KEY" \
+              --api-key ${{ steps.login.outputs.NUGET_API_KEY }} \
               --source https://api.nuget.org/v3/index.json \
               --skip-duplicate
           done

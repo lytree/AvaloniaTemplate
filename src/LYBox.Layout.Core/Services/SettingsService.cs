@@ -231,6 +231,6 @@ public sealed class SettingsService : ISettingsService
         var minimizeToTrayDesc = _localizationService?.GetString("SETTING_APP_MINIMIZE_TO_TRAY_DESC", "Hide to system tray when closing the window") ?? "Hide to system tray when closing the window";
 
         RegisterSetting(SettingDefinition.Switch("App.MinimizeToTray", minimizeToTrayName,
-            minimizeToTrayDesc, appearanceGroup, 0, 3, true));
+            minimizeToTrayDesc, appearanceGroup, 0, 3, false));
     }
 }
