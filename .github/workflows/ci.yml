@@ -36,9 +36,9 @@ jobs:
     name: Build All Targets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
@@ -63,7 +63,7 @@ jobs:
 
       - name: Upload SDK NuGet artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ci-sdk-nuget
           path: bin/nuget/*.nupkg
@@ -72,7 +72,7 @@ jobs:
 
       - name: Upload plugin zip artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ci-plugin-zips
           path: bin/plugins/zip/*.zip
@@ -81,7 +81,7 @@ jobs:
 
       - name: Upload tool NuGet artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ci-tool-nuget
           path: bin/tools/*.nupkg

@@ -80,9 +80,9 @@ jobs:
       id-token: write     # OIDC 令牌颁发（NuGet 可信发布必需）
       contents: read      # 仅读取代码，发布 GitHub Release 由 release 作业负责
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
@@ -93,7 +93,7 @@ jobs:
             --host-version=${{ needs.resolve_context.outputs.version }}
 
       - name: Upload main SDK NuGet artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: main-sdk-nuget
           path: bin/nuget/*.nupkg
@@ -125,9 +125,9 @@ jobs:
       id-token: write     # OIDC 令牌颁发（NuGet 可信发布必需）
       contents: read      # 仅读取代码，发布 GitHub Release 由 release 作业负责
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
@@ -150,7 +150,7 @@ jobs:
           done
 
       - name: Upload tool NuGet artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: tool-nuget
           path: bin/tools/*.nupkg
@@ -186,9 +186,9 @@ jobs:
           - { os: ubuntu-latest,  rid: linux-arm64 }
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
@@ -212,7 +212,7 @@ jobs:
           Get-Item "${{ env.MAIN_PROJECT_NAME }}-${{ matrix.rid }}-${{ needs.resolve_context.outputs.version }}.zip" | Format-List Name, Length, LastWriteTime
 
       - name: Upload main artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.MAIN_PROJECT_NAME }}-${{ matrix.rid }}
           path: ${{ env.MAIN_PROJECT_NAME }}-${{ matrix.rid }}-${{ needs.resolve_context.outputs.version }}.zip
@@ -224,7 +224,7 @@ jobs:
     needs: [resolve_context, pack_sdk, pack_tool, publish_host]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: github.event_name == 'workflow_dispatch'
         with:
           fetch-depth: 0
@@ -238,7 +238,7 @@ jobs:
           git push origin "${{ needs.resolve_context.outputs.tag_name }}"
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: artifacts
 
